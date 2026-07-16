@@ -19,7 +19,7 @@
 
 ## 总进度
 
-- [ ] 阶段 0 — 目的与要解决的问题
+- [x] 阶段 0 — 目的与要解决的问题 → 笔记：`notes/阶段0-目的与要解决的问题.md`
 - [ ] 阶段 1 — 项目结构：全景地图
 - [ ] 阶段 2 — 端到端主线：一个程序的一生 ★脊柱
 - [ ] 阶段 3 — 程序到底是什么：prog + sys
@@ -40,10 +40,10 @@
 
 **读什么**
 
-- [ ] `README.md` 顶部
-- [ ] `docs/internals.md`
-- [ ] `docs/coverage.md`
-- [ ] `docs/research.md`（论文 / talk 索引，挑一个 talk 看）
+- [x] `README.md` 顶部
+- [x] `docs/internals.md`
+- [x] `docs/coverage.md`
+- [x] `docs/research.md`（论文 / talk 索引，挑一个 talk 看）
 
 **主线问题**：syzkaller 的**两根支柱**是什么，为什么缺一不可？
 
@@ -51,13 +51,15 @@
 
 **动手**
 
-- [ ] 读 README 顶部 + 看一张 `docs/process_structure.png`
+- [x] 读 README 顶部 + 看一张 `docs/process_structure.png`
 
 **出师**
 
-- [ ] 对着白纸画出 `syz-manager(host)` ↔ `syz-executor(VM 内)` ↔ `短命子进程` 三层，说出各自职责
+- [x] 对着白纸画出 `syz-manager(host)` ↔ `syz-executor(VM 内)` ↔ `短命子进程` 三层，说出各自职责
 
 **我的笔记**
+
+→ 详见 `notes/阶段0-目的与要解决的问题.md`
 
 
 ---
