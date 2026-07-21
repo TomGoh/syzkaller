@@ -406,9 +406,10 @@ static int pkvm_build_slotted_vm(long kvm_fd, int do_run)
 		run->immediate_exit = 1;
 		errno = 0;
 		long rr = ioctl(vcpu, KVM_RUN, 0);
+		int run_errno = errno; // save before munmap/close can clobber errno (this gates the EINTR check)
 		munmap((void*)run, pg);
 		close(vcpu);
-		if (!(rr == -1 && errno == EINTR)) { // the controlled run must actually have happened
+		if (!(rr == -1 && run_errno == EINTR)) { // the controlled run must actually have happened
 			close(vm);
 			return -1;
 		}
@@ -425,7 +426,9 @@ static long syz_kvm_memslot_reject_delete(volatile long a0)
 	if (vm < 0)
 		return -1;
 	long ret = pkvm_memslot_ioctl(vm, PKVM_MEMSLOT_SLOT, 0, 0, 0, 0);
+	int e = errno; // preserve the reject errno (EPERM) across close(vm)
 	close(vm);
+	errno = e;
 	return ret;
 }
 #endif
@@ -439,7 +442,9 @@ static long syz_kvm_memslot_reject_move(volatile long a0)
 		return -1;
 	uint64 b = pkvm_memslot_backing();
 	long ret = pkvm_memslot_ioctl(vm, PKVM_MEMSLOT_SLOT, 0, PKVM_MEMSLOT_GPA + pkvm_page(), pkvm_page(), b);
+	int e = errno; // preserve the reject errno (EPERM) across close(vm)
 	close(vm);
+	errno = e;
 	return ret;
 }
 #endif
@@ -457,7 +462,9 @@ static long syz_kvm_memslot_reject_flags(volatile long a0, volatile long a1)
 	long ret = -1;
 	if (b)
 		ret = pkvm_memslot_ioctl(vm, PKVM_MEMSLOT_SLOT, (uint32)a1, PKVM_MEMSLOT_GPA, pkvm_page(), b);
+	int e = errno; // preserve the reject errno (EPERM) across close(vm)
 	close(vm);
+	errno = e;
 	return ret;
 }
 #endif
