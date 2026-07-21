@@ -1,0 +1,18 @@
+Composite slice-2 campaign — provenance (2026-07-21)
+
+syzkaller branch/commit : pkvm-lifecycle-fuzzing @ b0dffddbae77669befd3cd9ab30756585a5e1afe
+  (errno fix b0dffddba on top of composite redesign 1a8add308)
+board                   : N90 = root@10.42.27.17, Kylin V10 aarch64 Phytium gwd3000
+kernel                  : 6.6.30-pkvm-fuzz
+  kvm-arm.mode=protected (GRUB default), KASLR off
+vmlinux                 : /home/jose/common/vmlinux
+  sha256   = c3d0c24e5f66afe8212457a46c9ca47b42a0cb251340cdb59b96e3e14f81a3e1
+  build-id = 1e36e2ee9e969132eb64ec0af547f48e67c15734
+executor                : bin/linux_arm64/syz-executor (errno-fixed), sandbox=none, root
+enable_syscalls         : 10/8060 (openat$kvm, setup_protected_vm, CREATE_VCPU_protected,
+                          VCPU_INIT_safe, vcpu_run_immediate, memslot_reject_{delete,move,flags},
+                          close$kvmvm_protected, close)  -- NO raw create / NO fragment calls
+campaign (supervised)   : corpus 0->72, coverage 0->6465, ~5.2k execs @ ~20/s, 0 crashes, 0 WARN/BUG
+rawcover.txt            : SNAPSHOT at exec~4.9k (6215 PCs); the pKVM/mmu function set is stable
+                          well before plateau, so attribution is complete; the ~250-PC gap to the
+                          6465 plateau is executor/sandbox signal, not new arch/arm64/kvm code.
