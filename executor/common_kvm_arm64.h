@@ -323,6 +323,94 @@ static long syz_kvm_vcpu_run_immediate(volatile long a0)
 }
 #endif
 
+// --- Slice 2: controlled memslot state machine on a protected VM ------------------------------
+// Fixed, bounded parameters: one page at a low aligned guest-physical address well within a
+// >=32-bit IPA space, and a single fixed slot. The executor owns the RW backing memory (the fuzzer
+// never supplies a userspace pointer). These reach the two distinct pKVM memslot rejects in
+// kvm_arch_prepare_memory_region() (arch/arm64/kvm/mmu.c:2492-2502): dirty/readonly flags on a
+// protected VM (needs only pkvm.enabled, no run), and DELETE/MOVE after the first run (needs
+// pkvm.handle). No guest memory is ever executed — pages do not reach EL2 here.
+#if SYZ_EXECUTOR || __NR_syz_kvm_register_memslot || __NR_syz_kvm_register_memslot_flags || __NR_syz_kvm_memslot_delete || __NR_syz_kvm_memslot_move
+#define PKVM_MEMSLOT_SLOT 0
+#define PKVM_MEMSLOT_GPA 0x40000000UL
+#define PKVM_MEMSLOT_GPA_MOVED 0x40001000UL
+#define PKVM_MEMSLOT_SIZE 0x1000UL
+
+// One shared, executor-owned RW backing page (allocated once; reused, never freed while slots may
+// reference it — bounded, no per-call leak).
+static uint64 pkvm_memslot_backing(void)
+{
+	static void* backing = NULL;
+	if (!backing) {
+		backing = mmap(NULL, PKVM_MEMSLOT_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+		if (backing == MAP_FAILED)
+			backing = NULL;
+	}
+	return (uint64)(uintptr_t)backing;
+}
+
+// Checked KVM_SET_USER_MEMORY_REGION (unlike vm_set_user_memory_region, which ignores the return).
+static long pkvm_memslot_ioctl(long vmfd, uint32 slot, uint32 flags, uint64 gpa, uint64 size, uint64 backing)
+{
+	struct kvm_userspace_memory_region m;
+	memset(&m, 0, sizeof(m));
+	m.slot = slot;
+	m.flags = flags;
+	m.guest_phys_addr = gpa;
+	m.memory_size = size;
+	m.userspace_addr = backing;
+	return ioctl(vmfd, KVM_SET_USER_MEMORY_REGION, &m);
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_register_memslot
+// Forward path: register a normal (flags=0) one-page slot on a protected VM. Succeeds before the
+// first run. Returns the slot number as a state token (>=0), or -1 if backing/registration failed;
+// delete/move consume this token so they target a slot actually registered on THIS pVM.
+static long syz_kvm_register_memslot(volatile long a0)
+{
+	uint64 b = pkvm_memslot_backing();
+	if (!b)
+		return -1;
+	if (pkvm_memslot_ioctl(a0, PKVM_MEMSLOT_SLOT, 0, PKVM_MEMSLOT_GPA, PKVM_MEMSLOT_SIZE, b) != 0)
+		return -1;
+	return PKVM_MEMSLOT_SLOT;
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_register_memslot_flags
+// Reject A: register with KVM_MEM_LOG_DIRTY_PAGES / KVM_MEM_READONLY on a protected VM -> -EPERM
+// (needs only pkvm.enabled; no run required). a1 = the bad flags. Returns the ioctl result.
+static long syz_kvm_register_memslot_flags(volatile long a0, volatile long a1)
+{
+	uint64 b = pkvm_memslot_backing();
+	if (!b)
+		return -1;
+	return pkvm_memslot_ioctl(a0, PKVM_MEMSLOT_SLOT, (uint32)a1, PKVM_MEMSLOT_GPA, PKVM_MEMSLOT_SIZE, b);
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_memslot_delete
+// Reject B (delete): delete the registered slot (memory_size=0). After the first run (pkvm.handle
+// set) -> -EPERM; before a run this succeeds. a1 = the slot token from register.
+static long syz_kvm_memslot_delete(volatile long a0, volatile long a1)
+{
+	return pkvm_memslot_ioctl(a0, (uint32)a1, 0, 0, 0, 0);
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_memslot_move
+// Reject B (move): move the registered slot to an adjacent, still-bounded GPA. After the first run
+// -> -EPERM. a1 = the slot token from register.
+static long syz_kvm_memslot_move(volatile long a0, volatile long a1)
+{
+	uint64 b = pkvm_memslot_backing();
+	if (!b)
+		return -1;
+	return pkvm_memslot_ioctl(a0, (uint32)a1, 0, PKVM_MEMSLOT_GPA_MOVED, PKVM_MEMSLOT_SIZE, b);
+}
+#endif
+
 #if SYZ_EXECUTOR || __NR_syz_kvm_vgic_v3_setup
 static int kvm_set_device_attr(int dev_fd, uint32 group, uint64 attr, void* val)
 {

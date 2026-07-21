@@ -507,6 +507,28 @@ KCOV?").** `coverage=6407` is the manager's accumulated **host-side KCOV signal 
   is **Stage 2** (in-hyp EL2 KCOV, design spec §6). What §6.1–6.4 prove is precisely Strategy 1: the **host→hyp
   lifecycle** driven and observed by KCOV up to the EL2 boundary.
 
+### 6.5 Host-breadth slices (controlled EL1 pKVM state-machine expansion) — 2026-07-21
+
+After the baseline, host coverage is grown in small, verified, archived slices — each a fixed regression test →
+manual `syz-execprog` verification → short allowlisted campaign. All stay EL1 host-side (EL2 stays Stage 2).
+
+- **Slice 1 — safe dual-vCPU lifecycle** (`test/arm64-syz_kvm_dual_vcpu`; evidence `evidence/2026-07-21-slice1-dual-vcpu.md`).
+  2 vCPUs both `INIT_safe`, run one, close both then VM. The first run's `pkvm_create_hyp_vm` walks all vCPUs
+  (`kvm_for_each_vcpu → __pkvm_create_hyp_vcpu`, pkvm.c:415). **Functional pass** (ret=0, no BUG1/hang, explicit
+  closes run). **Coverage: +125 PCs but only ~4 in `arch/arm64/kvm`** — KCOV dedups the identical per-vCPU body,
+  so multiplicity is a *regression test*, not a coverage win. No new syzlang (model already permits ≥2 vCPUs).
+- **Slice 2 — controlled memslot state machine** (`test/arm64-syz_kvm_memslot_{delete,move,dirty}_reject`;
+  evidence `evidence/2026-07-21-slice2-memslot.md`). New pseudo-calls `syz_kvm_register_memslot` (+`_flags`),
+  `syz_kvm_memslot_delete`/`_move` with a `kvm_memslot` **state token** (delete/move consume it → operate on a
+  slot really registered on the same pVM; executor-owned backing, checked return). Hits the **two distinct** pKVM
+  rejects in `kvm_arch_prepare_memory_region` (mmu.c:2492-2502): dirty/readonly → `-EPERM` with only
+  `pkvm.enabled` (no run); DELETE/MOVE → `-EPERM` only after the first run sets `pkvm.handle`. **All three
+  verified on N90** (register success; each reject `-EPERM`; ret=0; no BUG1). **Coverage: +468 PCs, 75 unique kvm
+  func:line** across the whole memslot subsystem incl. `kvm_arch_prepare_memory_region` — genuine new host
+  coverage. Short campaign: all 4 calls entered the corpus, coverage 6407→6592, 0 crashes.
+- **Deliberately NOT in these slices:** real guest-memory execution / page-fault / donation — those bring pages
+  into EL2 and need a stably-exiting protected guest (SyzOS/pvmfw subproject, §7), not `run_immediate`.
+
 ---
 
 ## 7. Deferred (Phase 5 — separate subtasks)

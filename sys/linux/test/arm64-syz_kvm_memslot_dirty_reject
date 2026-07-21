@@ -1,0 +1,12 @@
+# requires: arch=arm64 -threaded
+
+# pKVM memslot reject A (dirty/readonly flags on a protected VM). Register a memslot with
+# KVM_MEM_LOG_DIRTY_PAGES (0x1) on a protected VM. kvm_arch_prepare_memory_region rejects a slot
+# whose flags carry LOG_DIRTY/READONLY as soon as pkvm.enabled is set -> -EPERM, WITHOUT any run
+# (arch/arm64/kvm/mmu.c:2499-2502); pkvm.enabled is set at protected-VM creation. So this test does
+# NOT create a vCPU or run. N90 acceptance: memslot register-with-dirty returns -EPERM; no BUG1.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
+syz_kvm_register_memslot_flags$arm64(r1, 0x1)
+close$kvmvm_protected(r1)

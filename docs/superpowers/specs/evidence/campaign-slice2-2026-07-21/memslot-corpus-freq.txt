@@ -1,0 +1,4 @@
+     13 memslot_delete$arm64
+     18 memslot_move$arm64
+     22 register_memslot$arm64
+     13 register_memslot_flags$arm64
