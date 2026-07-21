@@ -1,0 +1,43 @@
+watch start 11:33:29
+EVENT new-crash 11:33:29: e449b943962088bdf81b302caa2956be86db18f7
+operational note: clear BOTH dmesg -C AND workdir/crashes/ between isolated-backend runs (live board reuse)
+11:35:40 false-alarm resolved: stale crash dir (11:25:59) from aborted attempt-1 moved aside; clean run (started 11:26:58) has 0 crashes
+watch start 11:35:40
+11:35:40 board=up corpus=80 coverage=6087 exec total=19644 crashlines=0
+11:40:40 board=up corpus=80 coverage=6090 exec total=31267 crashlines=0
+11:45:41 board=up corpus=83 coverage=6092 exec total=43140 crashlines=0
+11:50:41 board=up corpus=83 coverage=6100 exec total=54883 crashlines=0
+11:55:41 board=up corpus=84 coverage=6111 exec total=66952 crashlines=0
+12:00:42 board=up corpus=84 coverage=6112 exec total=79038 crashlines=0
+12:05:42 board=up corpus=84 coverage=6112 exec total=91060 crashlines=0
+12:10:42 board=up corpus=85 coverage=6113 exec total=103087 crashlines=0
+12:15:43 board=up corpus=85 coverage=6113 exec total=115045 crashlines=0
+12:20:43 board=up corpus=85 coverage=6113 exec total=126913 crashlines=0
+12:25:43 board=up corpus=86 coverage=6121 exec total=139004 crashlines=0
+12:30:44 board=up corpus=87 coverage=6121 exec total=150499 crashlines=0
+12:35:44 board=up corpus=87 coverage=6121 exec total=162545 crashlines=0
+12:40:44 board=up corpus=87 coverage=6121 exec total=174643 crashlines=0
+12:45:45 board=up corpus=87 coverage=6121 exec total=186763 crashlines=0
+12:50:45 board=up corpus=87 coverage=6121 exec total=198923 crashlines=0
+12:55:45 board=up corpus=88 coverage=6122 exec total=210932 crashlines=0
+13:00:46 board=up corpus=88 coverage=6122 exec total=223094 crashlines=0
+13:05:46 board=up corpus=88 coverage=6122 exec total=235099 crashlines=0
+13:10:46 board=up corpus=88 coverage=6122 exec total=247099 crashlines=0
+13:15:47 board=up corpus=91 coverage=6382 exec total=259099 crashlines=0
+13:20:47 board=up corpus=91 coverage=6382 exec total=271099 crashlines=0
+13:25:47 board=up corpus=91 coverage=6382 exec total=283058 crashlines=0
+13:30:48 board=up corpus=93 coverage=6407 exec total=294307 crashlines=0
+13:35:48 board=up corpus=93 coverage=6407 exec total=306241 crashlines=0
+13:40:48 board=up corpus=93 coverage=6407 exec total=318666 crashlines=0
+13:45:49 board=up corpus=93 coverage=6407 exec total=330670 crashlines=0
+13:50:49 board=up corpus=93 coverage=6407 exec total=342462 crashlines=0
+13:55:49 board=up corpus=93 coverage=6407 exec total=354563 crashlines=0
+14:00:50 board=up corpus=93 coverage=6407 exec total=366585 crashlines=0
+EVENT window-elapsed 14:05:50 still-running
+14:06:59 watch window 1 elapsed clean (2h40m soak, 380k execs, 0 crashes, coverage saturated at 6407); relaunching insurance watcher
+watch start 14:06:59
+14:07:00 board=up corpus=93 coverage=6407 exec total=381342 crashlines=0
+14:12:00 board=up corpus=93 coverage=6407 exec total=393457 crashlines=0
+14:17:00 board=up corpus=93 coverage=6407 exec total=405769 crashlines=0
+14:22:01 board=up corpus=93 coverage=6407 exec total=417857 crashlines=0
+14:27:01 board=up corpus=93 coverage=6407 exec total=429884 crashlines=0

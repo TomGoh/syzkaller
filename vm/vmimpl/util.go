@@ -93,6 +93,13 @@ func sshArgs(debug bool, sshKey, portArg string, port, forwardPort int, systemSS
 		"-o", "StrictHostKeyChecking=no",
 		"-o", "ConnectTimeout=10",
 	)
+	if !debug {
+		// Silence ssh client banners (e.g. the OpenSSH "connection is not using a
+		// post-quantum key exchange algorithm" warning) so they do not leak into the
+		// console/dmesg stream and get misread as kernel crash output. When debug is
+		// set, -v below overrides this and restores full verbosity.
+		args = append(args, "-o", "LogLevel=ERROR")
+	}
 	if sshKey != "" {
 		args = append(args, "-i", sshKey)
 	}

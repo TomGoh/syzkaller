@@ -1,0 +1,5 @@
+# pKVM campaign provenance — 2026-07-21 14:34
+syzkaller branch: claude/syzkaller-source-learning-vvisp3  rev: 3ccdc5297
+kernel: 6.6.30-pkvm-fuzz  vmlinux build-id: BuildID[sha1]=626215a85985054d3a1456d874d6a7507f20bc96
+board: N90 (10.42.27.17), Kylin V10 Phytium gwd3000, arm64 4K pages, KASLR off
+final: corpus=93 coverage=6407 exec total=440201  crashes: 0  duration: ~2h40m

@@ -1,0 +1,29 @@
+# Symbolized pKVM/host-boundary hits from call #1 (protected KVM_CREATE_VM), N90, 2026-07-21
+# source: syz-execprog -cover=1 -coverfile; vmlinux=/home/jose/common/vmlinux (6.6.30-pkvm-fuzz, KASLR off)
+# filtered to arch/arm64/kvm/{pkvm,mmu,arm}.c create/share paths
+
+cpu_hyp_init	/home/jose/common/arch/arm64/kvm/arm.c:2002
+cpu_hyp_init	/home/jose/common/arch/arm64/kvm/arm.c:2006
+kvm_arch_hardware_enable	/home/jose/common/arch/arm64/kvm/arm.c:2024
+kvm_arch_init_vm	/home/jose/common/arch/arm64/kvm/arm.c:162
+kvm_arch_init_vm	/home/jose/common/arch/arm64/kvm/arm.c:165
+kvm_arch_init_vm	/home/jose/common/arch/arm64/kvm/arm.c:179
+kvm_arch_init_vm	/home/jose/common/arch/arm64/kvm/arm.c:193
+kvm_arch_init_vm	/home/jose/common/arch/arm64/kvm/arm.c:198
+kvm_arch_init_vm	/home/jose/common/arch/arm64/kvm/arm.c:204
+kvm_host_owns_hyp_mappings	/home/jose/common/arch/arm64/kvm/mmu.c:494
+kvm_init_stage2_mmu	/home/jose/common/arch/arm64/kvm/mmu.c:1009
+kvm_init_stage2_mmu	/home/jose/common/arch/arm64/kvm/mmu.c:1016
+kvm_init_stage2_mmu	/home/jose/common/arch/arm64/kvm/mmu.c:987
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:631
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:638
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:641
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:644
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:645
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:646
+kvm_share_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:647
+pkvm_init_host_vm	/home/jose/common/arch/arm64/kvm/pkvm.c:457
+pkvm_init_host_vm	/home/jose/common/arch/arm64/kvm/pkvm.c:463
+pkvm_init_host_vm	/home/jose/common/arch/arm64/kvm/pkvm.c:465
+share_pfn_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:587
+share_pfn_hyp	/home/jose/common/arch/arm64/kvm/mmu.c:591

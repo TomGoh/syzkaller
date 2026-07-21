@@ -82,6 +82,8 @@ var linuxSyscallChecks = map[string]func(*checkContext, *prog.Syscall) string{
 	"syz_kvm_setup_cpu":             linuxSyzKvmSupported,
 	"syz_kvm_vgic_v3_setup":         linuxSyzSupportedOnArm64,
 	"syz_kvm_setup_syzos_vm":        linuxSyzKvmSupported,
+	"syz_kvm_setup_protected_vm":    linuxSyzKvmSupported,
+	"syz_kvm_vcpu_run_immediate":    linuxSyzKvmSupported,
 	"syz_kvm_add_vcpu":              linuxSyzKvmSupported,
 	"syz_kvm_assert_syzos_uexit":    linuxSyzKvmSupported,
 	"syz_kvm_assert_syzos_kvm_exit": linuxSyzKvmSupported,
@@ -202,6 +204,7 @@ func linuxSyzKvmSupported(ctx *checkContext, call *prog.Syscall) string {
 			return ""
 		}
 	case "syz_kvm_setup_cpu$arm64", "syz_kvm_setup_syzos_vm$arm64", "syz_kvm_add_vcpu$arm64",
+		"syz_kvm_setup_protected_vm$arm64", "syz_kvm_vcpu_run_immediate$arm64",
 		"syz_kvm_assert_syzos_uexit$arm64", "syz_kvm_assert_syzos_kvm_exit$arm64",
 		"syz_kvm_assert_reg%arm64":
 		if ctx.target.Arch == targets.ARM64 {

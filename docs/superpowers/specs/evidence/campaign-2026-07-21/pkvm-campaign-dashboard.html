@@ -1,0 +1,319 @@
+<title>pKVM Fuzzing Campaign — Corpus &amp; Coverage</title>
+<style>
+  :root{
+    --ground:#0b0f14; --surface:#131a22; --surface2:#1a232d; --line:#26313f;
+    --ink:#e6edf3; --ink2:#9fb0c3; --ink3:#6b7c90;
+    --data:#38bdf8; --data-soft:rgba(56,189,248,.16); --data-line:#38bdf8;
+    --hi:#fbbf24; --hi-soft:rgba(251,191,36,.16);
+    --good:#34d399; --grid:rgba(255,255,255,.065);
+    --mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:light){
+    :root{
+      --ground:#eef2f7; --surface:#ffffff; --surface2:#f3f6fa; --line:#d7dee7;
+      --ink:#0f1720; --ink2:#3f5164; --ink3:#6b7c90;
+      --data:#0284c7; --data-soft:rgba(2,132,199,.12); --data-line:#0284c7;
+      --hi:#b45309; --hi-soft:rgba(180,83,9,.12);
+      --good:#059669; --grid:rgba(0,0,0,.06);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0b0f14; --surface:#131a22; --surface2:#1a232d; --line:#26313f;
+    --ink:#e6edf3; --ink2:#9fb0c3; --ink3:#6b7c90;
+    --data:#38bdf8; --data-soft:rgba(56,189,248,.16); --data-line:#38bdf8;
+    --hi:#fbbf24; --hi-soft:rgba(251,191,36,.16); --good:#34d399; --grid:rgba(255,255,255,.065);
+  }
+  :root[data-theme="light"]{
+    --ground:#eef2f7; --surface:#ffffff; --surface2:#f3f6fa; --line:#d7dee7;
+    --ink:#0f1720; --ink2:#3f5164; --ink3:#6b7c90;
+    --data:#0284c7; --data-soft:rgba(2,132,199,.12); --data-line:#0284c7;
+    --hi:#b45309; --hi-soft:rgba(180,83,9,.12); --good:#059669; --grid:rgba(0,0,0,.06);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.5;font-variant-numeric:tabular-nums}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 72px}
+  .mono{font-family:var(--mono)}
+  header.top{border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink3);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px color-mix(in srgb,var(--good) 22%,transparent)}
+  h1{font-size:clamp(24px,3.4vw,34px);margin:12px 0 6px;letter-spacing:-.02em;text-wrap:balance;font-weight:650}
+  .sub{color:var(--ink2);max-width:70ch;font-size:15px}
+  .sub b{color:var(--ink);font-weight:600}
+  section{margin-top:34px}
+  h2{font-size:13px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink2);
+    margin:0 0 14px;display:flex;align-items:center;gap:10px}
+  h2::after{content:"";flex:1;height:1px;background:var(--line)}
+  /* stat tiles */
+  .tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  @media(max-width:820px){.tiles{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:480px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 14px 12px}
+  .tile .k{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+  .tile .v{font-family:var(--mono);font-size:24px;font-weight:600;margin-top:6px;letter-spacing:-.01em}
+  .tile .n{font-size:11.5px;color:var(--ink3);margin-top:2px}
+  .tile.good .v{color:var(--good)} .tile.hi .v{color:var(--hi)} .tile.data .v{color:var(--data)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 18px 14px}
+  .cap{color:var(--ink2);font-size:13.5px;margin:2px 0 16px;max-width:78ch}
+  .cap b{color:var(--ink)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  /* svg chart */
+  .chart svg{display:block;width:100%;height:auto;overflow:visible}
+  .axtxt{font-family:var(--mono);font-size:11px;fill:var(--ink3)}
+  .anno{font-family:var(--mono);font-size:11px;fill:var(--ink2)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink2);margin-top:10px}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  /* bar rows */
+  .bars{display:flex;flex-direction:column;gap:7px}
+  .bar{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:10px;font-family:var(--mono);font-size:12.5px}
+  .bar .lbl{color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+  .bar .track{position:relative;height:18px;background:var(--surface2);border-radius:4px;overflow:hidden}
+  .bar .fill{position:absolute;inset:0 auto 0 0;background:var(--data);border-radius:4px;
+    display:flex;align-items:center;justify-content:flex-end;padding-right:6px;min-width:20px}
+  .bar .fill.hi{background:var(--hi)}
+  .bar .fill span{font-size:11px;color:var(--ground);font-weight:600}
+  .bar.dim .fill{background:color-mix(in srgb,var(--data) 42%,var(--surface2))}
+  .bar.dim .fill span{color:var(--ink)}
+  @media(max-width:520px){.bar{grid-template-columns:118px 1fr}}
+  /* histogram */
+  .hist{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:6px}
+  .hist .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+  .hist .colbar{width:100%;background:var(--data);border-radius:3px 3px 0 0;min-height:2px}
+  .hist .cx{font-family:var(--mono);font-size:9.5px;color:var(--ink3)}
+  .hist .cn{font-family:var(--mono);font-size:9.5px;color:var(--ink2)}
+  /* code */
+  pre{background:var(--surface2);border:1px solid var(--line);border-left:3px solid var(--data);
+    border-radius:8px;padding:13px 15px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;
+    line-height:1.7;margin:0;color:var(--ink)}
+  pre .r{color:var(--data)} pre .run{color:var(--hi)} pre .c{color:var(--ink3)}
+  .progtitle{font-family:var(--mono);font-size:12px;color:var(--ink3);margin:0 0 8px;letter-spacing:.03em}
+  .kvmnote{font-family:var(--mono);font-size:12px;color:var(--ink2);background:var(--surface2);
+    border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:14px}
+  .kvmnote b{color:var(--good)}
+  footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;color:var(--ink3);display:flex;gap:16px;flex-wrap:wrap}
+  .tt{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--line);
+    border-radius:7px;padding:7px 9px;font-family:var(--mono);font-size:11.5px;color:var(--ink);
+    box-shadow:0 6px 24px rgba(0,0,0,.35);opacity:0;transition:opacity .08s;z-index:9;white-space:nowrap}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow"><span class="dot"></span> syzkaller · isolated backend · N90 (arm64 pKVM) · 2026-07-21</div>
+    <h1>pKVM host→hyp lifecycle — corpus &amp; coverage rate</h1>
+    <p class="sub">A supervised, coverage-guided campaign against the protected-KVM lifecycle, constrained by
+      type to the safe path (no PMU_V3 <span class="mono">VCPU_INIT</span>, no raw <span class="mono">KVM_RUN</span>).
+      <b>~2h 17m · 326k executions · 0 crashes.</b> The run primitive is the controlled
+      <span class="mono" style="color:var(--hi)">immediate_exit</span> <span class="mono">KVM_RUN</span>.</p>
+  </header>
+
+  <section aria-label="summary">
+    <div class="tiles">
+      <div class="tile data"><div class="k">Corpus</div><div class="v">93</div><div class="n">programs kept</div></div>
+      <div class="tile data"><div class="k">Coverage</div><div class="v">6,407</div><div class="n">PCs (~597 in kvm)</div></div>
+      <div class="tile"><div class="k">Executions</div><div class="v">326k</div><div class="n">total programs</div></div>
+      <div class="tile"><div class="k">Throughput</div><div class="v">39<span style="font-size:14px">/s</span></div><div class="n">sustained</div></div>
+      <div class="tile good"><div class="k">Crashes</div><div class="v">0</div><div class="n">clean soak</div></div>
+      <div class="tile hi"><div class="k">Run prim.</div><div class="v">34</div><div class="n">immediate_exit runs</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Coverage rate over the run</h2>
+    <div class="panel chart" id="covchart">
+      <p class="cap">Cumulative unique PCs. Classic fuzzer shape: a <b>rapid bootstrap</b> to ~6,090 in the first
+        ~10&nbsp;min, a <b>long plateau</b> (constrained 8-call surface saturating), then a <b>+260 discovery</b>
+        at ~1h50m when the mutator reached a new path. Flat ≠ stalled — throughput held 39&nbsp;exec/s throughout.</p>
+      <svg id="cov" viewBox="0 0 720 240" role="img" aria-label="Coverage over time line chart"></svg>
+      <div class="legend"><span><i style="background:var(--data)"></i>cumulative coverage (PCs)</span>
+        <span><i style="background:var(--hi)"></i>discovery event</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Corpus composition</h2>
+    <div class="grid2">
+      <div class="panel">
+        <p class="cap"><b>Calls across the 93 programs.</b> Only the type-safe path is enabled — the amber row is
+          the controlled run; it entered the corpus <b>34×</b>.</p>
+        <div class="bars" id="freq"></div>
+      </div>
+      <div class="panel">
+        <p class="cap"><b>Program size distribution.</b> Mostly minimal repros (1–6 calls) that each pin one path,
+          with a few deep sequences up to 30 calls.</p>
+        <div class="hist" id="hist"></div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:center;margin-top:8px">calls per program →</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where the coverage lands (target)</h2>
+    <div class="grid2">
+      <div class="panel">
+        <p class="cap">Of ~6,407 total PCs, most are the executor's own sandbox setup (<span class="mono">lib/mm/fs</span>).
+          The <b>target</b> slice is <span class="mono">arch/arm64/kvm</span> — ~597 PCs:</p>
+        <div class="bars" id="kvmfiles"></div>
+      </div>
+      <div class="panel">
+        <p class="cap">The <b>pKVM lifecycle</b> functions the corpus reaches — the whole create→run→destroy path.
+          These are <b>host (EL1)</b> functions in <span class="mono">arch/arm64/kvm/pkvm.c</span> — the host's
+          <i>driver</i> for hyp VMs. "hyp" is what they <i>manage</i>, not where they <i>run</i>.</p>
+        <div class="bars" id="pkvmfns"></div>
+        <div class="kvmnote">Full host-side lifecycle covered: <b>pkvm_init_host_vm → pkvm_create_hyp_vm →
+          __pkvm_create_hyp_vm → __pkvm_create_hyp_vcpu</b>, teardown <b>__pkvm_destroy_hyp_vm → pkvm_unmap_range</b>.
+          <br><span style="color:var(--ink3)">Coverage <b style="color:var(--hi)">stops at the EL1→EL2 hypercall</b>
+          (<span class="mono">kvm_call_hyp_nvhe(__pkvm_init_vm)</span>). The EL2 image
+          (<span class="mono">__kvm_nvhe_*</span>) has 0 sancov — that's dark, and it's Stage 2.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Real corpus programs</h2>
+    <div class="grid2">
+      <div class="panel">
+        <p class="progtitle">// full lifecycle — the fuzzer even issued a double controlled run</p>
+<pre><span class="r">r0</span> = openat$kvm(0xffffffffffffff9c, &amp;(0x7f0…40), 0x2, 0x0)
+<span class="r">r1</span> = ioctl$<span class="c">KVM_CREATE_VM_PROTECTED</span>(r0, 0xae01, <span class="c">0x80000094</span>)
+<span class="r">r2</span> = ioctl$<span class="c">KVM_CREATE_VCPU_protected</span>(r1, 0xae41, 0x2)
+ioctl$<span class="c">KVM_ARM_VCPU_INIT_safe</span>(r2, 0x4020aeae, &amp;(0x7f0…140))
+<span class="run">syz_kvm_vcpu_run_immediate$arm64</span>(r2)
+<span class="run">syz_kvm_vcpu_run_immediate$arm64</span>(r2)</pre>
+      </div>
+      <div class="panel">
+        <p class="progtitle">// the constraint holding — feature is <span style="color:var(--good)">const[0]</span>, never PMU_V3</p>
+<pre><span class="c"># enabled calls (workdir/pkvm-arm64.cfg):</span>
+openat$kvm
+syz_kvm_setup_protected_vm$arm64
+ioctl$KVM_CREATE_VM_PROTECTED
+ioctl$KVM_CREATE_VCPU_protected   <span class="c">→ fd_kvmcpu_protected</span>
+ioctl$KVM_ARM_VCPU_INIT_safe      <span class="c">feature=const[0]</span>
+<span class="run">syz_kvm_vcpu_run_immediate$arm64</span>  <span class="c">immediate_exit=1</span>
+close$kvmvm_protected / close
+<span class="c"># NOT enabled: generic VCPU_INIT, raw KVM_RUN</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>source: workdir/corpus.db (93) · /rawcover (6,406 PCs)</span>
+    <span>symbolized vs vmlinux · KASLR off</span>
+    <span>manager still RUNNING</span>
+  </footer>
+</div>
+
+<div class="tt" id="tt"></div>
+<script>
+(function(){
+  "use strict";
+  // ---- data ----
+  var t   = [0,10,20,30,40,50,60,70,80,90,100,110,120,130,137];
+  var cov = [0,6090,6092,6111,6112,6113,6121,6121,6121,6122,6122,6382,6407,6407,6407];
+  var freq = [["openat$kvm",129,0],["ioctl$KVM_CREATE_VM_PROTECTED",100,0],
+    ["syz_kvm_setup_protected_vm",63,0],["ioctl$KVM_CREATE_VCPU_protected",63,0],
+    ["syz_kvm_vcpu_run_immediate",34,1],["close$kvmvm_protected",33,0],
+    ["close",22,0],["ioctl$KVM_ARM_VCPU_INIT_safe",16,0]];
+  var hist = [["1",20],["2",9],["3",9],["4",14],["5",12],["6",15],["7",3],["8",2],["9",1],["11",1],["13",3],["16",1],["17",1],["30",2]];
+  var kvmfiles = [["arch_timer.c",113],["arm.c",84],["mmu.c",72],["sys_regs.c",60],["pkvm.c",35],
+    ["debug.c",10],["reset.c",8],["hypercalls.c",5],["vgic.c",4],["fpsimd.c",4]];
+  var pkvmfns = [["__pkvm_destroy_hyp_vm",11],["__pkvm_create_hyp_vm",11],["__pkvm_create_hyp_vcpu",6],
+    ["pkvm_init_host_vm",3],["pkvm_create_hyp_vm",2],["__pkvm_vcpu_hyp_created",2],
+    ["pkvm_unmap_range",1],["pkvm_destroy_hyp_vm",1]];
+
+  var tt=document.getElementById("tt");
+  function showTip(html,x,y){tt.innerHTML=html;tt.style.opacity="1";
+    var w=tt.offsetWidth;tt.style.left=Math.min(Math.max(8,x-w/2),innerWidth-w-8)+"px";
+    tt.style.top=(y-tt.offsetHeight-12)+"px";}
+  function hideTip(){tt.style.opacity="0";}
+
+  // ---- coverage line chart ----
+  (function(){
+    var W=720,H=240,L=52,R=14,T=16,B=34, iw=W-L-R, ih=H-T-B;
+    var yMax=6600;
+    var X=function(v){return L+ iw*(v/137);};
+    var Y=function(v){return T+ ih*(1-v/yMax);};
+    var ns="http://www.w3.org/2000/svg";
+    var svg=document.getElementById("cov");
+    function el(n,a){var e=document.createElementNS(ns,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+    // gridlines + y labels
+    [0,1500,3000,4500,6000].forEach(function(g){
+      svg.appendChild(el("line",{x1:L,y1:Y(g),x2:W-R,y2:Y(g),stroke:"var(--grid)","stroke-width":1}));
+      var tx=el("text",{x:L-8,y:Y(g)+4,"text-anchor":"end","class":"axtxt"});tx.textContent=(g/1000)+"k";svg.appendChild(tx);
+    });
+    // x labels (minutes)
+    [0,30,60,90,120].forEach(function(m){
+      var tx=el("text",{x:X(m),y:H-12,"text-anchor":"middle","class":"axtxt"});tx.textContent=m+"m";svg.appendChild(tx);
+    });
+    // area + line
+    var dp="",da="M"+X(0)+" "+Y(0);
+    for(var i=0;i<t.length;i++){var cmd=(i?"L":"M")+X(t[i])+" "+Y(cov[i]);dp+=cmd; if(i)da+="L"+X(t[i])+" "+Y(cov[i]);}
+    da+="L"+X(137)+" "+Y(0)+"Z";
+    svg.appendChild(el("path",{d:da,fill:"var(--data-soft)",stroke:"none"}));
+    svg.appendChild(el("path",{d:dp,fill:"none",stroke:"var(--data-line)","stroke-width":2,"stroke-linejoin":"round"}));
+    // discovery markers: bootstrap (t=10) and jump (t=110)
+    [[10,6090,"+6,090 bootstrap"],[110,6382,"+260 new path"]].forEach(function(m){
+      svg.appendChild(el("circle",{cx:X(m[0]),cy:Y(m[1]),r:4.5,fill:"var(--hi)",stroke:"var(--surface)","stroke-width":2}));
+    });
+    // annotate the jump
+    var jt=el("text",{x:X(110)+6,y:Y(6382)-8,"class":"anno"});jt.textContent="+260 @ 1h50m";svg.appendChild(jt);
+    // endpoint
+    svg.appendChild(el("circle",{cx:X(137),cy:Y(6407),r:4.5,fill:"var(--data)",stroke:"var(--surface)","stroke-width":2}));
+    var et=el("text",{x:X(137),y:Y(6407)-12,"text-anchor":"end","class":"anno"});et.textContent="6,407";et.setAttribute("fill","var(--data)");svg.appendChild(et);
+    // hover
+    var focus=el("line",{x1:0,y1:T,x2:0,y2:T+ih,stroke:"var(--ink3)","stroke-width":1,"stroke-dasharray":"3 3",opacity:0});
+    svg.appendChild(focus);
+    var fdot=el("circle",{r:4,fill:"var(--data)",opacity:0});svg.appendChild(fdot);
+    svg.appendChild(el("rect",{x:L,y:T,width:iw,height:ih,fill:"transparent"})).addEventListener("mousemove",function(ev){
+      var rc=svg.getBoundingClientRect(), mx=(ev.clientX-rc.left)/rc.width*W;
+      var mins=Math.max(0,Math.min(137,(mx-L)/iw*137));
+      var j=0;for(var k=0;k<t.length;k++)if(Math.abs(t[k]-mins)<Math.abs(t[j]-mins))j=k;
+      focus.setAttribute("x1",X(t[j]));focus.setAttribute("x2",X(t[j]));focus.setAttribute("opacity",1);
+      fdot.setAttribute("cx",X(t[j]));fdot.setAttribute("cy",Y(cov[j]));fdot.setAttribute("opacity",1);
+      showTip("<b>t+"+t[j]+" min</b> · "+cov[j].toLocaleString()+" PCs",ev.clientX,rc.top+Y(cov[j]));
+    });
+    svg.addEventListener("mouseleave",function(){focus.setAttribute("opacity",0);fdot.setAttribute("opacity",0);hideTip();});
+  })();
+
+  // ---- horizontal bar rows ----
+  function bars(id,rows,max,fmt,dim){
+    var host=document.getElementById(id);
+    rows.forEach(function(r){
+      var name=r[0],val=r[1],hi=r[2];
+      var row=document.createElement("div");row.className="bar"+(dim?" dim":"");
+      var lbl=document.createElement("div");lbl.className="lbl";lbl.textContent=name;lbl.title=name;
+      var track=document.createElement("div");track.className="track";
+      var fill=document.createElement("div");fill.className="fill"+(hi?" hi":"");
+      fill.style.width=Math.max(4,val/max*100)+"%";
+      var s=document.createElement("span");s.textContent=fmt?fmt(val):val;fill.appendChild(s);
+      track.appendChild(fill);row.appendChild(lbl);row.appendChild(track);host.appendChild(row);
+      row.addEventListener("mousemove",function(ev){showTip("<b>"+name+"</b> · "+val,ev.clientX,ev.clientY);});
+      row.addEventListener("mouseleave",hideTip);
+    });
+  }
+  bars("freq",freq,129,null,false);
+  bars("kvmfiles",kvmfiles,113,null,true);
+  bars("pkvmfns",pkvmfns,11,null,false);
+  // recolor pkvm fns fills to green (status: covered target)
+  document.querySelectorAll("#pkvmfns .fill").forEach(function(f){f.style.background="var(--good)";
+    f.querySelector("span").style.color="var(--ground)";});
+
+  // ---- histogram ----
+  (function(){
+    var host=document.getElementById("hist"),max=20;
+    hist.forEach(function(h){
+      var col=document.createElement("div");col.className="col";
+      var cn=document.createElement("div");cn.className="cn";cn.textContent=h[1];
+      var b=document.createElement("div");b.className="colbar";b.style.height=Math.max(2,h[1]/max*92)+"px";
+      var cx=document.createElement("div");cx.className="cx";cx.textContent=h[0];
+      col.appendChild(cn);col.appendChild(b);col.appendChild(cx);host.appendChild(col);
+      col.addEventListener("mousemove",function(ev){showTip("<b>"+h[1]+"</b> programs · "+h[0]+" calls",ev.clientX,ev.clientY);});
+      col.addEventListener("mouseleave",hideTip);
+    });
+  })();
+})();
+</script>

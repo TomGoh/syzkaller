@@ -286,6 +286,43 @@ static long syz_kvm_add_vcpu(volatile long a0, volatile long a1, volatile long a
 }
 #endif
 
+#if SYZ_EXECUTOR || __NR_syz_kvm_setup_protected_vm
+// Create-only helper for a protected (pKVM) VM. a0 = fd from /dev/kvm, a1 = IPA size.
+// KVM_VM_TYPE_ARM_PROTECTED is bit 31 (downstream ABI); the low 8 bits carry the IPA size
+// (0 => default 40-bit). Forcing bit 31 here guarantees the returned resource is truthfully
+// protected. This deliberately does NOT set up guest memory (a protected VM rejects the
+// READONLY/LOG_DIRTY memslots that setup_vm() builds, with -EPERM) and does NOT load pvmfw
+// (no SET_FW_IPA => pvmfw-less lifecycle). Returns the new vmfd, or -1 (a failed resource).
+static long syz_kvm_setup_protected_vm(volatile long a0, volatile long a1)
+{
+	return ioctl(a0, KVM_CREATE_VM, 0x80000000 | (a1 & 0xff));
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_vcpu_run_immediate
+// Controlled first KVM_RUN for a vCPU. a0 = vCPU fd. Maps the shared kvm_run struct,
+// sets immediate_exit=1, then issues KVM_RUN. On the vCPU's *first* run this still executes
+// kvm_arch_vcpu_run_pid_change() -> pkvm_create_hyp_vm() (arch/arm64/kvm/arm.c:717,757) — so the
+// hyp VM object is built and its host-side KCOV is collected — but the immediate_exit check at
+// the top of kvm_arch_vcpu_ioctl_run() (arm.c:1043) returns -EINTR before entering the guest.
+// This crosses the host->hyp first-run boundary WITHOUT the pvmfw-less guest-abort busy loop that
+// a raw KVM_RUN spins in (and which otherwise floods KCOV / costs the run's coverage). Pair with a
+// PMU_V3-free VCPU_INIT to also avoid the arch_timer WARN. immediate_exit is at offset 1 of
+// kvm_run, so the first mmap'd page always covers it. 0x1000 assumes a 4K page (true on N90 /
+// the current config); on a 16K/64K-page arm64 target this should use the runtime page size.
+static long syz_kvm_vcpu_run_immediate(volatile long a0)
+{
+	volatile struct kvm_run* run = (volatile struct kvm_run*)mmap(
+	    NULL, 0x1000, PROT_READ | PROT_WRITE, MAP_SHARED, a0, 0);
+	if (run == MAP_FAILED)
+		return -1;
+	run->immediate_exit = 1;
+	long ret = ioctl(a0, KVM_RUN, 0);
+	munmap((void*)run, 0x1000);
+	return ret;
+}
+#endif
+
 #if SYZ_EXECUTOR || __NR_syz_kvm_vgic_v3_setup
 static int kvm_set_device_attr(int dev_fd, uint32 group, uint64 attr, void* val)
 {
