@@ -517,17 +517,45 @@ manual `syz-execprog` verification → short allowlisted campaign. All stay EL1 
   (`kvm_for_each_vcpu → __pkvm_create_hyp_vcpu`, pkvm.c:415). **Functional pass** (ret=0, no BUG1/hang, explicit
   closes run). **Coverage: +125 PCs but only ~4 in `arch/arm64/kvm`** — KCOV dedups the identical per-vCPU body,
   so multiplicity is a *regression test*, not a coverage win. No new syzlang (model already permits ≥2 vCPUs).
-- **Slice 2 — controlled memslot state machine** (`test/arm64-syz_kvm_memslot_{delete,move,dirty}_reject`;
-  evidence `evidence/2026-07-21-slice2-memslot.md`). New pseudo-calls `syz_kvm_register_memslot` (+`_flags`),
-  `syz_kvm_memslot_delete`/`_move` with a `kvm_memslot` **state token** (delete/move consume it → operate on a
-  slot really registered on the same pVM; executor-owned backing, checked return). Hits the **two distinct** pKVM
-  rejects in `kvm_arch_prepare_memory_region` (mmu.c:2492-2502): dirty/readonly → `-EPERM` with only
-  `pkvm.enabled` (no run); DELETE/MOVE → `-EPERM` only after the first run sets `pkvm.handle`. **All three
-  verified on N90** (register success; each reject `-EPERM`; ret=0; no BUG1). **Coverage: +468 PCs, 75 unique kvm
-  func:line** across the whole memslot subsystem incl. `kvm_arch_prepare_memory_region` — genuine new host
-  coverage. Short campaign: all 4 calls entered the corpus, coverage 6407→6592, 0 crashes.
+- **Slice 2 — controlled memslot rejects, COMPOSITE model** (`test/arm64-syz_kvm_memslot_{delete,move,dirty,readonly}_reject`;
+  evidence `evidence/2026-07-21-slice2-memslot.md`). Hits the **two distinct** pKVM rejects in
+  `kvm_arch_prepare_memory_region` (mmu.c:2492-2502): dirty/readonly → `-EPERM` with only `pkvm.enabled` (no run);
+  DELETE/MOVE → `-EPERM` only after the first run sets `pkvm.handle`. **Redesigned from the first fragment cut**:
+  fragments + resource subtypes (`fd_kvmvm_pslot`) could **not** enforce the "already ran" precondition, because
+  syzkaller resource compatibility is permissive (a supertype resource satisfies a subtype arg,
+  `prog/resources.go:109`) — a corpus program `setup_protected_vm(r1); memslot_move(r1)` proved it. Replaced by
+  three **self-contained composite pseudo-calls** that each take only the `/dev/kvm` fd and build the whole state
+  in C: `syz_kvm_memslot_reject_delete$arm64` / `_move$arm64` (create bit-31 pVM → register slot → vCPU →
+  `INIT_safe` → controlled `immediate_exit` run, **required to return -EINTR** → reject op), and
+  `syz_kvm_memslot_reject_flags$arm64(fd, flags[1:3])` (create pVM → flagged register, no run). Building **only
+  bit-31 protected VMs** internally keeps this off BUG2 (dirty-log on a *normal* VM, §6.6). **All four verified on
+  N90** (each reject `-1/EPERM`; cover ~98–118k; **0 WARN/BUG** in dmesg — no BUG1, no BUG2). Fresh-workdir
+  campaign (`workdir-composite/`, no reused corpus.db; `syscalls: 10/8060`): all three composites entered the
+  corpus under fuzzing (`reject_delete`×46, `reject_flags`×26, `reject_move`×23 program occurrences), coverage
+  0→~6.2k, 0 crashes. *(The earlier fragment-era `+468 PCs` figure came from a contaminated-corpus campaign and is
+  superseded.)*
 - **Deliberately NOT in these slices:** real guest-memory execution / page-fault / donation — those bring pages
   into EL2 and need a stably-exiting protected guest (SyzOS/pvmfw subproject, §7), not `run_immediate`.
+
+### 6.6 BUG2 — `kvm_tlb_flush_vmid_range` WARN (dirty-log on a normal VM) — minimized 2026-07-21
+
+A second WARN (`arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range`) appeared in dmesg during the
+fragment-era slice-2 campaign. Root-caused by minimization (`evidence/2026-07-21-BUG2-kvm_tlb_flush_vmid_range-MINIMIZED.md`,
+minimizer `-BUG2-minimizer.c`, three single-path cases on N90):
+```
+A) pVM MOVE pre-run        → 0 warnings
+B) pVM MOVE post-run       → -EPERM, 0 warnings
+C) NORMAL VM + LOG_DIRTY_PAGES → 4 warnings   ← the trigger
+```
+So BUG2 is **enabling `KVM_MEM_LOG_DIRTY_PAGES` on a *normal* (non-protected) VM on a pKVM host** — the
+dirty-log write-protect walk (`kvm_mmu_wp_memory_region`, mmu.c:1327 → `kvm_tlb_flush_vmid_range`), a **generic
+arm64-KVM-on-pKVM** issue, **not** a pKVM/EL2/Rust-hyp bug and unrelated to the memslot rejects. (An earlier
+hypothesis — pre-run MOVE on a protected VM — was **refuted** by case A; the colleague's dirty-log-on-normal-VM
+diagnosis was correct.) Not fixed, per the standing "don't fix generic KVM bugs this pass" call. The composite
+slice-2 model **cannot reach it**: it only ever creates bit-31 protected VMs, and the campaign allowlist excludes
+any normal-VM create + dirty-log path. Surfaced originally only via **old-corpus contamination** (a stale
+`type=0x5` non-protected VM program that the current descriptions can no longer generate) — the fresh-workdir
+campaign has none.
 
 ---
 
@@ -540,16 +568,17 @@ manual `syz-execprog` verification → short allowlisted campaign. All stay EL1 
 
 ---
 
-## 8. File inventory (uncommitted as of this record)
+## 8. File inventory & commit status
 
-**syzkaller (`/home/jose/syzkaller`) — pKVM modeling + the controlled-run/constrained path + one general fix:**
-- `sys/linux/dev_kvm_arm64.txt` — protected-VM syzlang: `fd_kvmvm_protected`, `syz_kvm_setup_protected_vm$arm64`, `ioctl$KVM_CREATE_VM_PROTECTED`, `close$kvmvm_protected`; **+ constrained path** `fd_kvmcpu_protected`, `ioctl$KVM_CREATE_VCPU_protected`, `kvm_vcpu_init_safe`/`ioctl$KVM_ARM_VCPU_INIT_safe`, `syz_kvm_vcpu_run_immediate$arm64` (§6.3).
-- `executor/common_kvm_arm64.h` — the `syz_kvm_setup_protected_vm` helper **+ `syz_kvm_vcpu_run_immediate`** (immediate_exit controlled run, §6.2).
-- `pkg/vminfo/linux_syscalls.go` — support-map entries (both `syz_kvm_setup_protected_vm` and `syz_kvm_vcpu_run_immediate`, in the map and the arm64 case).
+**syzkaller (`/home/jose/syzkaller`) — pKVM modeling + the controlled-run/constrained path + composite memslot rejects + one general fix:**
+- `sys/linux/dev_kvm_arm64.txt` — protected-VM syzlang: `fd_kvmvm_protected`, `syz_kvm_setup_protected_vm$arm64`, `ioctl$KVM_CREATE_VM_PROTECTED`, `close$kvmvm_protected`; **+ constrained path** `fd_kvmcpu_protected`, `ioctl$KVM_CREATE_VCPU_protected`, `kvm_vcpu_init_safe`/`ioctl$KVM_ARM_VCPU_INIT_safe`, `syz_kvm_vcpu_run_immediate$arm64` (§6.3); **+ composite memslot rejects** `syz_kvm_memslot_reject_{delete,move}$arm64(fd_kvm)`, `syz_kvm_memslot_reject_flags$arm64(fd_kvm, flags[1:3])` (§6.5, replaces the fragment `register_memslot`/`memslot_run`/`_delete`/`_move` + `fd_kvmvm_pslot` subtypes).
+- `executor/common_kvm_arm64.h` — the `syz_kvm_setup_protected_vm` helper **+ `syz_kvm_vcpu_run_immediate`** (immediate_exit controlled run, §6.2) **+ the composite helpers** `pkvm_build_slotted_vm` / `syz_kvm_memslot_reject_{delete,move,flags}` (§6.5).
+- `pkg/vminfo/linux_syscalls.go` — support-map entries (`syz_kvm_setup_protected_vm`, `syz_kvm_vcpu_run_immediate`, and `syz_kvm_memslot_reject_{delete,move,flags}`, in the map and the arm64 case).
+- `sys/linux/test/arm64-syz_kvm_memslot_{delete,move,dirty,readonly}_reject` — single-call composite regression tests (§6.5).
 - `vm/vmimpl/util.go` — **general SSH fix** (`-o LogLevel=ERROR` when not `-debug`) so the OpenSSH post-quantum banner does not leak into the `dmesg -w` console and get misread as a crash (§6.1). Not pKVM-specific.
 - `sys/linux/test/arm64-syz_kvm_setup_protected_vm` — canonical 7-call lifecycle test (with `ioctl$KVM_RUN`).
 - `sys/linux/test/arm64-syz_kvm_vcpu_run_immediate` — controlled-run test on the constrained path (§6.2/6.3).
-- `workdir/pkvm-arm64.cfg` — manager config: `ssh_user:root`, `pstore:false`, `target_reboot:false`, constrained `enable_syscalls` (§6.3).
+- `workdir/pkvm-arm64.cfg` and `workdir-composite/pkvm-arm64-composite.cfg` — manager configs (both gitignored, local-only): `ssh_user:root`, `pstore:false`, `target_reboot:false`; the composite config's `enable_syscalls` is the 10 lifecycle + composite calls, on a **fresh workdir** (§6.5).
 - `docs/superpowers/specs/2026-07-20-pkvm-syzkaller-support-design.md` — design spec; **this file**; and `docs/superpowers/specs/evidence/2026-07-21-*` (phaseB, BUG1 report+repro, controlled-run md + RAW outputs, pkvm-call1 coverage).
 - **Build artifacts, gitignored:** `executor/syscalls.h`, `executor/defs.h`, `sys/linux/gen/*` (regenerated by `make descriptions`).
 - **Reverted / not part of this change:** `pkg/ifuzz/{arm64,riscv64,x86}/generated/insns.go` churn (git-checkout reverted). Preserved aside: `workdir/crashes-round1-rawKVM_RUN/` (BUG1), `workdir/crashes-round2-attempt1-staledmesg/` (false crash-loop).
@@ -561,4 +590,9 @@ manual `syz-execprog` verification → short allowlisted campaign. All stay EL1 
 
 **N90:** `/boot/{vmlinuz,initrd.img,config,System.map}-6.6.30-pkvm-fuzz`, `/usr/lib/modules/6.6.30-pkvm-fuzz`, GRUB custom entry + `GRUB_CMDLINE_LINUX` param, `kylin` in `kvm` group, **root SSH enabled** (`/root/.ssh/authorized_keys` = manager pubkey; revoke by removing it). Backups: `/etc/default/grub.pre-pkvm.bak`.
 
-**Nothing is committed and nothing is staged** — all of the above is **uncommitted, unstaged working-tree** changes in both repos (`git diff --cached` is empty in each; the edits show only in `git diff` / `git status` working-tree).
+**Commit status (2026-07-21).** The **curated syzkaller code** is committed on a dedicated branch **`pkvm-lifecycle-fuzzing`** (branched from `master`, so it carries none of the learning notes), pushed to `origin` (TomGoh fork):
+- `8582e88ba` — Stage 1/1.5 protected-VM host→hyp lifecycle fuzzing (setup helper, constrained path, immediate_exit run).
+- `03e6d12ec` — host-breadth slices: dual-vCPU regression + memslot state machine (**fragment-era**).
+- *(next)* slice-2 **composite redesign** — supersedes the fragment memslot calls with the three composite pseudo-calls above; committed on `pkvm-lifecycle-fuzzing` on top of `03e6d12ec`.
+
+Branch split: the code + tests + this `docs/superpowers/specs/` tree (design spec, this record, `evidence/*`, `campaign-runbook.sh`) live on **both** branches; the narrative **`notes/*`** (the Chinese learning notes) stay **only** on the working branch `claude/syzkaller-source-learning-vvisp3` — that is the "learning notes left behind." The **kernel repo** (`/home/jose/common`) changes are **kept local, uncommitted** by intent (fuzzing config + toolchain pin + the `pr_debug` debugfs-warning quiet; the BUG1 fix deliberately not applied). Both manager configs and the `workdir*/` trees are gitignored (local-only).

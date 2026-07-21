@@ -65,26 +65,22 @@ ioctl$KVM_ARM_VCPU_INIT_safe(fd fd_kvmcpu_protected, cmd const[KVM_ARM_VCPU_INIT
 # the pvmfw-less guest-abort busy loop a raw ioctl$KVM_RUN spins in. Narrowed to fd_kvmcpu_protected.
 syz_kvm_vcpu_run_immediate$arm64(fd fd_kvmcpu_protected)
 
-# --- Slice 2: controlled memslot state machine on a protected VM ---------------------------------
+# --- Slice 2: controlled memslot rejects on a protected VM (composite) ---------------------------
 # Reaches the two DISTINCT pKVM memslot rejects in kvm_arch_prepare_memory_region (mmu.c:2492-2502):
-# (A) dirty/readonly flags on a protected VM -> -EPERM (needs only pkvm.enabled, set at creation --
-#     no run required); (B) DELETE/MOVE after the first run -> -EPERM (needs pkvm.handle, set at run).
-# The register helper owns a fixed, bounded RW backing page (fuzzer never passes a userspace ptr) and
-# checks the ioctl return. kvm_memslot is a STATE TOKEN: delete/move consume it, so they operate on a
-# slot actually registered on the same pVM -- without this the fuzzer would mostly hit non-existent
-# slots and get generic errors instead of the target pKVM branch. No guest memory is executed here.
-resource kvm_memslot[intptr]
+# (A) dirty/readonly flags on a protected VM -> -EPERM (needs only pkvm.enabled, no run); (B)
+# DELETE/MOVE after the first run -> -EPERM (needs pkvm.handle, set at run).
+# These are COMPOSITE pseudo-calls: each takes only the /dev/kvm fd and builds a bit-31 protected VM
+# (+ slot, + run for the DELETE/MOVE cases) internally, then does the reject op and cleans up. syzkaller
+# resource compatibility is too permissive to enforce a state precondition via subtypes (it lets a
+# supertype resource satisfy a subtype arg), so the sequence is enforced in C. Building only bit-31
+# protected VMs also means the dirty-log-on-a-normal-VM WARN (BUG2, pgtable.c:639) is never reached.
+# No guest memory is executed here.
+syz_kvm_memslot_reject_delete$arm64(fd fd_kvm)
+syz_kvm_memslot_reject_move$arm64(fd fd_kvm)
 
-# Forward: register a normal (flags=0) slot -> success before first run; yields the token.
-syz_kvm_register_memslot$arm64(vm fd_kvmvm_protected) kvm_memslot
-
-# Reject A: register with a dirty/readonly flag on the protected VM -> -EPERM (no run needed).
-kvm_memslot_bad_flags = KVM_MEM_LOG_DIRTY_PAGES, KVM_MEM_READONLY
-syz_kvm_register_memslot_flags$arm64(vm fd_kvmvm_protected, flags flags[kvm_memslot_bad_flags])
-
-# Reject B: delete/move the registered slot -> -EPERM after the first run (pkvm.handle set).
-syz_kvm_memslot_delete$arm64(vm fd_kvmvm_protected, slot kvm_memslot)
-syz_kvm_memslot_move$arm64(vm fd_kvmvm_protected, slot kvm_memslot)
+# Reject A: flags is a non-zero range (1=LOG_DIRTY, 2=READONLY, 3=both) so it can never degenerate to
+# a normal register; the composite creates a bit-31 protected VM before the flagged register.
+syz_kvm_memslot_reject_flags$arm64(fd fd_kvm, flags int32[1:3])
 
 kvm_num_irqs = 32, 64, 128, 256, 512
 

@@ -84,10 +84,9 @@ var linuxSyscallChecks = map[string]func(*checkContext, *prog.Syscall) string{
 	"syz_kvm_setup_syzos_vm":        linuxSyzKvmSupported,
 	"syz_kvm_setup_protected_vm":    linuxSyzKvmSupported,
 	"syz_kvm_vcpu_run_immediate":    linuxSyzKvmSupported,
-	"syz_kvm_register_memslot":      linuxSyzKvmSupported,
-	"syz_kvm_register_memslot_flags": linuxSyzKvmSupported,
-	"syz_kvm_memslot_delete":        linuxSyzKvmSupported,
-	"syz_kvm_memslot_move":          linuxSyzKvmSupported,
+	"syz_kvm_memslot_reject_delete": linuxSyzKvmSupported,
+	"syz_kvm_memslot_reject_move":   linuxSyzKvmSupported,
+	"syz_kvm_memslot_reject_flags":  linuxSyzKvmSupported,
 	"syz_kvm_add_vcpu":              linuxSyzKvmSupported,
 	"syz_kvm_assert_syzos_uexit":    linuxSyzKvmSupported,
 	"syz_kvm_assert_syzos_kvm_exit": linuxSyzKvmSupported,
@@ -209,8 +208,8 @@ func linuxSyzKvmSupported(ctx *checkContext, call *prog.Syscall) string {
 		}
 	case "syz_kvm_setup_cpu$arm64", "syz_kvm_setup_syzos_vm$arm64", "syz_kvm_add_vcpu$arm64",
 		"syz_kvm_setup_protected_vm$arm64", "syz_kvm_vcpu_run_immediate$arm64",
-		"syz_kvm_register_memslot$arm64", "syz_kvm_register_memslot_flags$arm64",
-		"syz_kvm_memslot_delete$arm64", "syz_kvm_memslot_move$arm64",
+		"syz_kvm_memslot_reject_delete$arm64", "syz_kvm_memslot_reject_move$arm64",
+		"syz_kvm_memslot_reject_flags$arm64",
 		"syz_kvm_assert_syzos_uexit$arm64", "syz_kvm_assert_syzos_kvm_exit$arm64",
 		"syz_kvm_assert_reg%arm64":
 		if ctx.target.Arch == targets.ARM64 {

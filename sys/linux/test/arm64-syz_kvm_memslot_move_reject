@@ -1,17 +1,10 @@
 # requires: arch=arm64 -threaded
 
-# pKVM memslot reject B (MOVE after first run). Same setup as the delete test, but MOVE the
-# registered slot to an adjacent bounded guest-physical address instead of deleting it.
-# kvm_arch_prepare_memory_region rejects MOVE once pkvm.handle && pkvm.enabled -> -EPERM
-# (arch/arm64/kvm/mmu.c:2494-2497). No guest memory is executed. N90 acceptance: register=success;
-# memslot_move returns -EPERM; pkvm_create_hyp_vm $retval=0; no BUG1; no hang.
+# pKVM memslot reject B (MOVE after first run), as a composite (the MOVE counterpart to the delete
+# test). syz_kvm_memslot_reject_move builds a bit-31 protected VM, registers a normal slot, runs a
+# throwaway vCPU (sets pkvm.handle), then MOVEs the slot to an adjacent page-aligned GPA -- all in C.
+# MOVE with pkvm.handle && pkvm.enabled -> -EPERM (mmu.c:2494-2497). No guest memory is executed.
+# N90 acceptance: the call returns -EPERM (errno 1); no WARN.
 
 r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
-r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
-r2 = syz_kvm_register_memslot$arm64(r1)
-r3 = ioctl$KVM_CREATE_VCPU_protected(r1, AUTO, 0x0)
-ioctl$KVM_ARM_VCPU_INIT_safe(r3, AUTO, &AUTO)
-syz_kvm_vcpu_run_immediate$arm64(r3)
-syz_kvm_memslot_move$arm64(r1, r2)
-close(r3)
-close$kvmvm_protected(r1)
+syz_kvm_memslot_reject_move$arm64(r0)

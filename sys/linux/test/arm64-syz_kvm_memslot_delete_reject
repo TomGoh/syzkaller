@@ -1,19 +1,11 @@
 # requires: arch=arm64 -threaded
 
-# pKVM memslot reject B (DELETE after first run). Register a normal (flags=0) memslot on a
-# protected VM (succeeds before any run), create+INIT_safe a vCPU, do the controlled first
-# KVM_RUN (sets kvm->arch.pkvm.handle via pkvm_create_hyp_vm), then DELETE the registered slot.
-# kvm_arch_prepare_memory_region rejects DELETE once pkvm.handle && pkvm.enabled -> -EPERM
-# (arch/arm64/kvm/mmu.c:2494-2497). No guest memory is executed. Teardown closes the vCPU then
-# the VM. N90 acceptance: register=success(>=0); memslot_delete returns -EPERM; pkvm_create_hyp_vm
-# $retval=0; no BUG1; no hang.
+# pKVM memslot reject B (DELETE after first run), as a composite. syz_kvm_memslot_reject_delete builds
+# a bit-31 protected VM, registers a normal slot, runs a throwaway vCPU (controlled immediate_exit run,
+# sets kvm->arch.pkvm.handle), then DELETEs the slot -- entirely in C, so the fuzzer cannot reorder or
+# inject a wrong VM/state. DELETE with pkvm.handle && pkvm.enabled -> -EPERM (mmu.c:2494-2497). No guest
+# memory is executed; only bit-31 protected VMs are created (never the BUG2 dirty-log-on-normal-VM case).
+# N90 acceptance: the call returns -EPERM (errno 1); no WARN (pgtable.c:639 / arch_timer).
 
 r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
-r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
-r2 = syz_kvm_register_memslot$arm64(r1)
-r3 = ioctl$KVM_CREATE_VCPU_protected(r1, AUTO, 0x0)
-ioctl$KVM_ARM_VCPU_INIT_safe(r3, AUTO, &AUTO)
-syz_kvm_vcpu_run_immediate$arm64(r3)
-syz_kvm_memslot_delete$arm64(r1, r2)
-close(r3)
-close$kvmvm_protected(r1)
+syz_kvm_memslot_reject_delete$arm64(r0)

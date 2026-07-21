@@ -1,46 +1,50 @@
-# Host slice 2 — controlled memslot state machine (N90, 2026-07-21)
+# Host slice 2 — controlled memslot rejects, COMPOSITE model (N90, 2026-07-21)
 
 Reaches the two DISTINCT pKVM memslot rejects in `kvm_arch_prepare_memory_region`
 (`arch/arm64/kvm/mmu.c:2492-2502`), which have different preconditions and are tested separately.
 
-## Design (narrow, reliable v0)
-- **Executor-owned backing** — `syz_kvm_register_memslot` mmaps a fixed 1-page RW backing and checks
-  the ioctl return; the fuzzer never supplies a userspace pointer (unlike `setup_vm`, which registers
-  READONLY/LOG_DIRTY slots and ignores the return).
-- **State token** — register yields `kvm_memslot`; `delete`/`move` consume it, so they operate on a
-  slot actually registered on the same pVM (without this, generated programs mostly hit non-existent
-  slots → generic errors, not the pKVM branch).
-- Fixed slot 0, one page at GPA `0x40000000` (well within a ≥32-bit IPA), flags fuzzed only within
-  `{0, LOG_DIRTY, READONLY}`. **No guest memory is executed** (pages never reach EL2).
+## Why composite (supersedes the earlier fragment/subtype design)
 
-## Functional acceptance — ALL PASS (N90, syz-execprog -debug)
-```
-A) DELETE after run : register=0x0(ok)  run_immediate=-EINTR  memslot_delete = -1 errno=1 (EPERM)  pcret ret=0x0  BUG1=0
-B) MOVE   after run : register=0x0(ok)  run_immediate=-EINTR  memslot_move   = -1 errno=1 (EPERM)  pcret ret=0x0  BUG1=0
-C) DIRTY, no run    : register_memslot_flags(LOG_DIRTY) = -1 errno=1 (EPERM)   (no vCPU, no run)   BUG1=0
-```
-Matches the kernel exactly: normal register succeeds before run; dirty/readonly rejects with only
-`pkvm.enabled` (no run); delete/move reject only after the first run sets `pkvm.handle`.
+The first cut modelled this as fragments (`syz_kvm_register_memslot` → `kvm_memslot` token →
+`syz_kvm_memslot_{delete,move}` consuming it) plus state-carrying resource subtypes
+(`fd_kvmvm_pslot`, `fd_kvmvm_pslot_run`). A corpus program `setup_protected_vm(r1); memslot_move(r1)`
+exposed the flaw: **syzkaller resource compatibility is permissive** (prefix-based and bidirectional,
+`prog/resources.go:109`), so a supertype `fd_kvmvm_protected` resource satisfies a subtype arg — the
+type system CANNOT enforce a "this VM has already run" precondition. A fragment `memslot_run` that
+returned its input fd on a failed mmap/run also faked success (colleague catch).
 
-## Coverage — explicable new pKVM/mmu code (acceptance #4)
-vs the Step-1 baseline (single-vCPU lifecycle, no memory-region calls):
-```
-baseline unique PCs: 5177    memslot unique PCs: 5596    NEW in memslot: 468 PCs
-```
-The +468 include the entire memslot subsystem the baseline never touched (75 unique kvm func:line;
-`slice2-memslot-raw/ms_delta_kvm_symbolized.txt`), headed by:
-```
-kvm_arch_prepare_memory_region (12)   ← the mmu.c function holding the pKVM -EPERM rejects
-__kvm_set_memory_region (19)  kvm_set_memslot (5)  kvm_commit_memory_region (7)  kvm_prepare_memory_region (5)
-kvm_replace_memslot / kvm_replace_gfn_node / kvm_swap_active_memslots / kvm_activate_memslot / kvm_check_memslot_overlap …
-```
-This is genuine memslot-subsystem + pKVM-reject coverage, **not** generic MM noise — the real
-host-breadth gain (vs Step 1's ~4 infrastructure PCs).
+Fix: **self-contained composite pseudo-calls**. Each takes only the `/dev/kvm` fd and builds the whole
+required kernel state internally, in C, so the fuzzer cannot reorder it or inject a wrong VM/state:
+- `syz_kvm_memslot_reject_delete$arm64(fd_kvm)` — create bit-31 pVM → register slot 0 → create vCPU →
+  `INIT_safe` → controlled `immediate_exit` run (**required to return -EINTR**, so `pkvm.handle` really
+  is set — no faked state) → `DELETE` slot 0.
+- `syz_kvm_memslot_reject_move$arm64(fd_kvm)` — same, but `MOVE` slot 0 to an adjacent page.
+- `syz_kvm_memslot_reject_flags$arm64(fd_kvm, flags[1:3])` — create bit-31 pVM → register slot 0 with a
+  dirty/readonly flag (no vCPU, no run). `flags` is a non-zero range, so it can never degenerate to a
+  normal register.
 
-## Artifacts (slice2-memslot-raw/)
-`ms_delta_pcs.txt` (raw new PCs), `ms_delta_kvm_symbolized.txt` (kvm func:line), `ms_{delete,move,dirty}.syz`.
+Building **only bit-31 protected VMs** internally also keeps the campaign off BUG2
+(`kvm_tlb_flush_vmid_range`, `pgtable.c:639`), which needs a *normal* VM with dirty-logging — see
+`2026-07-21-BUG2-kvm_tlb_flush_vmid_range-MINIMIZED.md`. No guest memory is executed.
 
-## Not done here / next
-Short campaign with these calls in the allowlist (confirm they enter corpus under fuzzing) →
-then commit slice 1 + slice 2 together. Deeper (real guest page-fault / donation) needs a
-protected-guest execution channel (separate subproject), not `run_immediate`.
+## Functional acceptance — ALL PASS (N90, syz-execprog -debug, fresh executor)
+```
+delete   : syz_kvm_memslot_reject_delete$arm64 = -1 errno=1 (EPERM)   cover=115141
+move     : syz_kvm_memslot_reject_move$arm64   = -1 errno=1 (EPERM)   cover=118541
+dirty    : syz_kvm_memslot_reject_flags(0x1)   = -1 errno=1 (EPERM)   cover=100530
+readonly : syz_kvm_memslot_reject_flags(0x2)   = -1 errno=1 (EPERM)   cover=98355
+dmesg after all four: 0 WARN / 0 BUG (no arch_timer BUG1, no pgtable.c:639 BUG2)
+```
+Matches the kernel exactly: dirty/readonly reject with only `pkvm.enabled` (no run, ~98–100k cover for
+create+register on a pVM); delete/move reject only after the first run sets `pkvm.handle` (the extra
+vCPU INIT + immediate_exit run pushes cover to ~115–118k). Each composite is a single fuzzer-visible
+call, so the sequence is guaranteed regardless of how the fuzzer orders the program.
+
+## Corpus/campaign
+A fresh-workdir campaign (`workdir-composite/`, no reused corpus.db) enables exactly the 10 lifecycle +
+composite calls (`syscalls: 10/8060`); the composites enter the corpus under fuzzing and coverage grows
+with 0 crashes. (Details in the implementation record §6.5.)
+
+## Superseded artifacts
+The fragment-era raw data (`slice2-memslot-raw/`, `campaign-slice2-2026-07-21/`) predates the composite
+rewrite and reflects the old `register/run/delete/move` calls; kept only for history.
