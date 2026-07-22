@@ -175,8 +175,16 @@ static void pkvm_cov_disable(void)
 		goto out;
 	}
 
-	/* 4. EL2 no longer references the page: safe to reclaim. */
-	kvm_unshare_hyp(ring, (char *)ring + PAGE_SIZE);
+	/*
+	 * 4. Undo the host->hyp share, CHECKED: kvm_unshare_hyp() is void (only
+	 * WARN_ONs), so use the checked variant — if the unshare is not confirmed the
+	 * page may still be hyp-mapped, so leak it rather than free.
+	 */
+	if (kvm_unshare_hyp_checked(ring, (char *)ring + PAGE_SIZE)) {
+		pr_warn("pkvm_cov: unshare unconfirmed — leaking ring page (EL2 may still map it)\n");
+		pkvm_cov_owner_cpu = -1;
+		goto out;
+	}
 	free_page((unsigned long)ring);
 	pkvm_cov_owner_cpu = -1;
 	pr_info("pkvm_cov: ring disarmed\n");

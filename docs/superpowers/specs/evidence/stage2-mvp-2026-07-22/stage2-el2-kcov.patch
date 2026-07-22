@@ -19,6 +19,21 @@ index 6e2f9a0dd794..ba9795533903 100644
  #endif
  
  	/*
+diff --git a/arch/arm64/include/asm/kvm_mmu.h b/arch/arm64/include/asm/kvm_mmu.h
+index 170a7193f24f..2bfa13254640 100644
+--- a/arch/arm64/include/asm/kvm_mmu.h
++++ b/arch/arm64/include/asm/kvm_mmu.h
+@@ -165,6 +165,10 @@ extern u32 hyp_va_bits;
+ 
+ int kvm_share_hyp(void *from, void *to);
+ void kvm_unshare_hyp(void *from, void *to);
++#ifdef CONFIG_PKVM_EL2_COV
++/* Like kvm_unshare_hyp() but returns the first unshare failure (leak-not-free path). */
++int kvm_unshare_hyp_checked(void *from, void *to);
++#endif
+ int create_hyp_mappings(void *from, void *to, enum kvm_pgtable_prot prot);
+ int __create_hyp_mappings(unsigned long start, unsigned long size,
+ 			  unsigned long phys, enum kvm_pgtable_prot prot);
 diff --git a/arch/arm64/include/asm/kvm_pkvm_cov.h b/arch/arm64/include/asm/kvm_pkvm_cov.h
 new file mode 100644
 index 000000000000..770df72a21d7
@@ -65,10 +80,10 @@ index 000000000000..770df72a21d7
 +
 +#endif /* __ASM_KVM_PKVM_COV_H */
 diff --git a/arch/arm64/kvm/Kconfig b/arch/arm64/kvm/Kconfig
-index a1ca0a9aa7db..af9cd72af99c 100644
+index a1ca0a9aa7db..529209468f14 100644
 --- a/arch/arm64/kvm/Kconfig
 +++ b/arch/arm64/kvm/Kconfig
-@@ -124,6 +124,26 @@ config XCORE_UNIT_TEST
+@@ -124,6 +124,32 @@ config XCORE_UNIT_TEST
  
  	  If unsure, say N.
  
@@ -76,6 +91,7 @@ index a1ca0a9aa7db..af9cd72af99c 100644
 +	bool "pKVM EL2 (Rust hyp) coverage for syzkaller (Stage-2 KCOV)"
 +	depends on KVM && X1_RMS && KCOV
 +	depends on !RANDOMIZE_BASE
++	depends on !PREEMPT_RT
 +	default n
 +	help
 +	  Instrument the protected-KVM Rust hypervisor with SanCov trace-pc and
@@ -89,6 +105,11 @@ index a1ca0a9aa7db..af9cd72af99c 100644
 +	  vmlinux link address (pkvm_cov_runtime_to_link), which only equals the
 +	  offline vmlinux address when KASLR is off. With KASLR on the recovered
 +	  address would not symbolize against the offline vmlinux.
++
++	  Depends on !PREEMPT_RT: the drain's teardown treats the mmu_lock-held
++	  begin->end window as an RCU read-side section (preemption disabled). On
++	  PREEMPT_RT the rwlock is a sleeping lock and does not disable preemption,
++	  so that assumption — and the single-CPU owner stability — would not hold.
 +
 +	  If unsure, say N.
 +
@@ -303,7 +324,7 @@ index be4049fac6c3..1cbdcbafe253 100644
  
  ///
 diff --git a/arch/arm64/kvm/mmu.c b/arch/arm64/kvm/mmu.c
-index 55c8ae82c3dc..1f0102d8ae91 100644
+index 55c8ae82c3dc..a3dde4db2173 100644
 --- a/arch/arm64/kvm/mmu.c
 +++ b/arch/arm64/kvm/mmu.c
 @@ -21,6 +21,9 @@
@@ -316,7 +337,43 @@ index 55c8ae82c3dc..1f0102d8ae91 100644
  
  #include "trace.h"
  
-@@ -1756,8 +1759,24 @@ static int pkvm_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t *fault_ipa,
+@@ -669,6 +672,35 @@ void kvm_unshare_hyp(void *from, void *to)
+ 	}
+ }
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++/*
++ * Same as kvm_unshare_hyp() but propagates the first unshare_pfn_hyp() failure
++ * instead of only WARN_ON-ing it, so the pKVM EL2-coverage teardown can leak (not
++ * free) a page whose host->hyp share could not be confirmed torn down. Intended
++ * for the single (small) experiment page: a mid-range failure returns early and
++ * leaves earlier pages unshared, which is fine for a one-page range.
++ */
++int kvm_unshare_hyp_checked(void *from, void *to)
++{
++	phys_addr_t start, end, cur;
++	u64 pfn;
++	int ret;
++
++	if (is_kernel_in_hyp_mode() || kvm_host_owns_hyp_mappings() || !from)
++		return 0;
++
++	start = ALIGN_DOWN(__pa(from), PAGE_SIZE);
++	end = PAGE_ALIGN(__pa(to));
++	for (cur = start; cur < end; cur += PAGE_SIZE) {
++		pfn = __phys_to_pfn(cur);
++		ret = unshare_pfn_hyp(pfn);
++		if (ret)
++			return ret;
++	}
++	return 0;
++}
++#endif
++
+ /**
+  * create_hyp_mappings - duplicate a kernel virtual address range in Hyp mode
+  * @from:	The virtual kernel start address of the range
+@@ -1756,8 +1788,24 @@ static int pkvm_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t *fault_ipa,
  		goto retry;
  	}
  
@@ -343,10 +400,10 @@ index 55c8ae82c3dc..1f0102d8ae91 100644
  			ret = 0;
 diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
 new file mode 100644
-index 000000000000..0274a90a7bef
+index 000000000000..225cb59d6bfc
 --- /dev/null
 +++ b/arch/arm64/kvm/pkvm_cov.c
-@@ -0,0 +1,285 @@
+@@ -0,0 +1,293 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Stage-2 EL2 coverage — host (EL1) side.
@@ -524,8 +581,16 @@ index 000000000000..0274a90a7bef
 +		goto out;
 +	}
 +
-+	/* 4. EL2 no longer references the page: safe to reclaim. */
-+	kvm_unshare_hyp(ring, (char *)ring + PAGE_SIZE);
++	/*
++	 * 4. Undo the host->hyp share, CHECKED: kvm_unshare_hyp() is void (only
++	 * WARN_ONs), so use the checked variant — if the unshare is not confirmed the
++	 * page may still be hyp-mapped, so leak it rather than free.
++	 */
++	if (kvm_unshare_hyp_checked(ring, (char *)ring + PAGE_SIZE)) {
++		pr_warn("pkvm_cov: unshare unconfirmed — leaking ring page (EL2 may still map it)\n");
++		pkvm_cov_owner_cpu = -1;
++		goto out;
++	}
 +	free_page((unsigned long)ring);
 +	pkvm_cov_owner_cpu = -1;
 +	pr_info("pkvm_cov: ring disarmed\n");

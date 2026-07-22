@@ -18,6 +18,21 @@ REVIEW ROUND D — two more real P0s fixed (before any smoke):
      grace period. (Assumes non-RT: mmu_lock disables preemption = RCU read side.)
   Also: stale doc line "#23 hook NOT wired" removed (contradicted "wired").
 
+REVIEW ROUND E — two pre-deploy boundaries fixed:
+  1. kvm_unshare_hyp() is void (only WARN_ONs unshare_pfn_hyp) — the teardown
+     free'd the page even if the host->hyp unshare failed. Added CHECKED variant
+     kvm_unshare_hyp_checked() (mmu.c, returns first unshare_pfn_hyp() error;
+     decl in kvm_mmu.h, both under CONFIG_PKVM_EL2_COV); disable() now leaks the
+     page (not free) if unshare is unconfirmed. Verified: pkvm_cov_disable
+     disassembly shows bl synchronize_rcu + bl kvm_unshare_hyp_checked.
+  2. RCU non-RT prerequisite now a Kconfig constraint: PKVM_EL2_COV gains
+     `depends on !PREEMPT_RT` (was doc-only). olddefconfig keeps it =y on the
+     PREEMPT_VOLUNTARY fuzz kernel. (On RT, mmu_lock is a sleeping lock and would
+     not disable preemption, breaking the begin->end RCU-read-side assumption.)
+  Doc: Increment-3 consumer note de-staled — syzkaller does NOT apply any __hyp_va
+     offset; the kernel drain converts runtime->link, syzkaller only symbolizes.
+  Patch now 13 files (adds kvm_mmu.h), applies with --whitespace=error.
+
 WHAT WAS IMPLEMENTED
 --------------------
 P0.2  #23 hook (arch/arm64/kvm/mmu.c, pkvm_mem_abort): tight wrap of the single

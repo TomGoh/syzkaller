@@ -194,10 +194,12 @@ restore controlled concurrency (attribute by "the syscall returning to EL1 on th
 returns ≥1 Rust EL2 PC → `.rs:line`, watch overflow + CPU consistency), reviewed + cross-compiled — then
 decide executor-pin-vs-per-CPU-ring for a real campaign.
 
-## Increment 3 — CONSUMER (syzkaller, host-side, board-independent): specified
-- Recognize EL2 PCs by the `__kvm_nvhe_` address range; apply the boot `__hyp_va` offset (Q1, still to be
-  end-to-end checked); resolve against the **same** debuginfo vmlinux (`pkg/cover`/`pkg/symbolizer`).
-- The `elf.go` callback-name check must accept `__kvm_nvhe___sanitizer_cov_trace_pc`.
+## Increment 3 — CONSUMER (syzkaller, host-side, board-independent): DONE
+- The runtime→link conversion is done **kernel-side** in the drain (`pkvm_cov_runtime_to_link`); syzkaller
+  does **not** apply any `__hyp_va`/offset itself — it receives already-converted `__kvm_nvhe_` **link**
+  addresses and just symbolizes them against the **same** debuginfo vmlinux (`pkg/symbolizer`, `addr2line`).
+- The `elf.go` callback-name check accepts `__kvm_nvhe___sanitizer_cov_trace_pc` (+ unit test), and the full
+  raw-PC → link → `PreviousInstructionPC` → `.rs:line` loop is covered by `TestPkvmCovSymbolizePipeline`.
 
 ## Acceptance (the closed loop — needs the board)
 One controlled `KVM_RUN` → #23 → EL2 Rust executes (instrumented) → PCs in the ring → drained into the
