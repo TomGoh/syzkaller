@@ -123,13 +123,33 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
    #23 hook **will** call it on each drained PC before `kcov_add_pcs(link_pcs, n)` — still NOT wired
    (`pkvm_mem_abort` has only the plain `__pkvm_host_map_guest` call).
 
-   **Synthetic consumer test — WRITTEN + PASSING** (board-free): `pkg/cover/backend/pkvm_cov_test.go ::
-   TestPkvmCovSymbolizePipeline` mirrors the C helper (reversal + range check, *not* re-encoding the
-   lm_alias step), then runs the recovered link address through syzkaller's **real** symbolizer. Against a
-   `CONFIG_PKVM_EL2_COV` debuginfo vmlinux (opt-in via `PKVM_VMLINUX`) it proves end-to-end:
-   `EL2 runtime PC 0xffff8e0081db4780 → link 0xffff800081db4780 → pkvm.rs:4014`, and that out-of-range PCs
-   (below start, at/after end) are dropped. Skips cleanly with no artifact; the existing
-   `TestGetTraceCallbackType` still passes.
+   **KASLR is now a Kconfig constraint, not just a comment:** `config PKVM_EL2_COV` gains
+   `depends on !RANDOMIZE_BASE`, so it cannot be selected in a KASLR build (where the runtime kimage
+   address would not match the offline vmlinux). Verified: `olddefconfig` keeps `PKVM_EL2_COV=y` with KASLR
+   off, parses with no recursion/error.
+
+   **Synthetic consumer test — WRITTEN + PASSING, now the FULL KCOV pipeline** (board-free):
+   `pkg/cover/backend/pkvm_cov_test.go :: TestPkvmCovSymbolizePipeline`. The earlier version used a function
+   *entry* and so silently skipped the KCOV `+4`/`PreviousInstructionPC` convention (a future off-by-4 in
+   the #23 drain would have passed). It now models the real chain: it **discovers a real
+   `bl __kvm_nvhe___sanitizer_cov_trace_pc` call site** in the hyp `.text` (the exact CoverPoint
+   `elfReadModuleCoverPoints` records), forms the raw KCOV PC = `call site + 4` (what EL2's
+   `__builtin_return_address(0)` yields — the kernel must *not* pre-subtract), applies the synthetic tag,
+   reverses via the helper, then applies syzkaller's `PreviousInstructionPC(-4)` and asserts it lands back
+   on the call site, which `addr2line` resolves to Rust `.rs:line`. Against a `CONFIG_PKVM_EL2_COV` debuginfo
+   vmlinux (opt-in via `PKVM_VMLINUX`) it proves end-to-end, e.g.
+   `call site 0xffff800081d917e0 → raw KCOV PC 0xffff800081d917e4 → runtime 0xffff8e0081d917e4 → link
+   0xffff800081d917e4 → report 0xffff800081d917e0 → *.rs:line`, with out-of-range PCs dropped. Skips cleanly
+   with no artifact; `TestGetTraceCallbackType` still passes. (Colleague also independently confirmed the
+   real `syz-cover` backend emits `0xffff800081db47a4: bl __kvm_nvhe___sanitizer_cov_trace_pc` as a
+   rawcoverpc against this vmlinux — the callback recognition fires in the real ELF scan, not just the unit
+   test.)
+
+   **Reviewable kernel patch:** the kernel-side changes now live as a single applyable patch
+   `evidence/stage2-mvp-2026-07-22/stage2-el2-kcov.patch` (11 files: `kvm_asm.h`, `Kconfig`, both Makefiles,
+   `build_rust.sh`, `hyp_main.rs`, `kcov.{c,h}`, and new `kvm_pkvm_cov.h`, `nvhe/cov.c`, `pkvm_cov.c`) —
+   not just scattered evidence copies. It excludes the unrelated `kvm_main.c` debug edit and the multi-stage
+   defconfig. Source of truth remains the isolated tree `/home/jose/common-stage2mvp`.
 2. **Host glue (board-supervised).** Allocate the ring page, `__pkvm_host_share_hyp` it, `__pkvm_cov_setup`,
    CPU-pin the executor thread; the `pkvm_mem_abort` #23 hook must `smp_store_release(flags, ENABLED)` →
    map → `smp_load_acquire(count)` → convert (above) → `kcov_add_pcs`, on **both** success and failure; and

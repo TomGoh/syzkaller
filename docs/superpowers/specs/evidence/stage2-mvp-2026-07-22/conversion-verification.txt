@@ -1,14 +1,20 @@
-Stage-2 EL2-KCOV — runtime->link conversion helper + synthetic consumer test
-============================================================================
+Stage-2 EL2-KCOV — runtime->link conversion helper + FULL-pipeline consumer test
+================================================================================
 Date: 2026-07-22. Isolated kernel tree: /home/jose/common-stage2mvp (NOT committed).
+Reviewable kernel patch of ALL kernel-side changes: stage2-el2-kcov.patch (this dir).
 
-Addresses the colleague's most-recent review:
-  1. doc framing: "done kernel-side / #23 hook applies this" was WRONG -> corrected to
-     "conversion design fixed + helper implemented + tested, #23 hook NOT wired yet".
+Review round A (conversion + framing):
+  1. doc framing: "done kernel-side / #23 hook applies this" -> "design fixed + helper
+     implemented + tested, #23 hook NOT wired yet".
   2. conversion formula MISSED lm_alias() -> corrected to the hyp_events.c pattern.
   3. synthetic-PC consumer test that does NOT re-encode the missing-lm_alias formula.
+Review round B (this update):
+  4. test skipped the KCOV +4 / PreviousInstructionPC convention -> upgraded to the
+     full pipeline (below); a future off-by-4 in the #23 drain now fails the test.
+  5. KASLR was only a comment prerequisite -> now a Kconfig constraint (!RANDOMIZE_BASE).
+  6. kernel-side changes organized into one reviewable patch (stage2-el2-kcov.patch).
 
-(1) HOST HELPER — arch/arm64/kvm/pkvm_cov.c  (isolated tree; copy in this bundle)
+(1) HOST HELPER — arch/arm64/kvm/pkvm_cov.c  (in the patch; copy in this bundle)
 --------------------------------------------------------------------------------
     unsigned long pkvm_cov_runtime_to_link(unsigned long pc)
     {
@@ -21,40 +27,48 @@ Addresses the colleague's most-recent review:
     }
   - lm_alias() present (matches hyp_events.c:382, va_layout.c:45) — NOT __kern_hyp_va(__hyp_text_start).
   - explicit range check (mandatory: __kern_hyp_va is only a constant offset WITHIN hyp .text).
-  - Prerequisite CONFIG_RANDOMIZE_BASE=n verified in the fuzz .config.
   - Gated: arch/arm64/kvm/Makefile  ->  kvm-$(CONFIG_PKVM_EL2_COV) += pkvm_cov.o
-  - Compiles clean:
-        $ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- arch/arm64/kvm/pkvm_cov.o
-          CC      arch/arm64/kvm/pkvm_cov.o
-        $ aarch64-linux-gnu-nm arch/arm64/kvm/pkvm_cov.o | grep pkvm_cov
-          0000000000000008 T pkvm_cov_runtime_to_link
-          (U __hyp_text_start, U __hyp_text_end — resolve against the kernel anchors)
+  - Compiles clean: `CC arch/arm64/kvm/pkvm_cov.o`; nm -> T pkvm_cov_runtime_to_link.
 
-(2) SYNTHETIC CONSUMER TEST — pkg/cover/backend/pkvm_cov_test.go (committed)
+(2) KASLR Kconfig GATE — arch/arm64/kvm/Kconfig
 --------------------------------------------------------------------------------
-  TestPkvmCovSymbolizePipeline: mirrors the C helper (reversal + range check ONLY;
-  does not re-encode lm_alias — that is the kernel's job, validated by code match),
-  then runs the recovered link address through syzkaller's REAL symbolizer.
+    config PKVM_EL2_COV
+        depends on KVM && X1_RMS && KCOV
+        depends on !RANDOMIZE_BASE     <-- NEW
+  Verified: olddefconfig keeps PKVM_EL2_COV=y with `# CONFIG_RANDOMIZE_BASE is not set`,
+  parses with no error/recursion. (With KASLR on, the config is unavailable, so the
+  helper can never run in a build where link_pc != offline vmlinux address.)
 
-  Skip path (no artifact) + existing recognition test:
-    $ go test ./pkg/cover/backend/ -run 'TestPkvmCovSymbolizePipeline|TestGetTraceCallbackType' -v
-      --- PASS: TestGetTraceCallbackType (0.00s)
-      --- SKIP: TestPkvmCovSymbolizePipeline (0.00s)
-      ok  github.com/google/syzkaller/pkg/cover/backend
+(3) FULL-PIPELINE CONSUMER TEST — pkg/cover/backend/pkvm_cov_test.go (committed)
+--------------------------------------------------------------------------------
+  TestPkvmCovSymbolizePipeline models the real KCOV chain (no board):
+    call site (bl, the CoverPoint elfReadModuleCoverPoints records)
+      -> raw KCOV PC == call site + 4   (EL2 __builtin_return_address(0); kernel must NOT pre-subtract)
+      -> runtime hyp-VA (+ synthetic tag)
+      -> pkvm_cov_runtime_to_link       (drain-side reversal)
+      -> PreviousInstructionPC (-4)      (syzkaller reconciles return-addr -> call site)
+      == the original call site -> addr2line -> rust/src/*.rs:line
+  It discovers a REAL `bl __kvm_nvhe___sanitizer_cov_trace_pc` by scanning hyp .text (not a
+  hardcoded address), so it does not re-encode any formula.
 
-  End-to-end path (opt-in) against a CONFIG_PKVM_EL2_COV debuginfo vmlinux:
+  Skip path + recognition unit test:
+    $ go test ./pkg/cover/backend/ -run 'TestPkvmCovSymbolizePipeline|TestGetTraceCallbackType'
+      ok  (SKIP pipeline w/o artifact; TestGetTraceCallbackType PASS)
+
+  End-to-end (opt-in) against the CONFIG_PKVM_EL2_COV debuginfo vmlinux:
     $ PKVM_VMLINUX=/home/jose/common-stage2mvp/vmlinux \
         go test ./pkg/cover/backend/ -run TestPkvmCovSymbolizePipeline -v
-      pkvm_cov_test.go:91: EL2 runtime PC 0xffff8e0081db4780 -> link 0xffff800081db4780
-                           -> /home/jose/.../hyp/nvhe/rust/src/pkvm.rs:4014
-      --- PASS: TestPkvmCovSymbolizePipeline (90.51s)
-
-  Anchors read from the real vmlinux:
-    __hyp_text_start          = 0xffff800081d85ed4
-    __hyp_text_end            = 0xffff800081de5000
-    __kvm_nvhe___pkvm_init_vm = 0xffff800081db4780  (inside hyp .text; -> pkvm.rs:4014)
+      call site 0xffff800081d917e0 -> raw KCOV PC 0xffff800081d917e4
+        -> runtime 0xffff8e0081d917e4 -> link 0xffff800081d917e4
+        -> report 0xffff800081d917e0 -> .../rust/.../*.rs:line
+      --- PASS (90s)
+  Anchors: __hyp_text_start=0xffff800081d85ed4, __hyp_text_end=0xffff800081de5000,
+           __kvm_nvhe___sanitizer_cov_trace_pc=0xffff800081d893a8.
   Range check proven: PC below start and PC at/after end both -> dropped (return 0).
+  Colleague-confirmed independently: real syz-cover backend emits
+    0xffff800081db47a4: bl __kvm_nvhe___sanitizer_cov_trace_pc  as a rawcoverpc.
 
 REMAINING (board-supervised, per review order): host ring setup, __pkvm_host_share_hyp,
 __pkvm_cov_setup, CPU-pin; wire the #23 pkvm_mem_abort enable/convert/drain hook
-(calls pkvm_cov_runtime_to_link before kcov_add_pcs); teardown-in-order. Deploy LAST.
+(calls pkvm_cov_runtime_to_link before kcov_add_pcs, records raw return-address PCs
+UNMODIFIED — no -4 in the kernel); teardown-in-order. Deploy LAST.
