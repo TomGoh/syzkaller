@@ -1,0 +1,11 @@
+=== Stage-2 MVP config-gated build verification (isolated tree, 2026-07-22) ===
+CONFIG_PKVM_EL2_COV=y in .config + autoconf.h: yes
+-- CONFIG ON --
+cov.o linked:            yes
+Rust SanCov calls:       7446
+vmlinux syms:            3/3 (kcov_add_pcs, callback, cov_setup)
+callback -> source:      /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/cov.c:28 (discriminator 17)
+new enum id (bindgen):   1 const generated
+-- CONFIG OFF --
+gate idiom == xcore_unit_test gate; cov.nvhe.o NOT in the hyp link list; build_rust.sh adds no SanCov; autoconf/auto.conf clean
+-- unit-test ids: UNCHANGED (cov_setup added after the XCORE #ifdef, explicit dispatch, table untouched) --

@@ -14,8 +14,11 @@
  * acquire load of `count` only exposes fully-written PCs.  MVP assumes the
  * fuzzer thread is CPU-pinned, so producer and consumer share one CPU.
  */
+#include <asm/barrier.h>
 #include <asm/percpu.h>
 #include <asm/kvm_pkvm_cov.h>
+#include <nvhe/memory.h>
+#include <nvhe/mem_protect.h>
 
 static DEFINE_PER_CPU(struct pkvm_cov_ring *, pkvm_cov_ring);
 
@@ -25,21 +28,47 @@ void notrace __sanitizer_cov_trace_pc(void)
 	struct pkvm_cov_ring *r = __this_cpu_read(pkvm_cov_ring);
 	u32 count;
 
-	if (!r || !(READ_ONCE(r->flags) & PKVM_COV_FLAG_ENABLED))
+	/* Acquire: pair with the host's release when it sets ENABLED. */
+	if (!r || !(smp_load_acquire(&r->flags) & PKVM_COV_FLAG_ENABLED))
 		return;
 	count = READ_ONCE(r->count);
 	if (count < PKVM_COV_RING_PCS) {
 		r->pcs[count] = (u64)__builtin_return_address(0);
-		barrier();			/* publish the PC before the count (same-CPU: compiler barrier) */
-		WRITE_ONCE(r->count, count + 1);
+		/* Release: the PC store is visible before the count the host acquires. */
+		smp_store_release(&r->count, count + 1);
 	} else {
 		WRITE_ONCE(r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
 	}
 }
 
-/* Register the (host->hyp shared) ring page for this CPU.  Called from the
- * __pkvm_cov_setup hypercall handler with the ring's hyp VA (or NULL to clear). */
-void pkvm_cov_set_ring(struct pkvm_cov_ring *ring_hyp_va)
+/*
+ * __pkvm_cov_setup(pfn) hypercall body.  The host has already shared the page
+ * via __pkvm_host_share_hyp(pfn); here we pin it and register it as this CPU's
+ * ring (pfn != 0), or unpin + clear it (pfn == 0).  Lifecycle mirrors the hyp
+ * trace ring (trace.c): share_hyp (host) -> hyp_pin_shared_mem (hyp), and the
+ * reverse on teardown.  Returns 0 or a negative errno.
+ */
+int pkvm_cov_setup(u64 pfn)
 {
-	__this_cpu_write(pkvm_cov_ring, ring_hyp_va);
+	struct pkvm_cov_ring *old = __this_cpu_read(pkvm_cov_ring);
+	void *va;
+	int ret;
+
+	/* Teardown: unpin the previously-registered ring on this CPU. */
+	if (!pfn) {
+		if (old) {
+			hyp_unpin_shared_mem((void *)old, (void *)old + PAGE_SIZE);
+			__this_cpu_write(pkvm_cov_ring, NULL);
+		}
+		return 0;
+	}
+	if (old)		/* already set up on this CPU */
+		return -EBUSY;
+
+	va = hyp_phys_to_virt((phys_addr_t)pfn << PAGE_SHIFT);
+	ret = hyp_pin_shared_mem(va, va + PAGE_SIZE);
+	if (ret)
+		return ret;
+	__this_cpu_write(pkvm_cov_ring, (struct pkvm_cov_ring *)va);
+	return 0;
 }

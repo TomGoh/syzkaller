@@ -67,9 +67,24 @@ flags (`build_rust.sh`), `cov.o` (`hyp-obj-$(CONFIG_PKVM_EL2_COV)`), the enum en
   (`hyp_pin_shared_mem`), and calls the extern-C `pkvm_cov_set_ring(ptr)`.
 - Repro (fix #6): `rust-src` pinned to `nightly-2025-05-05`.
 
-**Still to decide with a human in the loop** (board-dependent correctness): the exact pfn→hyp-VA pin/map
-call, and the host-side ring setup (allocate per-CPU page, `kvm_share_hyp`, issue `__pkvm_cov_setup`, and
-CPU-pin the fuzzer thread). Then the `pkvm_mem_abort` #23 hook, one build, and a supervised deploy.
+**Status (2026-07-22): the config-gated producer + hypercall path is BUILT and validated in the isolated
+tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
+- **#1 `--cfg=CONFIG_PKVM_EL2_COV`** added to `build_rust.sh` (else the `#[cfg]` dispatch would be compiled
+  out) — the handler *is* present in the config-on build.
+- **#2 genuinely config-driven** (not stale artifacts): `CONFIG_PKVM_EL2_COV=y` in `.config` + `autoconf.h`.
+  CONFIG ON → `cov.o` linked, 7446 SanCov calls, `kcov_add_pcs`/callback/`pkvm_cov_setup` in vmlinux,
+  callback→`cov.c`, bindgen enum const generated. CONFIG OFF → `cov.nvhe.o` NOT in the hyp link list (gate
+  idiom identical to `xcore_unit_test`), no SanCov, clean autoconf. Evidence:
+  `evidence/stage2-mvp-2026-07-22/config-driven-verification.txt`.
+- **#3 real ordering**: `smp_store_release(&count)` / `smp_load_acquire(&flags)` in `cov.c`, not `barrier()`.
+- The `__pkvm_cov_setup` handler uses the **hyp_trace lifecycle template** (`__pkvm_host_share_hyp` by the
+  host, then `hyp_phys_to_virt` + `hyp_pin_shared_mem` in `cov.c`); id added **after** the XCORE block under
+  the gate, dispatched by an explicit id-check — **unit-test ids unchanged, `HOST_HCALL` table untouched**.
+
+**Remaining (board-dependent, for the supervised session): the host-side integration** — allocate the
+ring page, `__pkvm_host_share_hyp` it, issue `__pkvm_cov_setup`, CPU-pin the executor thread, and the
+`pkvm_mem_abort` #23 enable/drain hook (`WRITE_ONCE(flags,ENABLED)` → map → `smp_load_acquire(count)` →
+`kcov_add_pcs`). Then deploy this one build and confirm the closed loop.
 
 **Hook at #23** (`arch/arm64/kvm/mmu.c`, in `pkvm_mem_abort` around the `__pkvm_host_map_guest` call, on the
 pinned CPU): reset+`WRITE_ONCE(flags, ENABLED)` → map → `WRITE_ONCE(flags, 0)` → `n = smp_load_acquire(&count)`
