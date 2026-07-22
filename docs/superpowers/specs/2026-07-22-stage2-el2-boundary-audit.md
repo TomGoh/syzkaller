@@ -43,36 +43,77 @@ Ids 42–63 are tracing / iommu / module / hyp-alloc / stage2-snapshot; 64–65 
   kprobe-able) is **absent from the current rawcover**. The firmware reachability smoke
   (`2026-07-22-firmware-reachability-smoke-design.md`) is what first lights up #23 and `pkvm_mem_abort`.
 
-## 3. Why EL2 is dark, and the symbolization reality
+## 3. Symbolization audit — the two HARD BLOCKERS (empirically verified)
 
-Counted against the deployed vmlinux:
-- **Host (EL1):** 5 `__sanitizer_cov_*` callbacks — KCOV instruments EL1 normally.
-- **EL2 (`__kvm_nvhe_`-prefixed image):** **0** `__sanitizer_cov_*`. The nVHE hyp object is built without
-  coverage instrumentation, so every EL2 handler above executes with **no KCOV signal** — Stage 2's core
-  gap, confirmed empirically (not just from the Makefile).
-- The EL2 image has **2942 `__kvm_nvhe_` symbols**, of which **655 are Rust-mangled**
-  (`__kvm_nvhe__ZN…` — the `__kvm_nvhe_` prefix stacked on Rust `_ZN…`). The per-hypercall handlers
-  (`handle___pkvm_init_vm`, …) do **not** appear as clean `__kvm_nvhe_handle___pkvm_*` symbols (0 found) —
-  inlined into the dispatch and/or Rust-mangled.
+The colleague's three questions, answered by testing `addr2line` against the real objects. **Both must be
+fixed before EL2 KCOV is worth writing** — otherwise collected EL2 PCs are un-symbolizable.
 
-**Two-object symbolization approach (for when EL2 PCs exist):** an EL2 PC must be (a) recognized by its
-address range as belonging to the `__kvm_nvhe_` image, (b) prefix-stripped, and (c) Rust-demangled
-(`_ZN…` → `rustc-demangle`), then mapped via DWARF (`debug=true` is set). syzkaller's `elf.go:50-59` does
-not recognize the `__kvm_nvhe___sanitizer_cov_trace_pc` callback name today (design-spec §6 blocker), and
-`module_obj` does not apply (`.ko`-only). So Stage 2 needs both a **producer** (sancov in the EL2 crate)
-and a **consumer** (a two-object symbolizer that strips + demangles).
+**Q3a — Producer (no instrumentation):** host (EL1) vmlinux has **5** `__sanitizer_cov_*` callbacks; the
+`__kvm_nvhe_` image has **0**. So EL2 handlers run with no KCOV signal at all. The symbol space: **2942
+`__kvm_nvhe_` symbols, 655 Rust-mangled** (`__kvm_nvhe__ZN…`); the per-hypercall handlers do appear as
+symbols, e.g. `__kvm_nvhe__ZN9nvhe_rust8hyp_main…handle___pkvm_host_map_guest…` @ `ffff800081d9c8a0`, and
+`c++filt`/`rustc-demangle` recovers `nvhe_rust::hyp_main::…::handle___pkvm_host_map_guest`. So **names**
+demangle fine.
 
-## 4. Stage 2 prototype direction (NOT started — this is the map)
+**Q2 — DWARF line info does NOT resolve for EL2 (the blocker):** `addr2line` on any `__kvm_nvhe_` address —
+C *or* Rust — against **vmlinux** returns `??:?` (while EL1 `pkvm_mem_abort` → `mmu.c:1672` works). Tracing
+it to the source:
+- **C nvhe:** the per-file objects **do** resolve (`switch.nvhe.o` → `hyp/fault.h:48`, `hyp-main.nvhe.o` →
+  `hyp-main.c:660`), but the **linked** `kvm_nvhe.o` / vmlinux lose it. ⇒ the nvhe link (`--prefix-symbols`
+  + `hyp/nvhe/hyp.lds`) does not preserve/relocate `.debug_line`. Recoverable by symbolizing against the
+  per-file `.nvhe.o` objects (address-mapped) or fixing the link.
+- **Rust nvhe (the real target, X1_RMS):** resolves to `nvhe_rust.<hash>-cgu.0:?` — no per-address line —
+  at **every** level including the per-file `nvhe_rust.nvhe.o`. Root cause: `build_rust.sh` RUSTFLAGS has
+  **no `-C debuginfo`** (`-C relocation-model=static -C code-model=small -C opt-level=3 -C panic=abort
+  -C force-unwind-tables=no -C target-feature=-neon`), so the crate ships with no usable DWARF line tables.
+  ⇒ **fix: add `-C debuginfo=2` (and reckon with `opt-level=3` inlining) to the Rust hyp build**, else EL2
+  Rust PCs symbolize to `cgu.0:?` forever.
 
-1. **Producer:** build the EL2 Rust crate with SanCov (`-Cinstrument-coverage`/`-Zsanitizer` equivalent for
-   `aarch64-unknown-none`), providing a hyp-local `__sanitizer_cov_trace_pc` writing a hyp-owned ring.
-2. **Delivery:** `kcov_add_pcs()` at the verified boundary sites (§1) to append EL2 PCs to the current
-   task's main KCOV area — **NOT** `kcov_remote_start` (WARN-bails; guard `kcov.c:860`), per the design
-   memory.
-3. **Consumer:** the two-object symbolizer (§3).
-4. **Validate** against the firmware-smoke path (#23) first — a single, well-understood boundary crossing.
+**Q1 — runtime VA → link addr:** `__kvm_nvhe_` symbols sit at kernel **link** addresses (`ffff8000…`) in
+vmlinux; EL2 executes them at a **hyp VA** (the `__hyp_va`/`__kern_hyp_va` offset, fixed at boot, KASLR
+off). A collected EL2 PC is a hyp-VA; Stage 2 must subtract the boot-time hyp-VA offset to get the link
+address before symbolizing. (Mechanism exists and is deterministic; not a blocker, but a required step.)
+
+**Consumer gap:** syzkaller's `pkg/cover` (`elf.go:50-59`) does not recognize the linker-prefixed
+`__kvm_nvhe___sanitizer_cov_trace_pc` callback, and `module_obj` is `.ko`-only. So Stage 2 needs a
+**two-object symbolizer**: recognize the EL2 address range, apply the hyp-VA offset (Q1), strip the
+`__kvm_nvhe_` prefix, and resolve against a **DWARF-bearing object** — which today means the per-file
+`.nvhe.o` set for C, and a **rebuilt-with-debuginfo** Rust crate.
+
+## 4. Attribution & harvest discipline (do NOT wrap the boundary globally)
+
+EL2 PCs must be attributed to **the one syz call that crossed** — not harvested at every ioctl return, and
+not by globally wrapping `kvm_call_hyp_nvhe()` (that folds in boot init, other threads, and non-fuzz
+contexts → wrong attribution). Per-crossing rules for the reachable set:
+
+| boundary | harvest EL2 PCs at | attribute to | risk |
+|----------|--------------------|--------------|------|
+| #21 share (CREATE_VM/VCPU) | return of the `kvm_share_hyp` EL1 call site | the CREATE_VM / CREATE_VCPU call | low; single-threaded ioctl |
+| #34/#35 init_vm/init_vcpu | return of `pkvm_create_hyp_vm` (first `KVM_RUN`) | the vcpu-run call | the run may be `immediate_exit` — still crosses |
+| #23 host_map_guest | return of the EL1 `pkvm_mem_abort`/map path | the vcpu-run call that faulted | must not leak into a *later* call |
+| #30 `__kvm_vcpu_run` | around the run hypercall | the vcpu-run call | **CPU migration**: the vcpu can move CPUs; harvest on the same CPU/thread that issued the run |
+| #36–38 teardown | at the fd-close destroy path | **special** — fd close is not an ioctl | **teardown attribution**: `close()` runs after per-call output (`executor.cc:1158`); needs an explicit `close$kvmvm_protected` attribution point or an end-of-program flush, else orphaned |
+
+So the harvest points are **specific EL1 return sites** (success *and* error), each fenced to the issuing
+thread/CPU, with teardown handled as its own attribution channel.
+
+## 5. Stage 2 prototype direction (NOT started — this is the blueprint)
+
+**Prerequisites (from §3 — do these FIRST, they are the hard blockers):**
+- **P0. Rust debuginfo:** add `-C debuginfo=2` to `build_rust.sh` RUSTFLAGS (and account for `opt-level=3`
+  inlining) so EL2 Rust PCs resolve to `.rs:line` at all. Verify with `addr2line` on `nvhe_rust.nvhe.o`.
+- **P0. nvhe-link DWARF:** make `.debug_line` resolvable in the linked image, or wire the symbolizer to the
+  per-file `.nvhe.o` set (C already resolves there).
+
+**Then:**
+1. **Producer:** build the EL2 Rust crate with SanCov for `aarch64-unknown-none`, hyp-local
+   `__sanitizer_cov_trace_pc` writing a hyp-owned ring.
+2. **Delivery:** `kcov_add_pcs()` at the specific boundary return sites (§4) — **NOT** `kcov_remote_start`
+   (WARN-bails; guard `kcov.c:860`) and **NOT** a global `kvm_call_hyp_nvhe()` wrap.
+3. **Consumer:** two-object symbolizer (§3) — hyp-VA offset + prefix-strip + demangle + DWARF-bearing object.
+4. **Validate** on the single #23 crossing (the firmware smoke path) first.
 
 ## Next
 - Firmware reachability smoke (`2026-07-22-firmware-reachability-smoke-design.md`) — proves #23 is reached
   and lights up `pkvm_mem_abort` (host-side), independent of Stage 2.
-- Then prototype the producer on the smallest handler set (#34/#35 create, #23 map).
+- P0 debuginfo fix (small, verifiable with `addr2line`) before any producer work.
