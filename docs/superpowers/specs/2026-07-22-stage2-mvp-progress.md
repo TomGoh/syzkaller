@@ -101,7 +101,7 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
    tool that resolves `__kvm_nvhe_` link addresses to `rust/src/*.rs:line` (e.g. `hyp_main.rs:1069`) against
    the debuginfo vmlinux. So once syzkaller receives **link addresses**, the report renders Rust source.
 
-   **The runtime PC → link-address conversion — design fixed, hook NOT wired yet** (done KERNEL-side, not in
+   **The runtime PC → link-address conversion — done KERNEL-side** (not in
    syzkaller). The EL2 callback records a hyp runtime VA; the nVHE hyp-VA is a *tagged* `__kern_hyp_va`
    transform (`va_layout.c`), NOT `hyp_physvirt_offset` (physical-only). The runtime hyp-text base must go
    through **`lm_alias()` first** — matching `hyp_events.c:382` — then `kern_hyp_va`; and because
@@ -117,11 +117,10 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
    **Prerequisite:** `CONFIG_RANDOMIZE_BASE=n` (verified in the fuzz `.config`), so `link_pc` equals the
    offline vmlinux link address. With KASLR on, the runtime kimage address would not match vmlinux.
 
-   **Now implemented (host side, isolated tree):** `arch/arm64/kvm/pkvm_cov.c :: pkvm_cov_runtime_to_link()`
+   **Implemented (host side, isolated tree):** `arch/arm64/kvm/pkvm_cov.c :: pkvm_cov_runtime_to_link()`
    is exactly the formula above (real `kern_hyp_va(lm_alias(__hyp_text_start))` + range check), gated by
-   `kvm-$(CONFIG_PKVM_EL2_COV) += pkvm_cov.o`, and **compiles clean** (`CC arch/arm64/kvm/pkvm_cov.o`). The
-   #23 hook **will** call it on each drained PC before `kcov_add_pcs(link_pcs, n)` — still NOT wired
-   (`pkvm_mem_abort` has only the plain `__pkvm_host_map_guest` call).
+   `kvm-$(CONFIG_PKVM_EL2_COV) += pkvm_cov.o`. The `#23` hook (`pkvm_mem_abort`, see below) **calls it** on
+   each drained PC via `pkvm_cov_end()` before `kcov_add_pcs()`. Whole tree cross-compiles.
 
    **KASLR is now a Kconfig constraint, not just a comment:** `config PKVM_EL2_COV` gains
    `depends on !RANDOMIZE_BASE`, so it cannot be selected in a KASLR build (where the runtime kimage
@@ -153,11 +152,14 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
 2. **Host glue — IMPLEMENTED (isolated tree), NOT yet board-validated.** `arch/arm64/kvm/pkvm_cov.c` now
    owns the host ring: `pkvm_cov_enable()` `get_zeroed_page` → **`kvm_share_hyp()`** (the public API — keeps
    host page refcounts correct; **not** a raw `__pkvm_host_share_hyp`, which was the earlier, overturned
-   plan) → `kvm_call_hyp_nvhe(__pkvm_cov_setup, pfn)` on the owner CPU, recording `owner_cpu`. Teardown
-   `pkvm_cov_disable()` in the safe order: `smp_store_release(flags,0)` + NULL the host pointer **first**,
-   then `__pkvm_cov_setup(0)` on the owner CPU (via `smp_call_function_single`, and `nvhe/cov.c` now clears
-   its per-CPU pointer before `hyp_unpin_shared_mem`), then `kvm_unshare_hyp()` → `free_page`. The `#23`
-   drain is split into `pkvm_cov_begin()`/`pkvm_cov_end()` (see hook below). A **debugfs** control
+   plan) → `kvm_call_hyp_nvhe(__pkvm_cov_setup, pfn)` on the owner CPU, recording `owner_cpu`. The host ring
+   pointer is **RCU-protected**; teardown `pkvm_cov_disable()` is a full active-drain lifecycle, not a bare
+   NULL write: (1) disarm + `rcu_assign_pointer(NULL)` so new `begin()` bails; (2) `synchronize_rcu()` to wait
+   for in-flight `begin()/end()` (preempt-off owner-CPU sections); (3) `__pkvm_cov_setup(0)` on the owner CPU
+   via `smp_call_function_single`, **checked** (both the IPI result and the hyp return); (4) only then
+   `kvm_unshare_hyp()` → `free_page`. If step 3 is unconfirmed (owner CPU offline, IPI failure, hyp error) it
+   **keeps the ring disabled and LEAKS the page** rather than free something EL2 may still map. `nvhe/cov.c`
+   likewise clears its per-CPU pointer before `hyp_unpin_shared_mem`. A **debugfs** control
    (`<debugfs>/kvm/pkvm_cov/{enable,owner_cpu}`) arms/disarms it for the controlled smoke. **Whole tree
    cross-compiles** (`LD vmlinux`, `OBJCOPY Image`); `pkvm_cov_begin/end/runtime_to_link`,
    `kcov_current_trace_pc`, and the `pkvm_mem_abort` call sites all resolve in the linked vmlinux.
@@ -165,12 +167,15 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
 
 **Hook at #23 — WIRED** (`arch/arm64/kvm/mmu.c`, `pkvm_mem_abort`, tight wrap around the single
 `pkvm_host_map_guest()` call inside the `write_lock(&kvm->mmu_lock)` window; `#ifdef CONFIG_PKVM_EL2_COV`):
-`bool cov = pkvm_cov_begin()` → `ret = pkvm_host_map_guest(...)` → `if (cov) pkvm_cov_end()`. `begin()` arms
-only when this is the owner CPU **and** `kcov_current_trace_pc()` (so KVM calls with no coverage consumer pay
-nothing); it does `WRITE_ONCE(count,0)` + `smp_store_release(flags, ENABLED)`. `end()` runs on **both**
-success and error: `smp_store_release(flags,0)` → read `count` → `pkvm_cov_runtime_to_link()` per PC (drop
-out-of-range) → `kcov_add_pcs()`, and `pr_warn_ratelimited` on the OVERFLOW flag. No alloc / no sleep / no
-mutex in the lock; `ret` is never altered.
+`struct pkvm_cov_ring *cov = pkvm_cov_begin()` → `ret = pkvm_host_map_guest(...)` → `if (cov) pkvm_cov_end(cov)`.
+`begin()` arms only when this is the owner CPU **and** `kcov_current_trace_pc()` (so KVM calls with no
+coverage consumer pay nothing); it `rcu_dereference`s the ring, does `WRITE_ONCE(count,0)` +
+`smp_store_release(flags, ENABLED)`, and **returns the ring** (valid through `end()` because `disable()`'s
+free waits on `synchronize_rcu()` for this preempt-off section). `end(ring)` runs on **both** success and
+error: snapshot OVERFLOW → `smp_store_release(flags,0)` → **`count = smp_load_acquire(&ring->count)`** (pairs
+with the EL2 callback's `smp_store_release(&count)` so every published `pcs[]` entry is visible) →
+`pkvm_cov_runtime_to_link()` per PC (drop out-of-range) → `kcov_add_pcs()`, and `pr_warn_ratelimited` on the
+OVERFLOW flag. No alloc / no sleep / no mutex in the lock; `ret` is never altered.
 
 **Attribution + REQUIRED serialization (single-page/single-CPU MVP).** EL2 coverage is attributed by
 `current` — the `#23` fault runs synchronously in the vCPU thread's `KVM_RUN` syscall, so `kcov_add_pcs()`

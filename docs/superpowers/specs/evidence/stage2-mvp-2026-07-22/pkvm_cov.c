@@ -30,6 +30,7 @@
 #include <linux/mutex.h>
 #include <linux/printk.h>
 #include <linux/preempt.h>
+#include <linux/rcupdate.h>
 #include <asm/barrier.h>
 #include <asm/sections.h>	/* __hyp_text_start / __hyp_text_end */
 #include <asm/memory.h>		/* lm_alias */
@@ -67,13 +68,22 @@ unsigned long pkvm_cov_runtime_to_link(unsigned long pc)
 /* ---- single-page / single-CPU host ring state (MVP) ---- */
 
 static DEFINE_MUTEX(pkvm_cov_lock);	/* serializes enable/disable */
-static struct pkvm_cov_ring *pkvm_cov_host_ring;	/* host linear-map vaddr, or NULL */
+/*
+ * RCU-protected so the lockless #23 readers (pkvm_cov_begin/end) can never race a
+ * concurrent disable() into a use-after-free. begin()/end() run under
+ * kvm->mmu_lock (preemption off on a non-RT kernel = an RCU read-side section);
+ * disable() publishes NULL then synchronize_rcu() before it may free the page.
+ */
+static struct pkvm_cov_ring __rcu *pkvm_cov_host_ring;	/* host linear-map vaddr, or NULL */
 static int pkvm_cov_owner_cpu = -1;	/* CPU whose EL2 ring this is */
 
-/* IPI body: tear down the EL2 ring on the owner CPU (pfn == 0). */
-static void pkvm_cov_hyp_teardown_ipi(void *unused)
+/* IPI body: tear down the EL2 ring on the owner CPU (pfn == 0), capturing the result. */
+struct pkvm_cov_teardown { int ret; };
+static void pkvm_cov_hyp_teardown_ipi(void *arg)
 {
-	kvm_call_hyp_nvhe(__pkvm_cov_setup, 0);
+	struct pkvm_cov_teardown *t = arg;
+
+	t->ret = kvm_call_hyp_nvhe(__pkvm_cov_setup, 0);
 }
 
 /*
@@ -112,7 +122,7 @@ static int pkvm_cov_enable(void)
 		goto unshare;
 
 	pkvm_cov_owner_cpu = cpu;
-	pkvm_cov_host_ring = ring;
+	rcu_assign_pointer(pkvm_cov_host_ring, ring);	/* release: publishes the initialized ring */
 	pr_info("pkvm_cov: ring armed on CPU %d\n", cpu);
 	ret = 0;
 	goto out;
@@ -127,28 +137,45 @@ out:
 }
 
 /*
- * Teardown in the safe order: stop the producer (clear ENABLED) and make begin()
- * skip (NULL the host pointer) BEFORE EL2 drops its pointer and we unshare/free —
- * never unshare or free a page EL2 might still reach.
+ * Teardown as a full active-drain lifecycle, not just a NULL write:
+ *   1. disarm + publish NULL      -> new begin() bails
+ *   2. synchronize_rcu()          -> wait for in-flight begin()/end() to finish
+ *   3. __pkvm_cov_setup(0) on the owner CPU, CHECKED -> EL2 drops its pointer
+ *   4. only then unshare + free
+ * If step 3 cannot be confirmed (owner CPU offline, IPI failure, hyp error), EL2
+ * may still reference the page: keep it disabled and LEAK the page rather than
+ * free something the hypervisor can still touch.
  */
 static void pkvm_cov_disable(void)
 {
 	struct pkvm_cov_ring *ring;
-	int owner;
+	struct pkvm_cov_teardown td = { .ret = -EIO };
+	int owner, ipi;
 
 	mutex_lock(&pkvm_cov_lock);
-	ring = pkvm_cov_host_ring;
+	ring = rcu_dereference_protected(pkvm_cov_host_ring,
+					 lockdep_is_held(&pkvm_cov_lock));
 	if (!ring)
 		goto out;
 	owner = pkvm_cov_owner_cpu;
 
-	smp_store_release(&ring->flags, 0);	/* disarm the producer */
-	pkvm_cov_host_ring = NULL;		/* begin() now skips */
+	/* 1. reject new batches. */
+	smp_store_release(&ring->flags, 0);		/* disarm the producer */
+	rcu_assign_pointer(pkvm_cov_host_ring, NULL);	/* new begin() sees NULL */
+	/* 2. wait for readers that already loaded the old pointer (preempt-off). */
+	synchronize_rcu();
 
-	/* EL2 clears its per-CPU pointer on the owner CPU (cov.c reverses the pin). */
-	if (owner >= 0)
-		smp_call_function_single(owner, pkvm_cov_hyp_teardown_ipi, NULL, 1);
+	/* 3. unregister EL2's per-CPU pointer on the owner CPU; must be confirmed. */
+	ipi = (owner < 0) ? -ENXIO
+			  : smp_call_function_single(owner, pkvm_cov_hyp_teardown_ipi, &td, 1);
+	if (ipi || td.ret) {
+		pr_warn("pkvm_cov: teardown unconfirmed (ipi=%d hyp=%d) — leaking ring page (EL2 may still map it)\n",
+			ipi, td.ret);
+		pkvm_cov_owner_cpu = -1;		/* stays disabled; page intentionally leaked */
+		goto out;
+	}
 
+	/* 4. EL2 no longer references the page: safe to reclaim. */
 	kvm_unshare_hyp(ring, (char *)ring + PAGE_SIZE);
 	free_page((unsigned long)ring);
 	pkvm_cov_owner_cpu = -1;
@@ -159,47 +186,51 @@ out:
 
 /*
  * #23 drain, part 1 — called just before pkvm_host_map_guest() with kvm->mmu_lock
- * held (preemption off, so smp_processor_id() is stable). Arm the ring only when
- * this is the owner CPU AND the faulting task is collecting KCOV trace-pc; else
- * skip (coverage is optional, never wrong). Cheap: no alloc, no sleep.
+ * held (preemption off, so smp_processor_id() is stable and this is an RCU
+ * read-side section). Arm the ring only when this is the owner CPU AND the
+ * faulting task is collecting KCOV trace-pc; else skip (coverage is optional,
+ * never wrong). Returns the armed ring for pkvm_cov_end(), or NULL. Cheap: no
+ * alloc, no sleep. The returned pointer stays valid until end() because
+ * disable()'s free waits on synchronize_rcu() for this preempt-off section.
  */
-bool pkvm_cov_begin(void)
+struct pkvm_cov_ring *pkvm_cov_begin(void)
 {
-	struct pkvm_cov_ring *ring = READ_ONCE(pkvm_cov_host_ring);
+	/* preempt-off under mmu_lock is the RCU read-side; suppresses the lockdep check. */
+	struct pkvm_cov_ring *ring =
+		rcu_dereference_check(pkvm_cov_host_ring, !preemptible());
 
 	if (!ring)
-		return false;
-	if (smp_processor_id() != pkvm_cov_owner_cpu) {
+		return NULL;
+	if (smp_processor_id() != READ_ONCE(pkvm_cov_owner_cpu)) {
 		pr_warn_ratelimited("pkvm_cov: skip drain, CPU %d != owner %d\n",
-				    smp_processor_id(), pkvm_cov_owner_cpu);
-		return false;
+				    smp_processor_id(), READ_ONCE(pkvm_cov_owner_cpu));
+		return NULL;
 	}
 	if (!kcov_current_trace_pc())
-		return false;
+		return NULL;
 
 	WRITE_ONCE(ring->count, 0);
 	smp_store_release(&ring->flags, PKVM_COV_FLAG_ENABLED);
-	return true;
+	return ring;
 }
 
 /*
- * #23 drain, part 2 — called right after pkvm_host_map_guest() returns (on BOTH
- * the success and error paths), still under mmu_lock. Disarm, then convert the
- * EL2 runtime PCs to link addresses and append them to the faulting task's KCOV
- * area. No alloc / no sleep; a bounded loop over at most PKVM_COV_RING_PCS.
+ * #23 drain, part 2 — called with the ring pkvm_cov_begin() returned, right after
+ * pkvm_host_map_guest() returns (on BOTH the success and error paths), still under
+ * mmu_lock. Disarm, then convert the EL2 runtime PCs to link addresses and append
+ * them to the faulting task's KCOV area. No alloc / no sleep; a bounded loop over
+ * at most PKVM_COV_RING_PCS.
  */
-void pkvm_cov_end(void)
+void pkvm_cov_end(struct pkvm_cov_ring *ring)
 {
-	struct pkvm_cov_ring *ring = READ_ONCE(pkvm_cov_host_ring);
 	u64 batch[64];
 	u32 i, count, flags, nb = 0;
 
-	if (!ring)
-		return;
-
-	count = READ_ONCE(ring->count);
-	flags = READ_ONCE(ring->flags);
-	smp_store_release(&ring->flags, 0);	/* disarm before we walk the ring */
+	flags = READ_ONCE(ring->flags);		/* snapshot OVERFLOW before disarming */
+	smp_store_release(&ring->flags, 0);	/* disarm the producer */
+	/* Acquire: pair with the EL2 callback's smp_store_release(&count) so every
+	 * pcs[] entry published before `count` is visible here. */
+	count = smp_load_acquire(&ring->count);
 	if (count > PKVM_COV_RING_PCS)
 		count = PKVM_COV_RING_PCS;
 

@@ -4,6 +4,20 @@ Date: 2026-07-22. Isolated kernel tree: /home/jose/common-stage2mvp (NOT committ
 NOT deployed). Reviewable patch: stage2-el2-kcov.patch (12 files, applies with
 --whitespace=error). This closes the review's 4 P0s + smaller fixes, kernel-side.
 
+REVIEW ROUND D — two more real P0s fixed (before any smoke):
+  A. Missing acquire: pkvm_cov_end() now count = smp_load_acquire(&ring->count)
+     (was plain READ_ONCE) to pair with the EL2 callback's smp_store_release(&count),
+     so pcs[] published before count are guaranteed visible under the ARM model.
+  B. Teardown lifecycle: host ring pointer is now __rcu. disable() = disarm +
+     rcu_assign_pointer(NULL) -> synchronize_rcu() (wait for in-flight begin/end
+     preempt-off sections) -> __pkvm_cov_setup(0) on owner CPU CHECKED (IPI result
+     AND hyp return) -> only then unshare/free. If unconfirmed (owner offline / IPI
+     fail / hyp error): keep disabled and LEAK the page (never free one EL2 may map).
+     begin() returns the ring (rcu_dereference_check), end(ring) takes it — no second
+     lockless global read; pointer valid through end() because the free waits on the
+     grace period. (Assumes non-RT: mmu_lock disables preemption = RCU read side.)
+  Also: stale doc line "#23 hook NOT wired" removed (contradicted "wired").
+
 WHAT WAS IMPLEMENTED
 --------------------
 P0.2  #23 hook (arch/arm64/kvm/mmu.c, pkvm_mem_abort): tight wrap of the single
