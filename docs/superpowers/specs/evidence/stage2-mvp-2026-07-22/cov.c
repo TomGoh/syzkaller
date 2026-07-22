@@ -21,6 +21,7 @@
 #include <nvhe/mem_protect.h>
 
 static DEFINE_PER_CPU(struct pkvm_cov_ring *, pkvm_cov_ring);
+static DEFINE_PER_CPU(bool, pkvm_cov_in_cb);
 
 /* SanCov trace-pc callback: record the caller's PC (the instrumented block). */
 void notrace __sanitizer_cov_trace_pc(void)
@@ -31,6 +32,16 @@ void notrace __sanitizer_cov_trace_pc(void)
 	/* Acquire: pair with the host's release when it sets ENABLED. */
 	if (!r || !(smp_load_acquire(&r->flags) & PKVM_COV_FLAG_ENABLED))
 		return;
+	/*
+	 * Drop nested callbacks on this CPU (e.g. an EL2 exception re-entering
+	 * instrumented code) rather than racing the ring — better to lose a PC
+	 * than to corrupt count/pcs. Interrupts are masked in the hyp, so the
+	 * CPU is stable across this window.
+	 */
+	if (__this_cpu_read(pkvm_cov_in_cb))
+		return;
+	__this_cpu_write(pkvm_cov_in_cb, true);
+
 	count = READ_ONCE(r->count);
 	if (count < PKVM_COV_RING_PCS) {
 		r->pcs[count] = (u64)__builtin_return_address(0);
@@ -39,6 +50,8 @@ void notrace __sanitizer_cov_trace_pc(void)
 	} else {
 		WRITE_ONCE(r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
 	}
+
+	__this_cpu_write(pkvm_cov_in_cb, false);
 }
 
 /*

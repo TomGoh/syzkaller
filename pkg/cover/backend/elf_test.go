@@ -16,6 +16,8 @@ func TestGetTraceCallbackType(t *testing.T) {
 		TraceCbPc: {
 			"__sanitizer_cov_trace_pc",
 			"____sanitizer_cov_trace_pc_veneer",
+			// pKVM EL2 (Rust hyp) coverage callback, __kvm_nvhe_-prefixed by the nVHE linker.
+			"__kvm_nvhe___sanitizer_cov_trace_pc",
 		},
 		TraceCbCmp: {
 			"__sanitizer_cov_trace_cmp1",

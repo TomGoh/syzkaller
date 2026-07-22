@@ -81,10 +81,28 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
   host, then `hyp_phys_to_virt` + `hyp_pin_shared_mem` in `cov.c`); id added **after** the XCORE block under
   the gate, dispatched by an explicit id-check — **unit-test ids unchanged, `HOST_HCALL` table untouched**.
 
-**Remaining (board-dependent, for the supervised session): the host-side integration** — allocate the
-ring page, `__pkvm_host_share_hyp` it, issue `__pkvm_cov_setup`, CPU-pin the executor thread, and the
-`pkvm_mem_abort` #23 enable/drain hook (`WRITE_ONCE(flags,ENABLED)` → map → `smp_load_acquire(count)` →
-`kcov_add_pcs`). Then deploy this one build and confirm the closed loop.
+**P0 fixes (2026-07-22, review round 2 — all build clean):**
+- **HVC return ABI** (was a real bug): the `__pkvm_cov_setup` dispatch now always sets `a0 = SMCCC_RET_SUCCESS`
+  and `a1 = ret` (kvm_host.h: the host's `kvm_call_hyp_nvhe` `WARN_ON`s if a0 != SUCCESS and reads a1). It
+  previously put the error in a0 → WARN + undefined a1 on failure.
+- **Single-switch honesty**: `kcov_add_pcs` (decl + def + export) is now under `#ifdef CONFIG_PKVM_EL2_COV`
+  — config-off leaves no new KCOV symbol.
+- **Recursion guard**: a per-CPU `pkvm_cov_in_cb` flag drops nested EL2 callbacks (lose a PC, don't corrupt).
+
+**NOT "only host glue" — two tracks remain (per review):**
+1. **Consumer (syzkaller, board-independent) — STARTED.** `pkg/cover/backend/elf.go:getTraceCallbackType`
+   now recognizes `__kvm_nvhe___sanitizer_cov_trace_pc` as a trace-pc callback (+test). **Still to do:** the
+   runtime **hyp-VA → link-address** conversion (the collected EL2 PCs are hyp-VAs; either the kernel hook
+   subtracts the boot `__hyp_va` offset before `kcov_add_pcs`, or syzkaller does — decide + plumb the
+   offset), and confirm syzkaller's DWARF path renders `__kvm_nvhe_` link addresses as `rust/src/*.rs:line`
+   (proven with `addr2line`; needs the in-tree path). Build + synthetic-PC test, no board needed.
+2. **Host glue (board-supervised).** Allocate the ring page, `__pkvm_host_share_hyp` it, `__pkvm_cov_setup`,
+   CPU-pin the executor thread; the `pkvm_mem_abort` #23 hook must `smp_store_release(flags, ENABLED)` →
+   map → `smp_load_acquire(count)` → `kcov_add_pcs`, on **both** success and failure; and full **teardown**
+   (disable → `__pkvm_cov_setup(0)` → `__pkvm_host_unshare_hyp` → free_page). Count/log ring overflow.
+
+**Do NOT deploy yet** — finish P0 (done) + the consumer first; then host glue is the last kernel path, and
+only then the non-default-GRUB deploy + firmware-smoke acceptance (≥1 Rust EL2 PC → `.rs:line`).
 
 **Hook at #23** (`arch/arm64/kvm/mmu.c`, in `pkvm_mem_abort` around the `__pkvm_host_map_guest` call, on the
 pinned CPU): reset+`WRITE_ONCE(flags, ENABLED)` → map → `WRITE_ONCE(flags, 0)` → `n = smp_load_acquire(&count)`
