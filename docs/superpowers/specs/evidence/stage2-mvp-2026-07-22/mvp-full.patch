@@ -121,7 +121,7 @@
  
  ///
 --- /home/jose/common/kernel/kcov.c	2026-07-09 10:24:26.402360270 +0800
-+++ kernel/kcov.c	2026-07-22 14:49:16.367967977 +0800
++++ kernel/kcov.c	2026-07-22 15:08:02.706058000 +0800
 @@ -225,6 +225,38 @@
  }
  EXPORT_SYMBOL(__sanitizer_cov_trace_pc);
@@ -131,10 +131,10 @@
 + * Append externally-collected PCs (pKVM EL2 hyp coverage drained around a
 + * hypercall boundary) into the current task's KCOV area.  Uses the same
 + * re-entrancy-safe order as __sanitizer_cov_trace_pc (publish count, barrier,
-+ * then the PC).  The PCs are stored raw (hyp-VAs); the userspace consumer is
-+ * responsible for the EL2 hyp-VA -> link-address mapping.  No canonicalize_ip():
-+ * these are not kernel-text KASLR addresses.  Gated by CONFIG_PKVM_EL2_COV so the
-+ * symbol only exists for the fuzz kernel (its only caller is the pKVM #23 hook).
++ * then the PC).  The caller (the pKVM #23 hook) passes already-converted
++ * __kvm_nvhe_ *link* addresses (runtime hyp-VA -> link done on the drain side via
++ * the __hyp_text anchor), so no canonicalize_ip() here.  Gated by
++ * CONFIG_PKVM_EL2_COV so the symbol only exists for the fuzz kernel.
 + */
 +void notrace kcov_add_pcs(const u64 *pcs, u32 n)
 +{

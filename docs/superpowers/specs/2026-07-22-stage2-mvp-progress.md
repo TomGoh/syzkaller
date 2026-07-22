@@ -10,13 +10,15 @@ The Rust hyp is now SanCov-instrumented and its callback lands in a hyp ring, wh
 
 - **Build flags** (`build_rust.sh`): `-C debuginfo=2` + `-C passes=sancov-module -C llvm-args=-sanitizer-coverage-level=3
   -C llvm-args=-sanitizer-coverage-trace-pc` (+ `CARGO_PROFILE_RELEASE_DEBUG=2`). See `producer.patch`.
-- **Callback** (`arch/arm64/kvm/hyp/nvhe/cov.c`, uninstrumented nvhe C): `__sanitizer_cov_trace_pc()` records
-  `__builtin_return_address(0)` into a per-CPU ring (`struct pkvm_cov_ring`, `asm/kvm_pkvm_cov.h`), gated by
-  an enable flag; plus `pkvm_cov_set_enabled()` / `pkvm_cov_snapshot()`. Added `cov.o` to the nvhe Makefile.
+- **Callback** (`arch/arm64/kvm/hyp/nvhe/cov.c`, uninstrumented nvhe C, `notrace` + per-CPU recursion
+  guard): `__sanitizer_cov_trace_pc()` records `__builtin_return_address(0)` into a **host-shared** per-CPU
+  ring (`struct pkvm_cov_ring{u32 count; u32 flags; u64 pcs[511]}`, `asm/kvm_pkvm_cov.h`), gated by the
+  `PKVM_COV_FLAG_ENABLED` bit the host sets, with `smp_store_release(count)`/`smp_load_acquire(flags)`
+  ordering. `pkvm_cov_setup(pfn)` pins/registers (or unpins) the ring. Added `cov.o` to the nvhe Makefile.
 - **Verified in the linked vmlinux:**
   - `nvhe_rust.o` has **7443 `__sanitizer_cov_trace_pc` call sites** (the whole Rust hyp is instrumented);
-  - `__kvm_nvhe___sanitizer_cov_trace_pc` is defined and resolves to `cov.c:23` — all call sites link;
-  - `pkvm_cov_set_enabled` / `pkvm_cov_snapshot` are present in the hyp image;
+  - `__kvm_nvhe___sanitizer_cov_trace_pc` is defined and resolves to `cov.c` — all call sites link;
+  - `__kvm_nvhe_pkvm_cov_setup` is present in the hyp image;
   - **debuginfo + SanCov coexist**: `handle___pkvm_host_map_guest` still resolves to `hyp_main.rs:1069`.
 
 So instrumented-Rust → our callback → ring, and the PCs remain symbolizable — the two hard, novel,
@@ -36,9 +38,10 @@ Single hypercall + shared-page flags, to minimise the Rust-dispatch surface. **S
 2. **Reuse KCOV's exact write protocol — do NOT paraphrase.** The kernel's `__sanitizer_cov_trace_pc`
    updates the count *before* the PC (to survive re-entrant interrupts) and uses `t->kcov_size`:
    `pos = READ_ONCE(area[0])+1; if (pos < t->kcov_size) { WRITE_ONCE(area[0], pos); barrier(); area[pos]=ip; }`.
-   `kcov_add_pcs(const u64 *pcs, u32 n)` (new, `kernel/kcov.c`, `notrace`) loops that body per PC, guarded
-   by `check_kcov_mode(KCOV_MODE_TRACE_PC, current)` and `canonicalize_ip()`. The **hyp** ring uses the same
-   count-last-visible discipline: write `pcs[count]`, `barrier()`, then `WRITE_ONCE(count, count+1)`.
+   `kcov_add_pcs(const u64 *pcs, u32 n)` (new, `kernel/kcov.c`, `notrace`, under `CONFIG_PKVM_EL2_COV`) loops
+   that body per PC, guarded by `check_kcov_mode(KCOV_MODE_TRACE_PC, current)`. It stores the PCs **as
+   given** (no `canonicalize_ip` — the drain side hands it already-converted link addresses, see the
+   conversion note below). The **hyp** ring uses the count-last-visible discipline via `smp_store_release`.
 3. **CPU-pin is an implementation, not a wish.** `procs:1` does NOT stop the executor migrating CPUs across
    the KVM ioctl. The executor thread that drives the KVM lifecycle must `sched_setaffinity()` to a single
    CPU (e.g. CPU 0) so the EL2 producer (per-CPU ring) and the EL1 drain are the same CPU. Alternative if
@@ -63,8 +66,9 @@ flags (`build_rust.sh`), `cov.o` (`hyp-obj-$(CONFIG_PKVM_EL2_COV)`), the enum en
 - Dispatch (`hyp_main.rs`): a `#[cfg(CONFIG_PKVM_EL2_COV)]` **explicit `id ==` check** *before* the
   `HOST_HCALL` table lookup — so the fixed 66-entry table (and unit-test's slot) is untouched. The id
   constant comes from the (bindgen-regenerated) `__kvm_host_smccc_func` binding.
-- The handler `handle___pkvm_cov_setup` reads `declare_reg(1)=pfn`, pins/maps it to a hyp-VA
-  (`hyp_pin_shared_mem`), and calls the extern-C `pkvm_cov_set_ring(ptr)`.
+- The dispatch reads `declare_reg(1)=pfn` and calls the extern-C `pkvm_cov_setup(pfn)` (in `cov.c`), which
+  `hyp_phys_to_virt(pfn<<PAGE_SHIFT)` + `hyp_pin_shared_mem()` and registers the per-CPU ring (or unpins on
+  pfn==0). Returns via a1 (HVC ABI: a0 always `SMCCC_RET_SUCCESS`).
 - Repro (fix #6): `rust-src` pinned to `nightly-2025-05-05`.
 
 **Status (2026-07-22): the config-gated producer + hypercall path is BUILT and validated in the isolated
@@ -90,16 +94,32 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
 - **Recursion guard**: a per-CPU `pkvm_cov_in_cb` flag drops nested EL2 callbacks (lose a PC, don't corrupt).
 
 **NOT "only host glue" — two tracks remain (per review):**
-1. **Consumer (syzkaller, board-independent) — STARTED.** `pkg/cover/backend/elf.go:getTraceCallbackType`
-   now recognizes `__kvm_nvhe___sanitizer_cov_trace_pc` as a trace-pc callback (+test). **Still to do:** the
-   runtime **hyp-VA → link-address** conversion (the collected EL2 PCs are hyp-VAs; either the kernel hook
-   subtracts the boot `__hyp_va` offset before `kcov_add_pcs`, or syzkaller does — decide + plumb the
-   offset), and confirm syzkaller's DWARF path renders `__kvm_nvhe_` link addresses as `rust/src/*.rs:line`
-   (proven with `addr2line`; needs the in-tree path). Build + synthetic-PC test, no board needed.
+1. **Consumer (syzkaller, board-independent).** `pkg/cover/backend/elf.go:getTraceCallbackType` now
+   recognizes `__kvm_nvhe___sanitizer_cov_trace_pc` as a trace-pc callback (+unit test), so the EL2
+   `bl`-sites in the `__kvm_nvhe_` .text range become coverage points. **Symbolization is already
+   validated:** syzkaller symbolizes via `addr2line` (`pkg/symbolizer/addr2line.go`, `-afi`), the exact
+   tool that resolves `__kvm_nvhe_` link addresses to `rust/src/*.rs:line` (e.g. `hyp_main.rs:1069`) against
+   the debuginfo vmlinux. So once syzkaller receives **link addresses**, the report renders Rust source.
+
+   **The runtime PC → link-address conversion is done KERNEL-side (drain), not in syzkaller** (do not make
+   syzkaller guess the offset). The EL2 callback records a hyp runtime VA; the nVHE hyp-VA is a *tagged*
+   transform (`__kern_hyp_va`, `va_layout.c`), NOT `hyp_physvirt_offset` (that is physical-only). But the
+   hyp `.text` relocates as one contiguous block within a single tag region, so a **single anchor offset**
+   converts every PC:
+   ```
+   hyp_text_off = __kern_hyp_va((u64)__hyp_text_start) - (u64)__hyp_text_start;   // computed once, host-side
+   link_pc      = runtime_pc - hyp_text_off;                                       // in [__hyp_text_start, __hyp_text_end]
+   ```
+   The #23 hook applies this to each drained PC before `kcov_add_pcs(link_pcs, n)`. (`__hyp_text_start` and
+   `__kvm_nvhe___hyp_text_start` are the same link address in vmlinux; the `__kvm_nvhe_` code lives inside
+   that range, so the converted PC symbolizes.) A synthetic-PC unit test (feed a known `__kvm_nvhe_` symbol
+   +off, run the pipeline, expect `hyp_main.rs:1069`) closes this loop with no board.
 2. **Host glue (board-supervised).** Allocate the ring page, `__pkvm_host_share_hyp` it, `__pkvm_cov_setup`,
    CPU-pin the executor thread; the `pkvm_mem_abort` #23 hook must `smp_store_release(flags, ENABLED)` →
-   map → `smp_load_acquire(count)` → `kcov_add_pcs`, on **both** success and failure; and full **teardown**
-   (disable → `__pkvm_cov_setup(0)` → `__pkvm_host_unshare_hyp` → free_page). Count/log ring overflow.
+   map → `smp_load_acquire(count)` → convert (above) → `kcov_add_pcs`, on **both** success and failure; and
+   **teardown in order**: disable → clear the callback-visible ring pointer (`__pkvm_cov_setup(0)`) →
+   `__pkvm_host_unshare_hyp` → free_page (never unshare/free while the ring pointer is still live). Count/log
+   ring overflow.
 
 **Do NOT deploy yet** — finish P0 (done) + the consumer first; then host glue is the last kernel path, and
 only then the non-default-GRUB deploy + firmware-smoke acceptance (≥1 Rust EL2 PC → `.rs:line`).
