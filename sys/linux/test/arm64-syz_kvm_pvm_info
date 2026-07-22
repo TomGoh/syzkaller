@@ -1,0 +1,10 @@
+# requires: arch=arm64 -threaded
+
+# pKVM Slice 3a: KVM_ENABLE_CAP(KVM_CAP_ARM_PROTECTED_VM, INFO) on a protected VM, as a composite.
+# syz_kvm_pvm_info builds a bit-31 protected VM and issues the INFO cap with a valid info buffer, all in
+# C. INFO always succeeds on a protected VM with a valid pointer (pkvm.c:638-647), so the call returns 0.
+# The firmware_size it writes is the GLOBAL pkvm_firmware_mem (non-zero on N90, which has a preinstalled
+# pvmfw), not per-VM, so this test does not assert the size. N90 acceptance: the call returns 0; no WARN.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_pvm_info$arm64(r0)

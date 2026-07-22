@@ -1,0 +1,8 @@
+__pkvm_create_hyp_vcpu
+pkvm_create_hyp_vm
+__pkvm_destroy_hyp_vm
+pkvm_init_host_vm
+__pkvm_vcpu_hyp_created
+pkvm_vm_ioctl_enable_cap
+pkvm_vm_ioctl_info
+pkvm_vm_ioctl_set_fw_ipa

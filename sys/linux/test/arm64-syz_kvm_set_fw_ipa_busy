@@ -1,0 +1,10 @@
+# requires: arch=arm64 -threaded
+
+# pKVM Slice 3a: KVM_ENABLE_CAP(KVM_CAP_ARM_PROTECTED_VM, SET_FW_IPA) AFTER the first run, as a composite.
+# syz_kvm_set_fw_ipa_busy builds a bit-31 protected VM, runs a throwaway vCPU (controlled immediate_exit,
+# required to return -EINTR so kvm->arch.pkvm.handle is really set), then issues SET_FW_IPA -- all in C.
+# With pkvm.handle set, SET_FW_IPA is rejected with -EBUSY (pkvm.c:627-629). N90 acceptance: the call
+# returns -EBUSY (errno 16); no WARN (no BUG1 arch_timer, no BUG2 pgtable).
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_set_fw_ipa_busy$arm64(r0)

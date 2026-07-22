@@ -15,7 +15,8 @@ pcreate:  (pkvm_create_hyp_vm+0x0/0x560)   ← create path reached (at first KVM
 pdestroy: (pkvm_destroy_hyp_vm+0x0/0x48)   ← destroy path reached (at the final VM-fd close)
 ```
 
-**Caveat (why this is still a *smoke test*, not a launched campaign).** An entry kprobe proves the path was *reached*, not that it *succeeded*. An earlier draft asserted three stronger signals that its recorded commands could not produce. **Phase B (2026-07-21) re-captured two of the three on N90** (evidence: `evidence/2026-07-21-phaseB-n90-reverification.md`); the third remains:
+**Caveat (why this is still a *smoke test*, not a launched campaign).** An entry kprobe proves the path was *reached*, not that it *succeeded*. An earlier draft asserted three stronger signals that its recorded commands could not produce. **Phase B (2026-07-2
+1) re-captured two of the three on N90** (evidence: `evidence/2026-07-21-phaseB-n90-reverification.md`); the third remains:
 1. **kretprobe `$retval = 0`** on `pkvm_create_hyp_vm` — ✔ **captured** (`pcret … <- pkvm_create_hyp_vm ret=0x0`, caller `kvm_arch_vcpu_run_pid_change` = the first-`KVM_RUN` path).
 2. **A real KCOV count on `arch/arm64/kvm/pkvm.c`** — ✔ **captured**: the protected `KVM_CREATE_VM` call yields `coverage 62372`, symbolizing to `pkvm.c:457-465 pkvm_init_host_vm` + the `mmu.c` host→hyp share path. (The earlier `-cover=0` command collected nothing — `syz-execprog`'s `-cover` is `flagSignal`, `execprog.go:130`.)
 3. **ramoops crash-recovery** — ☐ **not available on N90 as-is** (see §6): N90 is **ACPI/no-DT**, so neither a DT `reserved-memory` node nor a safe cmdline RAM reservation applies, and `console-ramoops-0` never appears. So the campaign is **supervised-only, not auto-recoverable**; unattended recovery needs an **efi-pstore** adaptation (§6), not a `ramoops.mem_*` cmdline.
@@ -556,6 +557,29 @@ slice-2 model **cannot reach it**: it only ever creates bit-31 protected VMs, an
 any normal-VM create + dirty-log path. Surfaced originally only via **old-corpus contamination** (a stale
 `type=0x5` non-protected VM program that the current descriptions can no longer generate) — the fresh-workdir
 campaign has none.
+
+### 6.7 Slice 3 — protected-VM config paths via KVM_ENABLE_CAP — 2026-07-22
+
+Reaches the pKVM config surface `pkvm_vm_ioctl_enable_cap` (`pkvm.c:650`) — INFO + SET_FW_IPA — the
+lifecycle/memslot slices never touch. Coverage-picked (the prior symbolization showed these functions
+uncovered). Three composites from `fd_kvm` (build the bit-31 pVM in C; no raw `ioctl$KVM_ENABLE_CAP`;
+errno saved across close): `syz_kvm_pvm_info` (INFO), `syz_kvm_set_fw_ipa` (pre-run), `syz_kvm_set_fw_ipa_busy`
+(post-run, reusing `pkvm_build_slotted_vm(a0,1)`). Evidence: `evidence/2026-07-22-slice3a-enable-cap.md`.
+
+**Board firmware finding (corrected premise).** A direct probe (`evidence/slice3a-enable-cap-2026-07-22/fw_probe.c`)
+showed **N90 reserves a ~956 KB pvmfw region at boot** (`pkvm_firmware_mem != NULL`, `firmware_size=978944`),
+via an early FDT `reserved-memory` node (`linux,pkvm-guest-firmware-memory`, pkvm.c:593) that is parsed even
+though N90 exposes no `/sys/firmware/devicetree/base` (ACPI for devices). So the reachable `SET_FW_IPA`
+outcomes on N90 are **success (pre-run, writes pvmfw_load_addr, pkvm.c:632)** and **-EBUSY (post-run,
+pkvm.c:627-629)** — NOT the no-firmware `-EINVAL` (pkvm.c:623) originally assumed. This is consistent with
+`crosvm --protected-vm-without-firmware`, which is a *per-VM* opt-out (crosvm just skips `SET_FW_IPA`), not a
+statement that the board lacks the region.
+
+**Verified on N90:** `pvm_info=0`, `set_fw_ipa=0`, `set_fw_ipa_busy=-1/EBUSY`; 0 WARN/BUG. Fresh campaign
+(`syscalls: 13/8063`): all three enter the corpus, 0 crashes, and symbolization shows **+3 new pkvm.c
+functions** (`pkvm_vm_ioctl_enable_cap`, `_info`, `_set_fw_ipa`; +16 unique pkvm.c lines) → host pKVM driver
+surface now 8 functions (5 lifecycle + 3 config). The SET_FW_IPA *success* only records `pvmfw_load_addr`;
+the actual firmware handoff / measured boot is Phase 5.
 
 ---
 

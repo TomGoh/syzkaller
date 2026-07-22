@@ -82,6 +82,19 @@ syz_kvm_memslot_reject_move$arm64(fd fd_kvm)
 # a normal register; the composite creates a bit-31 protected VM before the flagged register.
 syz_kvm_memslot_reject_flags$arm64(fd fd_kvm, flags int32[1:3])
 
+# --- Slice 3a: protected-VM config paths via KVM_ENABLE_CAP(KVM_CAP_ARM_PROTECTED_VM), composite -----
+# Each builds a bit-31 protected VM from the /dev/kvm fd in C, then issues the cap, so the "must be a
+# protected VM" precondition (pkvm.c:652) is guaranteed regardless of fuzzer ordering -- and a raw
+# ioctl$KVM_ENABLE_CAP is deliberately NOT modeled (it would let the fuzzer aim the cap at a normal VM
+# or fuzz reserved args). N90 carries a preinstalled pvmfw (pkvm_firmware_mem != NULL, ~956 KB), so the
+# three REACHABLE outcomes are: INFO -> success (firmware_size is the GLOBAL region size, not this VM);
+# SET_FW_IPA before the first run -> success, writing pvmfw_load_addr (pkvm.c:632); SET_FW_IPA after the
+# first run -> -EBUSY (pkvm.c:627-629). (The no-firmware -EINVAL path at pkvm.c:623 is unreachable here.)
+# No guest memory is executed.
+syz_kvm_pvm_info$arm64(fd fd_kvm)
+syz_kvm_set_fw_ipa$arm64(fd fd_kvm)
+syz_kvm_set_fw_ipa_busy$arm64(fd fd_kvm)
+
 kvm_num_irqs = 32, 64, 128, 256, 512
 
 # Set up the VGICv3 IRQ controller inside a VM.

@@ -334,7 +334,7 @@ static long syz_kvm_vcpu_run_immediate(volatile long a0)
 // pKVM rejects in kvm_arch_prepare_memory_region (mmu.c:2492-2502): DELETE/MOVE after the first run
 // -> -EPERM (pkvm.handle); dirty/readonly register -> -EPERM (only pkvm.enabled, no run). Executor-
 // owned page-bounded RW backing; no guest memory is ever executed.
-#if SYZ_EXECUTOR || __NR_syz_kvm_memslot_reject_delete || __NR_syz_kvm_memslot_reject_move || __NR_syz_kvm_memslot_reject_flags
+#if SYZ_EXECUTOR || __NR_syz_kvm_memslot_reject_delete || __NR_syz_kvm_memslot_reject_move || __NR_syz_kvm_memslot_reject_flags || __NR_syz_kvm_set_fw_ipa_busy
 #define PKVM_MEMSLOT_SLOT 0
 #define PKVM_MEMSLOT_GPA 0x40000000UL
 
@@ -463,6 +463,87 @@ static long syz_kvm_memslot_reject_flags(volatile long a0, volatile long a1)
 	if (b)
 		ret = pkvm_memslot_ioctl(vm, PKVM_MEMSLOT_SLOT, (uint32)a1, PKVM_MEMSLOT_GPA, pkvm_page(), b);
 	int e = errno; // preserve the reject errno (EPERM) across close(vm)
+	close(vm);
+	errno = e;
+	return ret;
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_pvm_info || __NR_syz_kvm_set_fw_ipa || __NR_syz_kvm_set_fw_ipa_busy
+// Slice 3a: protected-VM config paths via KVM_ENABLE_CAP(KVM_CAP_ARM_PROTECTED_VM). Composite from
+// fd_kvm: each builds the bit-31 protected VM in C, then issues the cap (no raw KVM_ENABLE_CAP fuzz).
+// The ARM-specific constant/flags are literals (not in the x86 cross-build's <linux/kvm.h>), matching
+// the 0x80000000 create idiom. args[1..3] stay 0 (memset), required by pkvm_vm_ioctl_enable_cap
+// (pkvm.c:655), which also requires a protected VM (pkvm.c:652).
+#define PKVM_CAP_PROTECTED_VM 0xffbadab1 // KVM_CAP_ARM_PROTECTED_VM
+#define PKVM_CAP_FLAGS_SET_FW_IPA 0
+#define PKVM_CAP_FLAGS_INFO 1
+#define PKVM_FW_IPA 0x40000000UL // fixed page-aligned firmware IPA
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_pvm_info
+// create bit-31 pVM -> KVM_ENABLE_CAP(INFO). INFO always succeeds (ret 0) on a valid info buffer; the
+// firmware_size it writes reflects the GLOBAL pkvm_firmware_mem (non-zero on a board with a preinstalled
+// pvmfw -- ~956 KB on N90), not this VM (pkvm.c:642), so we return the ioctl result and do NOT assert the
+// size. a0 = fd_kvm.
+static long syz_kvm_pvm_info(volatile long a0)
+{
+	int vm = ioctl(a0, KVM_CREATE_VM, 0x80000000);
+	if (vm < 0)
+		return -1;
+	uint64 info[8]; // struct kvm_protected_vm_info: u64 firmware_size + u64 __reserved[7]
+	memset(info, 0, sizeof(info));
+	struct kvm_enable_cap cap;
+	memset(&cap, 0, sizeof(cap));
+	cap.cap = PKVM_CAP_PROTECTED_VM;
+	cap.flags = PKVM_CAP_FLAGS_INFO;
+	cap.args[0] = (uint64)(uintptr_t)info;
+	long ret = ioctl(vm, KVM_ENABLE_CAP, &cap);
+	int e = errno;
+	close(vm);
+	errno = e;
+	return ret;
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_set_fw_ipa
+// create bit-31 pVM -> KVM_ENABLE_CAP(SET_FW_IPA) on a NOT-yet-run VM. With a firmware region present
+// (pkvm_firmware_mem != NULL, as on N90) and no pkvm.handle yet, this succeeds and writes pvmfw_load_addr
+// (pkvm.c:632). (On a board with no firmware it would instead be -EINVAL at pkvm.c:623.) a0 = fd_kvm.
+static long syz_kvm_set_fw_ipa(volatile long a0)
+{
+	int vm = ioctl(a0, KVM_CREATE_VM, 0x80000000);
+	if (vm < 0)
+		return -1;
+	struct kvm_enable_cap cap;
+	memset(&cap, 0, sizeof(cap));
+	cap.cap = PKVM_CAP_PROTECTED_VM;
+	cap.flags = PKVM_CAP_FLAGS_SET_FW_IPA;
+	cap.args[0] = PKVM_FW_IPA;
+	long ret = ioctl(vm, KVM_ENABLE_CAP, &cap);
+	int e = errno;
+	close(vm);
+	errno = e;
+	return ret;
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_set_fw_ipa_busy
+// SET_FW_IPA AFTER the first run -> -EBUSY (pkvm.c:627-629). pkvm_build_slotted_vm(a0, 1) builds a bit-31
+// pVM and runs a throwaway vCPU (controlled immediate_exit, required to return -EINTR), so pkvm.handle is
+// really set; its extra memslot is irrelevant to SET_FW_IPA. a0 = fd_kvm.
+static long syz_kvm_set_fw_ipa_busy(volatile long a0)
+{
+	int vm = pkvm_build_slotted_vm(a0, 1);
+	if (vm < 0)
+		return -1;
+	struct kvm_enable_cap cap;
+	memset(&cap, 0, sizeof(cap));
+	cap.cap = PKVM_CAP_PROTECTED_VM;
+	cap.flags = PKVM_CAP_FLAGS_SET_FW_IPA;
+	cap.args[0] = PKVM_FW_IPA;
+	long ret = ioctl(vm, KVM_ENABLE_CAP, &cap);
+	int e = errno;
 	close(vm);
 	errno = e;
 	return ret;
