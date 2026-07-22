@@ -478,7 +478,11 @@ static long syz_kvm_memslot_reject_flags(volatile long a0, volatile long a1)
 #define PKVM_CAP_PROTECTED_VM 0xffbadab1 // KVM_CAP_ARM_PROTECTED_VM
 #define PKVM_CAP_FLAGS_SET_FW_IPA 0
 #define PKVM_CAP_FLAGS_INFO 1
-#define PKVM_FW_IPA 0x40000000UL // fixed page-aligned firmware IPA
+// crosvm's arm64 pvmfw IPA window start: AARCH64_PHYS_MEM_START(0x80000000) - 4 MiB. Page-aligned and
+// distinct from the Slice-2 memslot GPA (0x40000000), so it is forward-compatible with a real firmware
+// handoff. SET_FW_IPA only records this (pkvm.c:632, no range check), so the value is not yet exercised
+// as a guest load address here -- that is Phase 5.
+#define PKVM_FW_IPA 0x7FC00000UL
 #endif
 
 #if SYZ_EXECUTOR || __NR_syz_kvm_pvm_info

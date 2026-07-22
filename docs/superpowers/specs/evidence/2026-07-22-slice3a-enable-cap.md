@@ -53,6 +53,12 @@ exercise the path there, only the return differs — the pseudo-calls return the
 A raw `ioctl$KVM_ENABLE_CAP` is deliberately NOT modeled — it would let the fuzzer aim the cap at a normal
 VM or fuzz the reserved args; the composites guarantee the protected-VM precondition (pkvm.c:652) in C.
 
+The fixed `PKVM_FW_IPA = 0x7FC00000` matches crosvm's arm64 pvmfw window start
+(`AARCH64_PHYS_MEM_START 0x80000000 − 4 MiB`, crosvm `aarch64/src/lib.rs:114-119`) — page-aligned and
+distinct from the Slice-2 memslot GPA (0x40000000). `SET_FW_IPA` only *records* it (pkvm.c:632, no range
+check), so the address is not yet exercised as a guest load address here; a real firmware handoff (Phase 5)
+must place actual guest memory at this window and run with firmware.
+
 ## Functional acceptance — ALL PASS (N90, syz-execprog -debug)
 ```
 pvm_info        = 0                    cover=97084
@@ -76,4 +82,6 @@ firmware binary — the missing piece is the guest execution channel, not the fi
 
 ## Bundle
 `slice3a-enable-cap-2026-07-22/`: `fw_probe.c` + `fw_probe-output.txt` (the firmware finding),
-`rawcover.txt`, `manager.log`, `pkvm-functions-covered.txt`.
+`rawcover.txt`, `rawcover.sym`, `manager.log`, `pkvm-functions-covered.txt`, `provenance.txt` (vmlinux
+sha256 + build-id, executor sha256, pvmfw.bin sha256 + loaded-region hash, kernel release, commit), and
+`symbolize.sh` to recompute the pkvm.c attribution from a matching vmlinux.
