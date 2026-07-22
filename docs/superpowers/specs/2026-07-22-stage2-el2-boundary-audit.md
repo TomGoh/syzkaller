@@ -111,9 +111,17 @@ full chain to a linked vmlinux resolves Rust EL2 fns to `.rs:line`. **Do not re-
 experiment.** What remains for the real build: land the debuginfo as a **config-gated** fuzz-kernel option,
 together with the SanCov change below, so one build serves N90 + symbolization + coverage.
 
+**Producer feasibility — trace-pc VERIFIED (2026-07-22).** rustc `nightly-2025-05-05` has no
+`-Zsanitizer-coverage-*` flag, but **`-C passes=sancov-module -C llvm-args=-sanitizer-coverage-level=3
+-C llvm-args=-sanitizer-coverage-trace-pc`** on a `no_std --target aarch64-unknown-none` crate emits calls
+to **`__sanitizer_cov_trace_pc`** (verified: `nm` shows `U __sanitizer_cov_trace_pc`). (Plain `-C llvm-args`
+without `-C passes=sancov-module` does NOT, under the new pass manager.) So the Rust hyp can be instrumented
+with the KCOV-style callback; the hyp provides the callback body (write to the ring). Not yet wired.
+
 **Then:**
-1. **Producer:** build the EL2 Rust crate with SanCov for `aarch64-unknown-none`, hyp-local
-   `__sanitizer_cov_trace_pc` writing a hyp-owned ring.
+1. **Producer:** build the EL2 Rust crate with SanCov (flags above) for `aarch64-unknown-none`, hyp-local
+   `__sanitizer_cov_trace_pc` writing a hyp-owned ring. The callback (and the ring code) must be built
+   **without** instrumentation to avoid self-recursion.
 2. **Delivery:** `kcov_add_pcs()` at the specific boundary return sites (§4) — **NOT** `kcov_remote_start`
    (WARN-bails; guard `kcov.c:860`) and **NOT** a global `kvm_call_hyp_nvhe()` wrap.
 3. **Consumer:** two-object symbolizer (§3) — hyp-VA offset + prefix-strip + resolve against vmlinux.
@@ -126,8 +134,12 @@ together with the SanCov change below, so one build serves N90 + symbolization +
   addr → Rust source**; the config is NOT committed to `/home/jose/common`, and it's a different binary — so
   Stage 2 must land it as a **config-gated** fuzz-kernel option and fuzz + symbolize the **same** build.
   Evidence: `evidence/2026-07-22-stage2-P0-rust-debuginfo.md`.
+- **Producer instrumentation (rustc trace-pc): feasibility VERIFIED** — `-C passes=sancov-module` +
+  llvm-args emits `__sanitizer_cov_trace_pc` for `aarch64-unknown-none`. Not yet wired into the hyp build.
+- **#23 firmware guest-fault boundary: PROVEN reached on N90** (`pkvm_mem_abort` at `0x7fc00000` → ret 0;
+  `evidence/firmware-smoke-2026-07-22/`).
 - **hyp-VA → vmlinux addr:** mechanism known, **not end-to-end verified** (belongs to the producer prototype).
-- **real EL2 PC → ring → EL1 KCOV → syzkaller feedback:** not implemented.
+- **real EL2 PC → ring → EL1 KCOV → syzkaller feedback:** not implemented — the remaining Stage-2 work.
 
 ## Next
 - Firmware reachability smoke (`2026-07-22-firmware-reachability-smoke-design.md`) — proves #23 is reached

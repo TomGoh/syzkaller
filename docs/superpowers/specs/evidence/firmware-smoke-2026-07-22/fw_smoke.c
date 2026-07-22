@@ -50,8 +50,9 @@ int main(void) {
 	uint64_t info[8]; memset(info, 0, sizeof(info));
 	struct kvm_enable_cap cap; memset(&cap, 0, sizeof(cap));
 	cap.cap=CAP_PROTECTED_VM; cap.flags=FLAG_INFO; cap.args[0]=(uint64_t)(uintptr_t)info;
-	ioctl(vm, KVM_ENABLE_CAP, &cap);
+	if (ioctl(vm, KVM_ENABLE_CAP, &cap) != 0) { printf("INFO: %s\n", strerror(errno)); return 1; }
 	printf("INFO firmware_size=%llu fits_window=%d\n", (unsigned long long)info[0], info[0] <= FW_SIZE);
+	if (info[0] > FW_SIZE) { printf("firmware does not fit the window, aborting\n"); return 1; }
 
 	memset(&cap, 0, sizeof(cap));
 	cap.cap=CAP_PROTECTED_VM; cap.flags=FLAG_SET_FW_IPA; cap.args[0]=FW_IPA;
@@ -60,6 +61,7 @@ int main(void) {
 	if (r != 0) { printf("SET_FW_IPA failed, aborting run\n"); return 1; }
 
 	int vcpu = ioctl(vm, KVM_CREATE_VCPU, 0);
+	if (vcpu < 0) { printf("CREATE_VCPU: %s\n", strerror(errno)); return 1; }
 	struct kvm_vcpu_init init; memset(&init, 0, sizeof(init)); init.target = 5;
 	if (ioctl(vcpu, KVM_ARM_VCPU_INIT, &init) != 0) { printf("VCPU_INIT: %s\n", strerror(errno)); return 1; }
 	int msz = ioctl(kvm, KVM_GET_VCPU_MMAP_SIZE, 0);

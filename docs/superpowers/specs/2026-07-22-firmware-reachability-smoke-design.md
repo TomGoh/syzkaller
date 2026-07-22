@@ -70,9 +70,13 @@ dmesg WARN/BUG: 0 ; board up, no wedge/reset
 ```
 Acceptance met: the real guest fault at the firmware IPA entered `pkvm_mem_abort` and returned 0 — the
 host→EL2 `__pkvm_host_map_guest` → Rust `pkvm_load_pvmfw_pages` donation was actually exercised, not just a
-host field write. It also **lights up the EL1 `pkvm_mem_abort`/donation path that was absent** from the
-lifecycle rawcover. Bonus: pvmfw genuinely ran (10 page faults, then a clean `KVM_EXIT_MMIO`), so the run
+host field write. Bonus: pvmfw genuinely ran (10 page faults, then a clean `KVM_EXIT_MMIO`), so the run
 self-terminates — no busy-loop, board stayed healthy.
+
+**Scope caveat:** this probe observed via a **kprobe**, not KCOV — it proves the EL1 `pkvm_mem_abort`/donation
+path is *executed* (a path the lifecycle fuzzing never reaches), but it does **not** by itself show up in a
+`rawcover`. Whether that path *records as KCOV coverage* is a separate check, to be confirmed when the path
+is driven under the executor with KCOV (or as part of the Stage-2 producer validation).
 
 ## After it passes
 Two independent tracks now unblocked:
