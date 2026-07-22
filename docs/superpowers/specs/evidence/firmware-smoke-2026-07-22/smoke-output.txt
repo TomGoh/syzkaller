@@ -1,0 +1,32 @@
+=== running fw_smoke (hard timeout 8s) ===
+memslot @ 0x7fc00000 size 0x400000 OK
+INFO firmware_size=978944 fits_window=1
+SET_FW_IPA(0x7fc00000) = 0 (ok)
+KVM_RUN (real, bounded 3s) ...
+KVM_RUN ret=0 errno=0(Success) exit_reason=6
+smoke exit: 0
+=== pkvm_mem_abort trace (fault IPA + return) ===
+        fw_smoke-57320   [006] d....  7419.074099: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fc00000
+        fw_smoke-57320   [006] .....  7419.074157: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074169: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fcc4000
+        fw_smoke-57320   [006] .....  7419.074306: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074314: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fcc5000
+        fw_smoke-57320   [006] .....  7419.074331: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074337: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe08000
+        fw_smoke-57320   [006] .....  7419.074350: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074356: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe09000
+        fw_smoke-57320   [006] .....  7419.074372: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074378: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe0a000
+        fw_smoke-57320   [006] .....  7419.074391: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074397: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe0b000
+        fw_smoke-57320   [006] .....  7419.074409: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074415: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe0c000
+        fw_smoke-57320   [006] .....  7419.074426: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074432: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe0d000
+        fw_smoke-57320   [006] .....  7419.074444: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+        fw_smoke-57320   [006] d....  7419.074449: fw_abort_in: (pkvm_mem_abort+0x0/0x710) ipa=0x7fe0e000
+        fw_smoke-57320   [006] .....  7419.074461: fw_abort_ret: (kvm_handle_guest_abort+0x448/0x12c0 <- pkvm_mem_abort) ret=0
+=== dmesg WARN/BUG after run ===
+0
+=== board still alive ===
+ 11:16:16 up  2:03,  2 users,  load average: 0.39, 0.27, 0.26

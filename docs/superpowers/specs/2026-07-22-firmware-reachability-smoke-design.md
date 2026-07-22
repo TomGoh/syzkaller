@@ -56,7 +56,28 @@ return is sufficient *indirect* proof the firmware page was donated/loaded — n
   composite. Only promote to a composite (`syz_kvm_fw_reachable$arm64`) after the standalone smoke is
   stable and the board recovers cleanly.
 
+## RESULT — PASSED (N90, 2026-07-22). Evidence: `firmware-smoke-2026-07-22/`
+```
+memslot @ 0x7fc00000 size 0x400000 OK
+INFO firmware_size=978944 fits_window=1
+SET_FW_IPA(0x7fc00000) = 0 (ok)
+KVM_RUN ret=0 errno=0 exit_reason=6 (MMIO)          <- returned cleanly, did NOT hang (alarm unused)
+kprobe pkvm_mem_abort:
+  fw_abort_in  ipa=0x7fc00000   <- first fault at EXACTLY the firmware IPA
+  fw_abort_ret ret=0            <- donation contract succeeded
+  + 9 more faults 0x7fcc4000 / 0x7fe08000 / … all ret=0  (pvmfw executing)
+dmesg WARN/BUG: 0 ; board up, no wedge/reset
+```
+Acceptance met: the real guest fault at the firmware IPA entered `pkvm_mem_abort` and returned 0 — the
+host→EL2 `__pkvm_host_map_guest` → Rust `pkvm_load_pvmfw_pages` donation was actually exercised, not just a
+host field write. It also **lights up the EL1 `pkvm_mem_abort`/donation path that was absent** from the
+lifecycle rawcover. Bonus: pvmfw genuinely ran (10 page faults, then a clean `KVM_EXIT_MMIO`), so the run
+self-terminates — no busy-loop, board stayed healthy.
+
 ## After it passes
-Decide whether to promote to a controlled composite for a host-side campaign (it would keep lighting up
-the abort/donation EL1 path), and use this single #23 crossing as the first validation target for the
-Stage 2 producer (`2026-07-22-stage2-el2-boundary-audit.md` §4).
+Two independent tracks now unblocked:
+- **Stage 2 producer** — use this single #23 crossing as the first validation target
+  (`2026-07-22-stage2-el2-boundary-audit.md` §4/§5): the same fault that returned 0 here is where an EL2 PC
+  batch would be drained.
+- **Optional composite** — promote to `syz_kvm_fw_reachable$arm64` for a host-side campaign to keep lighting
+  up the abort/donation EL1 path (only if we want that extra EL1 coverage before Stage 2).
