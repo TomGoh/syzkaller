@@ -122,8 +122,11 @@ DWARF but vmlinux not resolving is a known failure mode to rule out). (C nvhe al
 4. **Validate** on the single #23 crossing (the firmware smoke path) first.
 
 ## Status (honest)
-- **Rust DWARF:** clearly missing (`nvhe_rust.o` has no `.debug_*`) — needs the P0 rebuild.
-- **hyp-VA → vmlinux addr:** mechanism known, **not end-to-end verified**.
+- **Rust DWARF: SOLVED** — `-C debuginfo=2` in `build_rust.sh` makes every Rust EL2 fn resolve to
+  `rust/src/*.rs:<line>` in the final vmlinux (e.g. `handle___pkvm_host_map_guest → hyp_main.rs:1069`),
+  verified end-to-end in a throwaway tree. Evidence: `evidence/2026-07-22-stage2-P0-rust-debuginfo.md`.
+  Caveat: it's a different binary, so Stage 2 must fuzz + symbolize the **same** debuginfo build.
+- **hyp-VA → vmlinux addr:** mechanism known, **not end-to-end verified** (belongs to the producer prototype).
 - **EL2 PC → KCOV:** not implemented.
 
 ## Next
