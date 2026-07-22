@@ -150,19 +150,44 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
    `build_rust.sh`, `hyp_main.rs`, `kcov.{c,h}`, and new `kvm_pkvm_cov.h`, `nvhe/cov.c`, `pkvm_cov.c`) —
    not just scattered evidence copies. It excludes the unrelated `kvm_main.c` debug edit and the multi-stage
    defconfig. Source of truth remains the isolated tree `/home/jose/common-stage2mvp`.
-2. **Host glue (board-supervised).** Allocate the ring page, `__pkvm_host_share_hyp` it, `__pkvm_cov_setup`,
-   CPU-pin the executor thread; the `pkvm_mem_abort` #23 hook must `smp_store_release(flags, ENABLED)` →
-   map → `smp_load_acquire(count)` → convert (above) → `kcov_add_pcs`, on **both** success and failure; and
-   **teardown in order**: disable → clear the callback-visible ring pointer (`__pkvm_cov_setup(0)`) →
-   `__pkvm_host_unshare_hyp` → free_page (never unshare/free while the ring pointer is still live). Count/log
-   ring overflow.
+2. **Host glue — IMPLEMENTED (isolated tree), NOT yet board-validated.** `arch/arm64/kvm/pkvm_cov.c` now
+   owns the host ring: `pkvm_cov_enable()` `get_zeroed_page` → **`kvm_share_hyp()`** (the public API — keeps
+   host page refcounts correct; **not** a raw `__pkvm_host_share_hyp`, which was the earlier, overturned
+   plan) → `kvm_call_hyp_nvhe(__pkvm_cov_setup, pfn)` on the owner CPU, recording `owner_cpu`. Teardown
+   `pkvm_cov_disable()` in the safe order: `smp_store_release(flags,0)` + NULL the host pointer **first**,
+   then `__pkvm_cov_setup(0)` on the owner CPU (via `smp_call_function_single`, and `nvhe/cov.c` now clears
+   its per-CPU pointer before `hyp_unpin_shared_mem`), then `kvm_unshare_hyp()` → `free_page`. The `#23`
+   drain is split into `pkvm_cov_begin()`/`pkvm_cov_end()` (see hook below). A **debugfs** control
+   (`<debugfs>/kvm/pkvm_cov/{enable,owner_cpu}`) arms/disarms it for the controlled smoke. **Whole tree
+   cross-compiles** (`LD vmlinux`, `OBJCOPY Image`); `pkvm_cov_begin/end/runtime_to_link`,
+   `kcov_current_trace_pc`, and the `pkvm_mem_abort` call sites all resolve in the linked vmlinux.
+   Remaining before a campaign: per-online-CPU rings, and the executor CPU-pin + serial exec mode (below).
 
-**Do NOT deploy yet** — finish P0 (done) + the consumer first; then host glue is the last kernel path, and
-only then the non-default-GRUB deploy + firmware-smoke acceptance (≥1 Rust EL2 PC → `.rs:line`).
+**Hook at #23 — WIRED** (`arch/arm64/kvm/mmu.c`, `pkvm_mem_abort`, tight wrap around the single
+`pkvm_host_map_guest()` call inside the `write_lock(&kvm->mmu_lock)` window; `#ifdef CONFIG_PKVM_EL2_COV`):
+`bool cov = pkvm_cov_begin()` → `ret = pkvm_host_map_guest(...)` → `if (cov) pkvm_cov_end()`. `begin()` arms
+only when this is the owner CPU **and** `kcov_current_trace_pc()` (so KVM calls with no coverage consumer pay
+nothing); it does `WRITE_ONCE(count,0)` + `smp_store_release(flags, ENABLED)`. `end()` runs on **both**
+success and error: `smp_store_release(flags,0)` → read `count` → `pkvm_cov_runtime_to_link()` per PC (drop
+out-of-range) → `kcov_add_pcs()`, and `pr_warn_ratelimited` on the OVERFLOW flag. No alloc / no sleep / no
+mutex in the lock; `ret` is never altered.
 
-**Hook at #23** (`arch/arm64/kvm/mmu.c`, in `pkvm_mem_abort` around the `__pkvm_host_map_guest` call, on the
-pinned CPU): reset+`WRITE_ONCE(flags, ENABLED)` → map → `WRITE_ONCE(flags, 0)` → `n = smp_load_acquire(&count)`
-→ `kcov_add_pcs(ring->pcs, n)`.
+**Attribution + REQUIRED serialization (single-page/single-CPU MVP).** EL2 coverage is attributed by
+`current` — the `#23` fault runs synchronously in the vCPU thread's `KVM_RUN` syscall, so `kcov_add_pcs()`
+lands the PCs in exactly that task's KCOV area (the call whose `KVM_RUN` triggered the fault). This is
+correct *per call* regardless of concurrency. But the ring is **one page on one CPU**, so `KVM_RUN`s on any
+other CPU collect nothing (owner-CPU guard skips them). A physical DUT is **not** serial by default — two
+levels of concurrency must be forced off for this MVP: (a) between programs, `procs: 1`; (b) within a
+program, syzkaller still runs **Threaded** workers and generates **Collide** programs even at `procs:1`.
+Manual smoke can do `syz-execprog -procs=1 -threaded=0 -collide=0 …`, but **`syz-manager` has no config knob
+to disable its default Threaded/Collide** — a Stage-2-only exec mode must be added (don't set
+`ExecFlagThreaded`; `Collide=false`) plus the executor pinned to the owner CPU. Only then does every EL2-ring
+batch attribute unambiguously to "the current sole program's current KVM call." Per-online-CPU rings later
+restore controlled concurrency (attribute by "the syscall returning to EL1 on that CPU").
+
+**Do NOT deploy yet.** First board step is the controlled single-CPU firmware smoke (prove one `#23` call
+returns ≥1 Rust EL2 PC → `.rs:line`, watch overflow + CPU consistency), reviewed + cross-compiled — then
+decide executor-pin-vs-per-CPU-ring for a real campaign.
 
 ## Increment 3 — CONSUMER (syzkaller, host-side, board-independent): specified
 - Recognize EL2 PCs by the `__kvm_nvhe_` address range; apply the boot `__hyp_va` offset (Q1, still to be

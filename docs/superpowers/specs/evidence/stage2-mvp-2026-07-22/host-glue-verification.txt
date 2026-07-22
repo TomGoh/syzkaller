@@ -1,0 +1,75 @@
+Stage-2 EL2-KCOV — host glue (P0s) implemented + whole-tree cross-compile
+=========================================================================
+Date: 2026-07-22. Isolated kernel tree: /home/jose/common-stage2mvp (NOT committed;
+NOT deployed). Reviewable patch: stage2-el2-kcov.patch (12 files, applies with
+--whitespace=error). This closes the review's 4 P0s + smaller fixes, kernel-side.
+
+WHAT WAS IMPLEMENTED
+--------------------
+P0.2  #23 hook (arch/arm64/kvm/mmu.c, pkvm_mem_abort): tight wrap of the single
+      pkvm_host_map_guest() call, inside the write_lock(&kvm->mmu_lock) window,
+      #ifdef CONFIG_PKVM_EL2_COV:
+          bool cov = pkvm_cov_begin();
+          ret = pkvm_host_map_guest(...);
+          if (cov) pkvm_cov_end();
+      Drains on BOTH success and error; ret never altered; no alloc/mutex/sleep
+      in the lock.
+P0.3  Shared page via PUBLIC api (arch/arm64/kvm/pkvm_cov.c): get_zeroed_page ->
+      kvm_share_hyp() -> kvm_call_hyp_nvhe(__pkvm_cov_setup, pfn) on owner CPU.
+      Teardown reversed to the safe order: disarm + NULL host pointer FIRST, then
+      __pkvm_cov_setup(0) on the owner CPU (smp_call_function_single), then
+      kvm_unshare_hyp() -> free_page. nvhe/cov.c teardown likewise clears its
+      per-CPU pointer BEFORE hyp_unpin_shared_mem.
+P0.4  kcov_current_trace_pc() (kernel/kcov.c, notrace, reuses
+      check_kcov_mode(KCOV_MODE_TRACE_PC, current)); pkvm_cov_begin() arms the
+      ring only when it is true -> KVM calls with no coverage consumer pay nothing.
+      Ring OVERFLOW flag drained + pr_warn_ratelimited (511 PCs != "complete").
+P0.1  CPU ownership: host records owner_cpu at setup; pkvm_cov_begin() skips (with
+      pr_warn_ratelimited) unless smp_processor_id()==owner_cpu. NOTE: the executor
+      CPU-pin + serial exec mode is syzkaller-side and DEFERRED to after the first
+      board smoke, per the review.
+Smaller fixes: kvm_pkvm_cov.h declares pkvm_cov_runtime_to_link/begin/end and adds
+      _Static_assert(sizeof(struct pkvm_cov_ring)==4096); Kconfig depends on
+      !RANDOMIZE_BASE; doc de-staled (kvm_share_hyp not __pkvm_host_share_hyp; hook
+      now wired); patch has no whitespace warnings.
+
+CONTROL INTERFACE (for the controlled smoke)
+--------------------------------------------
+debugfs: <debugfs>/kvm/pkvm_cov/enable (write 1 -> pkvm_cov_enable on the writer's
+CPU; write 0 -> disable) and .../owner_cpu (read). Smoke program: pin to CPU N ->
+KCOV_INIT_TRACE + KCOV_ENABLE on itself -> write 1 -> KVM_RUN (#23 fault drains into
+its KCOV area) -> read KCOV buffer for Rust EL2 link PCs -> write 0.
+
+ATTRIBUTION + REQUIRED SERIALIZATION (single-page/single-CPU MVP)
+----------------------------------------------------------------
+Attribution is by `current`: the #23 fault runs synchronously in the vCPU thread's
+KVM_RUN syscall, so kcov_add_pcs() lands PCs in exactly that task's KCOV area. This
+is correct per-call irrespective of concurrency. But the ring is ONE page on ONE
+CPU, so KVM_RUNs on other CPUs collect nothing (owner guard). A physical DUT is NOT
+serial by default; for this MVP force: procs=1, Threaded=false, Collide=false,
+executor pinned to owner CPU. syz-execprog can (`-procs=1 -threaded=0 -collide=0`);
+syz-manager has NO knob to disable its default Threaded/Collide -> a Stage-2-only
+exec mode must be added before a manager campaign. Per-online-CPU rings later
+restore controlled concurrency (attribute by the syscall returning to EL1 on that
+CPU). load.go:101 / fuzzer.go:486 / manager.go:1184.
+
+CROSS-COMPILE (isolated tree, aarch64-linux-gnu-)
+-------------------------------------------------
+  CC  kernel/kcov.o
+  CC  arch/arm64/kvm/pkvm_cov.o        (no warnings)
+  CC  arch/arm64/kvm/mmu.o
+  CC  arch/arm64/kvm/hyp/nvhe/cov.nvhe.o
+  LD  vmlinux            OBJCOPY arch/arm64/boot/Image      (full build OK)
+  _Static_assert(sizeof(struct pkvm_cov_ring)==4096) passes.
+Linked-vmlinux symbols resolve: pkvm_cov_begin/end/runtime_to_link,
+  kcov_current_trace_pc, kcov_add_pcs, __kvm_nvhe_pkvm_cov_setup,
+  __kvm_nvhe___sanitizer_cov_trace_pc; pkvm_mem_abort calls the drain.
+Consumer still green: TestPkvmCovSymbolizePipeline PASS against the relinked
+  vmlinux (call site 0xffff800081d917e0 -> ... -> *.rs:line).
+config-off (CONFIG_PKVM_EL2_COV=n) is guarded by construction (#ifdef in mmu.c +
+  Makefile gate + kcov.{c,h}/header guards); gating previously validated via
+  olddefconfig. Not re-linked config-off this round.
+
+REMAINING (board-supervised): first controlled single-CPU firmware smoke (>=1 Rust
+EL2 PC -> .rs:line, watch overflow + CPU consistency); then syzkaller executor pin +
+serial exec mode; per-online-CPU rings for a campaign. Deploy LAST.
