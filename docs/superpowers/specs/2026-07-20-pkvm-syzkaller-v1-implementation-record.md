@@ -566,14 +566,19 @@ uncovered). Three composites from `fd_kvm` (build the bit-31 pVM in C; no raw `i
 errno saved across close): `syz_kvm_pvm_info` (INFO), `syz_kvm_set_fw_ipa` (pre-run), `syz_kvm_set_fw_ipa_busy`
 (post-run, reusing `pkvm_build_slotted_vm(a0,1)`). Evidence: `evidence/2026-07-22-slice3a-enable-cap.md`.
 
-**Board firmware finding (corrected premise).** A direct probe (`evidence/slice3a-enable-cap-2026-07-22/fw_probe.c`)
-showed **N90 reserves a ~956 KB pvmfw region at boot** (`pkvm_firmware_mem != NULL`, `firmware_size=978944`),
-via an early FDT `reserved-memory` node (`linux,pkvm-guest-firmware-memory`, pkvm.c:593) that is parsed even
-though N90 exposes no `/sys/firmware/devicetree/base` (ACPI for devices). So the reachable `SET_FW_IPA`
-outcomes on N90 are **success (pre-run, writes pvmfw_load_addr, pkvm.c:632)** and **-EBUSY (post-run,
-pkvm.c:627-629)** — NOT the no-firmware `-EINVAL` (pkvm.c:623) originally assumed. This is consistent with
-`crosvm --protected-vm-without-firmware`, which is a *per-VM* opt-out (crosvm just skips `SET_FW_IPA`), not a
-statement that the board lacks the region.
+**Board firmware finding (corrected premise + corrected mechanism).** A direct probe
+(`evidence/slice3a-enable-cap-2026-07-22/fw_probe.c`) showed `pkvm_firmware_mem != NULL`
+(`firmware_size=978944`), so `SET_FW_IPA` succeeds pre-run and `-EBUSY`es post-run — NOT the no-firmware
+`-EINVAL` (pkvm.c:623) originally assumed. **Mechanism (verified, NOT the DT path):** N90 has no DT, so the
+upstream FDT `reserved-memory` setter (pkvm.c:593) never fires; instead the **vendor** `xcore_pkvm_dice_init()`
+(arm.c:2755) loads a **built-in** pvmfw — the kernel is built with `CONFIG_EXTRA_FIRMWARE="pvmfw.bin"`
+(`common/firmware/pvmfw.bin`, 970992 B, hash `b72048ef…`), so `request_firmware_direct` finds the embedded
+copy (no `/lib/firmware/pvmfw.bin` file), and `pkvm_firmware_mem` is `kzalloc`'d with
+`size = PAGE_ALIGN(970992 + 4096) = 978944` (arm.c:2691). Boot log: `SHA-256 Hash of custom_pvmfw.bin:
+b72048ef…`. So **N90 carries a real, resident built-in pvmfw** — not a bare reservation, not absent.
+Consistent with `crosvm --protected-vm-without-firmware` = `ProtectionType::ProtectedWithoutFirmware`, a
+*per-VM* opt-out that skips `load_protected_vm_firmware`/`SET_FW_IPA` (verified in the crosvm source);
+the board's pvmfw stays loaded regardless.
 
 **Verified on N90:** `pvm_info=0`, `set_fw_ipa=0`, `set_fw_ipa_busy=-1/EBUSY`; 0 WARN/BUG. Fresh campaign
 (`syscalls: 13/8063`): all three enter the corpus, 0 crashes, and symbolization shows **+3 new pkvm.c
