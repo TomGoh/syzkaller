@@ -1,19 +1,27 @@
-# Stage-2 P0 — Rust hyp debuginfo: SOLVED (isolated experiment, 2026-07-22)
+# Stage-2 P0 — Rust hyp DWARF prerequisite VERIFIED (isolated experiment, 2026-07-22)
+
+Scope note: this proves **one prerequisite** — that an EL2 **link address** can be mapped to a Rust
+**source file:line**. It is *not* "Stage 2 solved": the real-EL2-PC → link-address conversion and the
+EL2-PC → ring → EL1 KCOV → syzkaller feedback path are still unbuilt. And it is a **feasibility** result in
+a throwaway tree — the config is **not landed** in `/home/jose/common`, and N90 was not touched.
 
 The audit's one hard blocker (§3 of `2026-07-22-stage2-el2-boundary-audit.md`) was that the Rust nvhe crate
-ships with no DWARF, so EL2 Rust PCs symbolize to `nvhe_rust.<hash>-cgu.0:?`. Fixed and **verified
-end-to-end against a freshly linked vmlinux**, in a throwaway copy of the kernel tree
-(`/home/jose/common-dbgtest`) — the N90 stable fuzz kernel was **not** touched.
+ships with no DWARF, so EL2 Rust PCs symbolize to `nvhe_rust.<hash>-cgu.0:?`. Verified fixed **end-to-end
+against a freshly linked vmlinux**, in a throwaway copy (`/home/jose/common-dbgtest`).
 
-## The fix (one line, in `build_rust.sh`)
+## The change (two flags together — combination proven, not each in isolation)
 ```diff
 - export RUSTFLAGS="… -C target-feature=-neon"
 + export RUSTFLAGS="… -C target-feature=-neon -C debuginfo=2"
 + export CARGO_PROFILE_RELEASE_DEBUG=2
 ```
+Both were set, so this proves the **combination** works; it does **not** yet establish which alone suffices.
 Then a clean Rust-hyp rebuild (removed `rust/target` + `nvhe_rust.o*`) and `make vmlinux`. Result:
 `nvhe_rust.o` goes from **0 → 14 `.debug_*` sections**; vmlinux grows 480,752,440 → 483,911,328 B (debug
-sections only).
+sections only). **Not committed as a kernel change** — when Stage 2 is built for real, make the debuginfo
+setting a **config-gated fuzz-kernel option** (not an unconditional change to all Rust hyp builds), landed
+together with the SanCov change, so N90's kernel + the symbolization vmlinux + the EL2 coverage code all
+come from one build.
 
 ## Acceptance — FULL chain to the final vmlinux (addr2line on the linked image)
 Every previously-`??:?` Rust EL2 symbol now resolves to its exact definition line:

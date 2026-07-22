@@ -106,12 +106,10 @@ thread/CPU. Two implementation decisions to lock before coding:
 
 ## 5. Stage 2 prototype direction (NOT started — this is the blueprint)
 
-**P0 prerequisite (the one real blocker, from §3): Rust hyp debuginfo.** Build the Rust hyp with
-`-C debuginfo=2` (or `CARGO_PROFILE_RELEASE_DEBUG=2`) so `nvhe_rust.o` carries `.debug_*`. Do this in a
-**throwaway build tree — NOT the N90 stable fuzz kernel.** Acceptance is the **full chain to the final
-vmlinux**, not just the object: `addr2line` on `handle___pkvm_host_map_guest` **and** an internal
-`pkvm.rs` function must yield `rust/src/*.rs:<positive line>` in the linked vmlinux (a local object having
-DWARF but vmlinux not resolving is a known failure mode to rule out). (C nvhe already resolves in vmlinux.)
+**P0 (Rust hyp debuginfo) — feasibility DONE** (`evidence/2026-07-22-stage2-P0-rust-debuginfo.md`): the
+full chain to a linked vmlinux resolves Rust EL2 fns to `.rs:line`. **Do not re-run the throwaway
+experiment.** What remains for the real build: land the debuginfo as a **config-gated** fuzz-kernel option,
+together with the SanCov change below, so one build serves N90 + symbolization + coverage.
 
 **Then:**
 1. **Producer:** build the EL2 Rust crate with SanCov for `aarch64-unknown-none`, hyp-local
@@ -122,12 +120,14 @@ DWARF but vmlinux not resolving is a known failure mode to rule out). (C nvhe al
 4. **Validate** on the single #23 crossing (the firmware smoke path) first.
 
 ## Status (honest)
-- **Rust DWARF: SOLVED** — `-C debuginfo=2` in `build_rust.sh` makes every Rust EL2 fn resolve to
-  `rust/src/*.rs:<line>` in the final vmlinux (e.g. `handle___pkvm_host_map_guest → hyp_main.rs:1069`),
-  verified end-to-end in a throwaway tree. Evidence: `evidence/2026-07-22-stage2-P0-rust-debuginfo.md`.
-  Caveat: it's a different binary, so Stage 2 must fuzz + symbolize the **same** debuginfo build.
+- **Rust DWARF prerequisite: VERIFIED (feasibility; not landed).** In a throwaway tree, `-C debuginfo=2`
+  (+`CARGO_PROFILE_RELEASE_DEBUG=2`) in `build_rust.sh` makes every Rust EL2 fn resolve to `rust/src/*.rs:<line>`
+  in the final vmlinux (e.g. `handle___pkvm_host_map_guest → hyp_main.rs:1069`). This closes only **EL2 link
+  addr → Rust source**; the config is NOT committed to `/home/jose/common`, and it's a different binary — so
+  Stage 2 must land it as a **config-gated** fuzz-kernel option and fuzz + symbolize the **same** build.
+  Evidence: `evidence/2026-07-22-stage2-P0-rust-debuginfo.md`.
 - **hyp-VA → vmlinux addr:** mechanism known, **not end-to-end verified** (belongs to the producer prototype).
-- **EL2 PC → KCOV:** not implemented.
+- **real EL2 PC → ring → EL1 KCOV → syzkaller feedback:** not implemented.
 
 ## Next
 - Firmware reachability smoke (`2026-07-22-firmware-reachability-smoke-design.md`) — proves #23 is reached
