@@ -572,10 +572,14 @@ errno saved across close): `syz_kvm_pvm_info` (INFO), `syz_kvm_set_fw_ipa` (pre-
 `-EINVAL` (pkvm.c:623) originally assumed. **Mechanism (verified, NOT the DT path):** N90 has no DT, so the
 upstream FDT `reserved-memory` setter (pkvm.c:593) never fires; instead the **vendor** `xcore_pkvm_dice_init()`
 (arm.c:2755) loads a **built-in** pvmfw — the kernel is built with `CONFIG_EXTRA_FIRMWARE="pvmfw.bin"`
-(`common/firmware/pvmfw.bin`, 970992 B, hash `b72048ef…`), so `request_firmware_direct` finds the embedded
-copy (no `/lib/firmware/pvmfw.bin` file), and `pkvm_firmware_mem` is `kzalloc`'d with
-`size = PAGE_ALIGN(970992 + 4096) = 978944` (arm.c:2691). Boot log: `SHA-256 Hash of custom_pvmfw.bin:
-b72048ef…`. So **N90 carries a real, resident built-in pvmfw** — not a bare reservation, not absent.
+(`common/firmware/pvmfw.bin`, 970992 B, **file** SHA-256 `c368e64b…`), so `request_firmware_direct` finds
+the embedded copy (no `/lib/firmware/pvmfw.bin` file), and `pkvm_firmware_mem` is `kzalloc`'d with
+`size = PAGE_ALIGN(970992 + 4096) = 978944` (arm.c:2691). Boot log hashes the **loaded region** (firmware +
+DICE page + padding, not the raw file — hence different): `SHA-256 Hash of custom_pvmfw.bin: b72048ef…`. So
+**N90 carries a real, resident built-in pvmfw** — not a bare reservation, not absent. The host→EL2 firmware
+donation/load itself runs in the **Rust** hyp (X1_RMS): `pkvm_load_pvmfw_pages` (`hyp/nvhe/rust/src/pkvm.rs`,
+via `mem_protect/guest.rs`), reached through `handle___pkvm_host_map_guest` (`rust/src/hyp_main.rs`) on a
+guest fault — the C `nvhe/pkvm.c`/`mem_protect.c` are the equivalent, non-executing reference.
 Consistent with `crosvm --protected-vm-without-firmware` = `ProtectionType::ProtectedWithoutFirmware`, a
 *per-VM* opt-out that skips `load_protected_vm_firmware`/`SET_FW_IPA` (verified in the crosvm source);
 the board's pvmfw stays loaded regardless.

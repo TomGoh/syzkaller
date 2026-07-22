@@ -21,11 +21,12 @@ SET_FW_IPA post= ret=-1 EBUSY (errno 16)           <- rejected once run (pkvm.c:
 **Mechanism (verified — NOT the DT path).** N90 has no device tree, so the upstream FDT `reserved-memory`
 setter (`pkvm_firmware_rmem_init`, pkvm.c:593) never fires. Instead `pkvm_firmware_mem` is set by the
 **vendor** `xcore_pkvm_dice_init()` (arm.c:2654, called at arm.c:2755): the kernel is built with
-`CONFIG_EXTRA_FIRMWARE="pvmfw.bin"` (source `common/firmware/pvmfw.bin`, **970992 B**, hash
-`b72048ef2fe5d68f…`), so `request_firmware_direct("pvmfw.bin")` finds the **built-in** copy (there is no
+`CONFIG_EXTRA_FIRMWARE="pvmfw.bin"` (source `common/firmware/pvmfw.bin`, **970992 B**, **file** SHA-256
+`c368e64b6dfd…`), so `request_firmware_direct("pvmfw.bin")` finds the **built-in** copy (there is no
 `/lib/firmware/pvmfw.bin` file), copies it into freshly allocated pages, and sets `pkvm_firmware_mem`
 (arm.c:2691) with `size = PAGE_ALIGN(970992 + 4096) = 978944` (firmware + one DICE-config page). The boot
-log confirms it: `SHA-256 Hash of custom_pvmfw.bin: b72048ef…`. So **there IS a real pvmfw on N90** — a
+log hashes the **loaded region** (firmware + DICE page + padding, NOT the raw file), which is why it
+differs from the file hash: `SHA-256 Hash of custom_pvmfw.bin: b72048ef…`. So **there IS a real pvmfw on N90** — a
 built-in binary, loaded and resident at boot — not a bare reservation and not absent. (DICE chain retrieval
 from the secure world failed — `tee_client_open_session failed` — but that is non-fatal, arm.c:2711.)
 
