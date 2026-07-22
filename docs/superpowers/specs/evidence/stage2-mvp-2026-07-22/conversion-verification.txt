@@ -1,0 +1,60 @@
+Stage-2 EL2-KCOV — runtime->link conversion helper + synthetic consumer test
+============================================================================
+Date: 2026-07-22. Isolated kernel tree: /home/jose/common-stage2mvp (NOT committed).
+
+Addresses the colleague's most-recent review:
+  1. doc framing: "done kernel-side / #23 hook applies this" was WRONG -> corrected to
+     "conversion design fixed + helper implemented + tested, #23 hook NOT wired yet".
+  2. conversion formula MISSED lm_alias() -> corrected to the hyp_events.c pattern.
+  3. synthetic-PC consumer test that does NOT re-encode the missing-lm_alias formula.
+
+(1) HOST HELPER — arch/arm64/kvm/pkvm_cov.c  (isolated tree; copy in this bundle)
+--------------------------------------------------------------------------------
+    unsigned long pkvm_cov_runtime_to_link(unsigned long pc)
+    {
+        unsigned long link_start = (unsigned long)__hyp_text_start;
+        unsigned long hyp_start  = (unsigned long)kern_hyp_va(lm_alias((unsigned long)__hyp_text_start));
+        unsigned long text_size  = (unsigned long)__hyp_text_end - (unsigned long)__hyp_text_start;
+        if (pc < hyp_start || pc - hyp_start >= text_size)
+            return 0;
+        return link_start + (pc - hyp_start);
+    }
+  - lm_alias() present (matches hyp_events.c:382, va_layout.c:45) — NOT __kern_hyp_va(__hyp_text_start).
+  - explicit range check (mandatory: __kern_hyp_va is only a constant offset WITHIN hyp .text).
+  - Prerequisite CONFIG_RANDOMIZE_BASE=n verified in the fuzz .config.
+  - Gated: arch/arm64/kvm/Makefile  ->  kvm-$(CONFIG_PKVM_EL2_COV) += pkvm_cov.o
+  - Compiles clean:
+        $ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- arch/arm64/kvm/pkvm_cov.o
+          CC      arch/arm64/kvm/pkvm_cov.o
+        $ aarch64-linux-gnu-nm arch/arm64/kvm/pkvm_cov.o | grep pkvm_cov
+          0000000000000008 T pkvm_cov_runtime_to_link
+          (U __hyp_text_start, U __hyp_text_end — resolve against the kernel anchors)
+
+(2) SYNTHETIC CONSUMER TEST — pkg/cover/backend/pkvm_cov_test.go (committed)
+--------------------------------------------------------------------------------
+  TestPkvmCovSymbolizePipeline: mirrors the C helper (reversal + range check ONLY;
+  does not re-encode lm_alias — that is the kernel's job, validated by code match),
+  then runs the recovered link address through syzkaller's REAL symbolizer.
+
+  Skip path (no artifact) + existing recognition test:
+    $ go test ./pkg/cover/backend/ -run 'TestPkvmCovSymbolizePipeline|TestGetTraceCallbackType' -v
+      --- PASS: TestGetTraceCallbackType (0.00s)
+      --- SKIP: TestPkvmCovSymbolizePipeline (0.00s)
+      ok  github.com/google/syzkaller/pkg/cover/backend
+
+  End-to-end path (opt-in) against a CONFIG_PKVM_EL2_COV debuginfo vmlinux:
+    $ PKVM_VMLINUX=/home/jose/common-stage2mvp/vmlinux \
+        go test ./pkg/cover/backend/ -run TestPkvmCovSymbolizePipeline -v
+      pkvm_cov_test.go:91: EL2 runtime PC 0xffff8e0081db4780 -> link 0xffff800081db4780
+                           -> /home/jose/.../hyp/nvhe/rust/src/pkvm.rs:4014
+      --- PASS: TestPkvmCovSymbolizePipeline (90.51s)
+
+  Anchors read from the real vmlinux:
+    __hyp_text_start          = 0xffff800081d85ed4
+    __hyp_text_end            = 0xffff800081de5000
+    __kvm_nvhe___pkvm_init_vm = 0xffff800081db4780  (inside hyp .text; -> pkvm.rs:4014)
+  Range check proven: PC below start and PC at/after end both -> dropped (return 0).
+
+REMAINING (board-supervised, per review order): host ring setup, __pkvm_host_share_hyp,
+__pkvm_cov_setup, CPU-pin; wire the #23 pkvm_mem_abort enable/convert/drain hook
+(calls pkvm_cov_runtime_to_link before kcov_add_pcs); teardown-in-order. Deploy LAST.

@@ -101,19 +101,35 @@ tree.** Review fixes #1–#6 applied; the 3 must-fix items verified:
    tool that resolves `__kvm_nvhe_` link addresses to `rust/src/*.rs:line` (e.g. `hyp_main.rs:1069`) against
    the debuginfo vmlinux. So once syzkaller receives **link addresses**, the report renders Rust source.
 
-   **The runtime PC → link-address conversion is done KERNEL-side (drain), not in syzkaller** (do not make
-   syzkaller guess the offset). The EL2 callback records a hyp runtime VA; the nVHE hyp-VA is a *tagged*
-   transform (`__kern_hyp_va`, `va_layout.c`), NOT `hyp_physvirt_offset` (that is physical-only). But the
-   hyp `.text` relocates as one contiguous block within a single tag region, so a **single anchor offset**
-   converts every PC:
+   **The runtime PC → link-address conversion — design fixed, hook NOT wired yet** (done KERNEL-side, not in
+   syzkaller). The EL2 callback records a hyp runtime VA; the nVHE hyp-VA is a *tagged* `__kern_hyp_va`
+   transform (`va_layout.c`), NOT `hyp_physvirt_offset` (physical-only). The runtime hyp-text base must go
+   through **`lm_alias()` first** — matching `hyp_events.c:382` — then `kern_hyp_va`; and because
+   `__kern_hyp_va` is only a constant offset *within* the contiguous hyp `.text`, a **range check is
+   mandatory**:
+   ```c
+   link_start = (unsigned long)__hyp_text_start;
+   hyp_start  = (unsigned long)kern_hyp_va(lm_alias((unsigned long)__hyp_text_start));  // NOT __kern_hyp_va(__hyp_text_start)
+   text_size  = (unsigned long)__hyp_text_end - (unsigned long)__hyp_text_start;
+   if (pc < hyp_start || pc - hyp_start >= text_size) drop_pc();   // outside hyp .text
+   link_pc = link_start + (pc - hyp_start);
    ```
-   hyp_text_off = __kern_hyp_va((u64)__hyp_text_start) - (u64)__hyp_text_start;   // computed once, host-side
-   link_pc      = runtime_pc - hyp_text_off;                                       // in [__hyp_text_start, __hyp_text_end]
-   ```
-   The #23 hook applies this to each drained PC before `kcov_add_pcs(link_pcs, n)`. (`__hyp_text_start` and
-   `__kvm_nvhe___hyp_text_start` are the same link address in vmlinux; the `__kvm_nvhe_` code lives inside
-   that range, so the converted PC symbolizes.) A synthetic-PC unit test (feed a known `__kvm_nvhe_` symbol
-   +off, run the pipeline, expect `hyp_main.rs:1069`) closes this loop with no board.
+   **Prerequisite:** `CONFIG_RANDOMIZE_BASE=n` (verified in the fuzz `.config`), so `link_pc` equals the
+   offline vmlinux link address. With KASLR on, the runtime kimage address would not match vmlinux.
+
+   **Now implemented (host side, isolated tree):** `arch/arm64/kvm/pkvm_cov.c :: pkvm_cov_runtime_to_link()`
+   is exactly the formula above (real `kern_hyp_va(lm_alias(__hyp_text_start))` + range check), gated by
+   `kvm-$(CONFIG_PKVM_EL2_COV) += pkvm_cov.o`, and **compiles clean** (`CC arch/arm64/kvm/pkvm_cov.o`). The
+   #23 hook **will** call it on each drained PC before `kcov_add_pcs(link_pcs, n)` — still NOT wired
+   (`pkvm_mem_abort` has only the plain `__pkvm_host_map_guest` call).
+
+   **Synthetic consumer test — WRITTEN + PASSING** (board-free): `pkg/cover/backend/pkvm_cov_test.go ::
+   TestPkvmCovSymbolizePipeline` mirrors the C helper (reversal + range check, *not* re-encoding the
+   lm_alias step), then runs the recovered link address through syzkaller's **real** symbolizer. Against a
+   `CONFIG_PKVM_EL2_COV` debuginfo vmlinux (opt-in via `PKVM_VMLINUX`) it proves end-to-end:
+   `EL2 runtime PC 0xffff8e0081db4780 → link 0xffff800081db4780 → pkvm.rs:4014`, and that out-of-range PCs
+   (below start, at/after end) are dropped. Skips cleanly with no artifact; the existing
+   `TestGetTraceCallbackType` still passes.
 2. **Host glue (board-supervised).** Allocate the ring page, `__pkvm_host_share_hyp` it, `__pkvm_cov_setup`,
    CPU-pin the executor thread; the `pkvm_mem_abort` #23 hook must `smp_store_release(flags, ENABLED)` →
    map → `smp_load_acquire(count)` → convert (above) → `kcov_add_pcs`, on **both** success and failure; and
