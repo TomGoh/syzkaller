@@ -151,10 +151,10 @@ index 444932a04ebe..36e6b36f220c 100644
  $(obj)/rust/nvhe_rust.nvhe.o: $(obj)/rust/nvhe_rust.o
 diff --git a/arch/arm64/kvm/hyp/nvhe/cov.c b/arch/arm64/kvm/hyp/nvhe/cov.c
 new file mode 100644
-index 000000000000..daa0044b085a
+index 000000000000..b9ec8baa6de4
 --- /dev/null
 +++ b/arch/arm64/kvm/hyp/nvhe/cov.c
-@@ -0,0 +1,94 @@
+@@ -0,0 +1,96 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Stage-2 EL2 coverage producer (pKVM hyp side).
@@ -205,7 +205,9 @@ index 000000000000..daa0044b085a
 +		/* Release: the PC store is visible before the count the host acquires. */
 +		smp_store_release(&r->count, count + 1);
 +	} else {
-+		WRITE_ONCE(r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
++		/* Release so the host's acquire-load of flags observes OVERFLOW; the
++		 * host also treats count == PKVM_COV_RING_PCS as truncated regardless. */
++		smp_store_release(&r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
 +	}
 +
 +	__this_cpu_write(pkvm_cov_in_cb, false);
@@ -400,10 +402,10 @@ index 55c8ae82c3dc..a3dde4db2173 100644
  			ret = 0;
 diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
 new file mode 100644
-index 000000000000..225cb59d6bfc
+index 000000000000..9ec3ecc9305e
 --- /dev/null
 +++ b/arch/arm64/kvm/pkvm_cov.c
-@@ -0,0 +1,293 @@
+@@ -0,0 +1,310 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Stage-2 EL2 coverage — host (EL1) side.
@@ -534,7 +536,16 @@ index 000000000000..225cb59d6bfc
 +	goto out;
 +
 +unshare:
-+	kvm_unshare_hyp(ring, (char *)ring + PAGE_SIZE);
++	/*
++	 * EL2 setup failed after the share succeeded. Undo the share CHECKED (as in
++	 * disable()): if the unshare is not confirmed the page may still be
++	 * hyp-mapped, so leak it rather than free. (The `free` path below is only for
++	 * a share that never succeeded, where the page is safe to free directly.)
++	 */
++	if (kvm_unshare_hyp_checked(ring, (char *)ring + PAGE_SIZE)) {
++		pr_warn("pkvm_cov: enable rollback — unshare unconfirmed, leaking ring page (EL2 may still map it)\n");
++		goto out;
++	}
 +free:
 +	free_page(page);
 +out:
@@ -639,12 +650,20 @@ index 000000000000..225cb59d6bfc
 +{
 +	u64 batch[64];
 +	u32 i, count, flags, nb = 0;
++	bool overflow;
 +
-+	flags = READ_ONCE(ring->flags);		/* snapshot OVERFLOW before disarming */
++	/* Acquire: pairs with the EL2 callback's release-set of OVERFLOW. */
++	flags = smp_load_acquire(&ring->flags);
 +	smp_store_release(&ring->flags, 0);	/* disarm the producer */
 +	/* Acquire: pair with the EL2 callback's smp_store_release(&count) so every
 +	 * pcs[] entry published before `count` is visible here. */
 +	count = smp_load_acquire(&ring->count);
++	/*
++	 * count == PKVM_COV_RING_PCS is the AUTHORITATIVE truncation signal: it is
++	 * release/acquire-ordered, and the producer stops incrementing at the cap and
++	 * sets OVERFLOW. Treat it as overflow even if the (secondary) flag read raced.
++	 */
++	overflow = (count >= PKVM_COV_RING_PCS) || (flags & PKVM_COV_FLAG_OVERFLOW);
 +	if (count > PKVM_COV_RING_PCS)
 +		count = PKVM_COV_RING_PCS;
 +
@@ -662,9 +681,9 @@ index 000000000000..225cb59d6bfc
 +	if (nb)
 +		kcov_add_pcs(batch, nb);
 +
-+	if (flags & PKVM_COV_FLAG_OVERFLOW)
-+		pr_warn_ratelimited("pkvm_cov: ring overflow (%u PCs) — coverage truncated\n",
-+				    PKVM_COV_RING_PCS);
++	if (overflow)
++		pr_warn_ratelimited("pkvm_cov: ring overflow (count=%u) — coverage truncated\n",
++				    count);
 +}
 +
 +/* ---- debugfs control: kvm/pkvm_cov/{enable,owner_cpu} ---- */

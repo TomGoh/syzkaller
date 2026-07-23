@@ -48,7 +48,9 @@ void notrace __sanitizer_cov_trace_pc(void)
 		/* Release: the PC store is visible before the count the host acquires. */
 		smp_store_release(&r->count, count + 1);
 	} else {
-		WRITE_ONCE(r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
+		/* Release so the host's acquire-load of flags observes OVERFLOW; the
+		 * host also treats count == PKVM_COV_RING_PCS as truncated regardless. */
+		smp_store_release(&r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
 	}
 
 	__this_cpu_write(pkvm_cov_in_cb, false);
@@ -70,8 +72,15 @@ int pkvm_cov_setup(u64 pfn)
 	/* Teardown: unpin the previously-registered ring on this CPU. */
 	if (!pfn) {
 		if (old) {
-			hyp_unpin_shared_mem((void *)old, (void *)old + PAGE_SIZE);
+			/*
+			 * Clear the callback-visible pointer FIRST, so a subsequent
+			 * __sanitizer_cov_trace_pc() reads NULL and bails, then unpin.
+			 * Unpinning while the pointer is still live would risk a
+			 * use-after-unpin of the ring.
+			 */
 			__this_cpu_write(pkvm_cov_ring, NULL);
+			barrier();
+			hyp_unpin_shared_mem((void *)old, (void *)old + PAGE_SIZE);
 		}
 		return 0;
 	}

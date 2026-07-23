@@ -128,7 +128,16 @@ static int pkvm_cov_enable(void)
 	goto out;
 
 unshare:
-	kvm_unshare_hyp(ring, (char *)ring + PAGE_SIZE);
+	/*
+	 * EL2 setup failed after the share succeeded. Undo the share CHECKED (as in
+	 * disable()): if the unshare is not confirmed the page may still be
+	 * hyp-mapped, so leak it rather than free. (The `free` path below is only for
+	 * a share that never succeeded, where the page is safe to free directly.)
+	 */
+	if (kvm_unshare_hyp_checked(ring, (char *)ring + PAGE_SIZE)) {
+		pr_warn("pkvm_cov: enable rollback — unshare unconfirmed, leaking ring page (EL2 may still map it)\n");
+		goto out;
+	}
 free:
 	free_page(page);
 out:
@@ -233,12 +242,20 @@ void pkvm_cov_end(struct pkvm_cov_ring *ring)
 {
 	u64 batch[64];
 	u32 i, count, flags, nb = 0;
+	bool overflow;
 
-	flags = READ_ONCE(ring->flags);		/* snapshot OVERFLOW before disarming */
+	/* Acquire: pairs with the EL2 callback's release-set of OVERFLOW. */
+	flags = smp_load_acquire(&ring->flags);
 	smp_store_release(&ring->flags, 0);	/* disarm the producer */
 	/* Acquire: pair with the EL2 callback's smp_store_release(&count) so every
 	 * pcs[] entry published before `count` is visible here. */
 	count = smp_load_acquire(&ring->count);
+	/*
+	 * count == PKVM_COV_RING_PCS is the AUTHORITATIVE truncation signal: it is
+	 * release/acquire-ordered, and the producer stops incrementing at the cap and
+	 * sets OVERFLOW. Treat it as overflow even if the (secondary) flag read raced.
+	 */
+	overflow = (count >= PKVM_COV_RING_PCS) || (flags & PKVM_COV_FLAG_OVERFLOW);
 	if (count > PKVM_COV_RING_PCS)
 		count = PKVM_COV_RING_PCS;
 
@@ -256,9 +273,9 @@ void pkvm_cov_end(struct pkvm_cov_ring *ring)
 	if (nb)
 		kcov_add_pcs(batch, nb);
 
-	if (flags & PKVM_COV_FLAG_OVERFLOW)
-		pr_warn_ratelimited("pkvm_cov: ring overflow (%u PCs) — coverage truncated\n",
-				    PKVM_COV_RING_PCS);
+	if (overflow)
+		pr_warn_ratelimited("pkvm_cov: ring overflow (count=%u) — coverage truncated\n",
+				    count);
 }
 
 /* ---- debugfs control: kvm/pkvm_cov/{enable,owner_cpu} ---- */

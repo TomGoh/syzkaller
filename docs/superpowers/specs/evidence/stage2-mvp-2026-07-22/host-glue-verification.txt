@@ -99,6 +99,34 @@ config-off (CONFIG_PKVM_EL2_COV=n) is guarded by construction (#ifdef in mmu.c +
   Makefile gate + kcov.{c,h}/header guards); gating previously validated via
   olddefconfig. Not re-linked config-off this round.
 
+REVIEW ROUND F — four pre-smoke boundaries fixed + package frozen:
+  1. pkvm_cov_enable() rollback now uses kvm_unshare_hyp_checked() and LEAKS the page
+     if unshare is unconfirmed (was the void kvm_unshare_hyp() + unconditional
+     free_page) -- matches disable()'s leak-not-free discipline.
+  2. Overflow memory ordering: EL2 now sets OVERFLOW with smp_store_release; EL1
+     acquire-loads flags AND treats count == PKVM_COV_RING_PCS (511) as the
+     AUTHORITATIVE truncation signal (release/acquire-ordered), so a full ring is
+     never mis-reported as complete coverage.
+  3. Runbook made literally acceptable: -vv=1 (else no per-call errno; a helper
+     failure does NOT auto-fail syz-execprog); -coverfile is a PREFIX -> check
+     _prog1.1 (call 1); dedicated pkvm-stage2-smoke.cfg with kernel_obj/kernel_src ->
+     /home/jose/common-stage2mvp (the stable pkvm-arm64.cfg -> /home/jose/common
+     would mis-symbolize). Verified: syz-cover does NOT re-apply PreviousInstructionPC
+     (dumpCallCoverage already did), so the call-site PCs symbolize correctly.
+  4. Frozen the reproducible deploy package: reverted the non-Stage-2 kvm_main.c
+     debugfs pr_warn->pr_debug downgrade (it weakened dmesg as an error signal),
+     rebuilt, and recorded hashes. kvm_main.c is NOT in stage2-el2-kcov.patch.
+
+FROZEN PACKAGE (kernel release 6.6.30+; rebuilt after fixes 1,2,4):
+  vmlinux    dce618f854b262a66f4b04ccab4be9716543793d626d3a4bfaef4a296804f577
+  Image      3b640b1a1bfcf8322f57669b30c2962fdaa3f6d5b36e4dadf9cefb72e12c6a50
+  .config    b1f010f5917a2eab6e7719380a777717443817d366ff34227645586aa9d256cf
+  System.map bfe8cdcc23d93d01b038abd51015cfdb36f0a08c9367c9268cb748b725530e45
+  Build ID   969f2bc109216e3a9e3c3b513773a5f4eb78321a
+  vmlinux still resolves EL2 Rust (__kvm_nvhe___pkvm_init_vm -> pkvm.rs:4014);
+  7311 EL2 SanCov call sites. Objects recompile clean; full LD vmlinux + Image OK.
+  syzkaller binaries unchanged (executor eafdb83d..., execprog 5fa8ccc6...).
+
 REMAINING (board-supervised): first controlled single-CPU firmware smoke (>=1 Rust
 EL2 PC -> .rs:line, watch overflow + CPU consistency); then syzkaller executor pin +
 serial exec mode; per-online-CPU rings for a campaign. Deploy LAST.
