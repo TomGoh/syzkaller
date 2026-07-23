@@ -95,6 +95,14 @@ syz_kvm_pvm_info$arm64(fd fd_kvm)
 syz_kvm_set_fw_ipa$arm64(fd fd_kvm)
 syz_kvm_set_fw_ipa_busy$arm64(fd fd_kvm)
 
+# Stage-2 EL2-coverage smoke ONLY (no_generate: never emitted by the fuzzer, only usable by the smoke/
+# regression test). Drives the N90-verified pvmfw -> #23 (pkvm_host_map_guest donation) path through the
+# executor -- protected VM + 4 MiB firmware-window memslot + INFO gate + SET_FW_IPA + PMU-free INIT + a REAL
+# KVM_RUN -- so the #23 EL2 coverage lands in the executor's KCOV. The C helper returns 0 iff the run
+# reached a clean KVM_EXIT_MMIO, else -1 with errno (no syzlang return type: the status is not a resource).
+# fd_kvm stays caller-owned.
+syz_kvm_run_fw_fault$arm64(fd fd_kvm) (no_generate)
+
 kvm_num_irqs = 32, 64, 128, 256, 512
 
 # Set up the VGICv3 IRQ controller inside a VM.

@@ -334,7 +334,7 @@ static long syz_kvm_vcpu_run_immediate(volatile long a0)
 // pKVM rejects in kvm_arch_prepare_memory_region (mmu.c:2492-2502): DELETE/MOVE after the first run
 // -> -EPERM (pkvm.handle); dirty/readonly register -> -EPERM (only pkvm.enabled, no run). Executor-
 // owned page-bounded RW backing; no guest memory is ever executed.
-#if SYZ_EXECUTOR || __NR_syz_kvm_memslot_reject_delete || __NR_syz_kvm_memslot_reject_move || __NR_syz_kvm_memslot_reject_flags || __NR_syz_kvm_set_fw_ipa_busy
+#if SYZ_EXECUTOR || __NR_syz_kvm_memslot_reject_delete || __NR_syz_kvm_memslot_reject_move || __NR_syz_kvm_memslot_reject_flags || __NR_syz_kvm_set_fw_ipa_busy || __NR_syz_kvm_run_fw_fault
 #define PKVM_MEMSLOT_SLOT 0
 #define PKVM_MEMSLOT_GPA 0x40000000UL
 
@@ -469,7 +469,7 @@ static long syz_kvm_memslot_reject_flags(volatile long a0, volatile long a1)
 }
 #endif
 
-#if SYZ_EXECUTOR || __NR_syz_kvm_pvm_info || __NR_syz_kvm_set_fw_ipa || __NR_syz_kvm_set_fw_ipa_busy
+#if SYZ_EXECUTOR || __NR_syz_kvm_pvm_info || __NR_syz_kvm_set_fw_ipa || __NR_syz_kvm_set_fw_ipa_busy || __NR_syz_kvm_run_fw_fault
 // Slice 3a: protected-VM config paths via KVM_ENABLE_CAP(KVM_CAP_ARM_PROTECTED_VM). Composite from
 // fd_kvm: each builds the bit-31 protected VM in C, then issues the cap (no raw KVM_ENABLE_CAP fuzz).
 // The ARM-specific constant/flags are literals (not in the x86 cross-build's <linux/kvm.h>), matching
@@ -550,6 +550,143 @@ static long syz_kvm_set_fw_ipa_busy(volatile long a0)
 	int e = errno;
 	close(vm);
 	errno = e;
+	return ret;
+}
+#endif
+
+#if SYZ_EXECUTOR || __NR_syz_kvm_run_fw_fault
+// Stage-2 EL2-coverage SMOKE ONLY (no_generate): reproduce the N90-verified pvmfw -> #23 path THROUGH the
+// executor so its KCOV can capture EL2 coverage (the standalone fw_smoke.c proved #23 reachability but its
+// coverage never reached syzkaller). Build a bit-31 protected VM, register a 4 MiB RW memslot over the
+// crosvm pvmfw window [0x7FC00000, 0x80000000) (flags=0: protected VMs reject READONLY/LOG_DIRTY), confirm
+// a usable firmware via INFO (0 < firmware_size <= 4 MiB), SET_FW_IPA, PMU-free vCPU INIT, then a REAL
+// (immediate_exit=0) KVM_RUN. The guest fetches at the firmware IPA -> stage-2 fault -> pkvm_mem_abort ->
+// #23 donation, handled in-kernel; the run returns to userspace only at the first MMIO exit.
+//
+// Success is STRICTLY ret == 0 && exit_reason == KVM_EXIT_MMIO (not "the ioctl didn't error"). No alarm()
+// here: the executor's own watchdog plus an outer `timeout`/GWDT are the safety net; if the run ever hangs
+// and the worker is killed, this run's coverage never returns -- that is a smoke FAILURE, never faked as
+// success. a0 = fd_kvm is caller-owned and is NEVER closed here; the helper frees only what it created.
+#define PKVM_FW_WINDOW 0x400000UL // 4 MiB, [PKVM_FW_IPA, 0x80000000)
+
+// 4 MiB RW backing for the firmware window (allocated once, reused, never freed -- bounded).
+static uint64 pkvm_fw_backing(void)
+{
+	static void* backing = NULL;
+	if (!backing) {
+		backing = mmap(NULL, PKVM_FW_WINDOW, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
+		if (backing == MAP_FAILED)
+			backing = NULL;
+	}
+	return (uint64)(uintptr_t)backing;
+}
+
+static long syz_kvm_run_fw_fault(volatile long a0)
+{
+	// All state declared up front so every failure can `goto out` (no jump over an
+	// initializer) and cleanup can preserve the failing errno.
+	int vm = -1, vcpu = -1, msz = 0;
+	volatile struct kvm_run* run = NULL;
+	struct kvm_enable_cap cap;
+	struct kvm_vcpu_init init;
+	uint64 info[8]; // struct kvm_protected_vm_info: u64 firmware_size + u64 __reserved[7]
+	uint64 b;
+	long rr, ret = -1;
+	int err = EINVAL;
+	uint32 exit_reason;
+
+	vm = ioctl(a0, KVM_CREATE_VM, 0x80000000);
+	if (vm < 0) {
+		err = errno;
+		goto out;
+	}
+
+	b = pkvm_fw_backing();
+	if (!b) {
+		err = ENOMEM;
+		goto out;
+	}
+	if (pkvm_memslot_ioctl(vm, PKVM_MEMSLOT_SLOT, 0, PKVM_FW_IPA, PKVM_FW_WINDOW, b) != 0) {
+		err = errno;
+		goto out;
+	}
+
+	// INFO gate: only proceed on a board with a usable pvmfw (fits the window).
+	memset(info, 0, sizeof(info));
+	memset(&cap, 0, sizeof(cap));
+	cap.cap = PKVM_CAP_PROTECTED_VM;
+	cap.flags = PKVM_CAP_FLAGS_INFO;
+	cap.args[0] = (uint64)(uintptr_t)info;
+	if (ioctl(vm, KVM_ENABLE_CAP, &cap) != 0) {
+		err = errno;
+		goto out;
+	}
+	if (info[0] == 0 || info[0] > PKVM_FW_WINDOW) {
+		err = EINVAL; // no firmware, or it does not fit the window: precondition not met
+		goto out;
+	}
+
+	// SET_FW_IPA before the first run: records pvmfw_load_addr; must succeed.
+	memset(&cap, 0, sizeof(cap));
+	cap.cap = PKVM_CAP_PROTECTED_VM;
+	cap.flags = PKVM_CAP_FLAGS_SET_FW_IPA;
+	cap.args[0] = PKVM_FW_IPA;
+	if (ioctl(vm, KVM_ENABLE_CAP, &cap) != 0) {
+		err = errno;
+		goto out;
+	}
+
+	// PMU-free vCPU (GENERIC_V8, no features) avoids the arch_timer/PMU_V3 WARN.
+	memset(&init, 0, sizeof(init));
+	init.target = 5; // KVM_ARM_TARGET_GENERIC_V8
+	vcpu = ioctl(vm, KVM_CREATE_VCPU, 0);
+	if (vcpu < 0) {
+		err = errno;
+		vcpu = -1;
+		goto out;
+	}
+	if (ioctl(vcpu, KVM_ARM_VCPU_INIT, &init) != 0) {
+		err = errno;
+		goto out;
+	}
+
+	msz = ioctl(a0, KVM_GET_VCPU_MMAP_SIZE, 0);
+	if (msz < 0) {
+		err = errno; // do NOT mask the ioctl failure by enlarging msz
+		goto out;
+	}
+	if (msz < (int)sizeof(struct kvm_run)) {
+		err = EINVAL; // ABI anomaly: the run area cannot be smaller than the struct
+		goto out;
+	}
+	run = (volatile struct kvm_run*)mmap(NULL, msz, PROT_READ | PROT_WRITE, MAP_SHARED, vcpu, 0);
+	if (run == MAP_FAILED) {
+		err = errno;
+		run = NULL;
+		goto out;
+	}
+
+	// REAL run: immediate_exit stays 0. #23 faults are serviced in-kernel; the run returns at first MMIO.
+	run->immediate_exit = 0;
+	errno = 0;
+	rr = ioctl(vcpu, KVM_RUN, 0);
+	err = errno; // save immediately, before munmap/close can clobber it
+	exit_reason = run->exit_reason;
+	if (rr == 0 && exit_reason == KVM_EXIT_MMIO) {
+		ret = 0;
+		err = 0;
+	} else if (err == 0) {
+		err = EIO; // the ioctl reported success but the exit was not a clean MMIO
+	}
+
+out:
+	if (run)
+		munmap((void*)run, msz);
+	if (vcpu >= 0)
+		close(vcpu);
+	if (vm >= 0)
+		close(vm);
+	errno = err;
 	return ret;
 }
 #endif

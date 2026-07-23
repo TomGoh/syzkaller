@@ -1,0 +1,18 @@
+# requires: arch=arm64 -threaded
+
+# Stage-2 EL2-coverage closed-loop smoke (no_generate: only this test uses the call; the fuzzer never
+# emits it). syz_kvm_run_fw_fault drives the N90-verified pvmfw -> #23 path THROUGH the executor: it builds
+# a bit-31 protected VM, registers a 4 MiB RW memslot over the crosvm pvmfw window [0x7FC00000, 0x80000000),
+# gates on INFO (0 < firmware_size <= 4 MiB), issues SET_FW_IPA, PMU-free VCPU_INIT, then a REAL KVM_RUN so
+# the guest faults at the firmware IPA -> pkvm_mem_abort -> #23 donation (serviced in-kernel). Success is a
+# clean KVM_EXIT_MMIO (the C helper returns 0); anything else returns -1 with errno.
+#
+# This file is only the smoke INPUT; it does not by itself prove the closed loop. Acceptance (see
+# evidence/stage2-mvp-2026-07-22/smoke-runbook.txt): run serialized on one CPU
+# (taskset -c N ... syz-execprog -procs=1 -threaded=0 -coverfile=...) with the EL2 ring enabled via debugfs,
+# and require ALL of: call 1 returns errno 0; owner_cpu == N; the coverfile contains >=1 EL2 __kvm_nvhe_ PC;
+# syz-cover with the SAME debuginfo vmlinux maps it to a Rust rust/src/*.rs:line; dmesg has no
+# CPU!=owner / ring overflow / teardown-unconfirmed / unshare-unconfirmed / WARN / BUG.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_run_fw_fault$arm64(r0)

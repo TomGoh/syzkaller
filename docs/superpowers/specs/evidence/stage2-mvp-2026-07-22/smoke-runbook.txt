@@ -1,0 +1,61 @@
+Stage-2 EL2-KCOV — single-CPU manual closed-loop smoke runbook (N90)
+====================================================================
+Date: 2026-07-22. NOT YET RUN. This closes the loop the standalone fw_smoke.c could
+not: it proves EL2 coverage reaches syzkaller, THROUGH the executor.
+
+PROVENANCE (must match at deploy + symbolize time)
+--------------------------------------------------
+- Kernel + vmlinux: the ONE CONFIG_PKVM_EL2_COV=y build from /home/jose/common-stage2mvp
+  (X1_RMS=y, KCOV=y, RANDOMIZE_BASE=n, PREEMPT_RT=n). Deploy AND syz-cover use the
+  SAME vmlinux (addresses shift per relink).
+- syz-executor (aarch64, static-pie): sha256 eafdb83d738ff7dc34b74ea5220036cbeb6d032f95fda3473252843a3906655d
+- syz-execprog  (aarch64):            sha256 5fa8ccc625d4944790ab40d54d4ff0bd765a1871957bc204441c84053f9c2324
+  Both contain syz_kvm_run_fw_fault (`strings | grep` == 2). The pre-existing binaries
+  did NOT; a stale pair silently runs the old description and proves nothing.
+
+STEPS
+-----
+1. Build the experiment kernel + vmlinux from /home/jose/common-stage2mvp; keep the
+   already-verified stable kernel as the GRUB fallback.
+2. Deploy via a NON-DEFAULT GRUB entry (stock kernel stays default + bootable).
+3. Copy the aarch64 syz-executor + syz-execprog (hashes above) and the test file to N90.
+4. Pick one CPU (e.g. 0). The debugfs-enable shell AND syz-execprog must inherit the
+   SAME affinity, so the ring's owner_cpu matches the CPU that runs KVM_RUN:
+
+     taskset -c 0 sh -ceu '
+       echo 1 > /sys/kernel/debug/kvm/pkvm_cov/enable
+       test "$(cat /sys/kernel/debug/kvm/pkvm_cov/owner_cpu)" = 0
+       trap "echo 0 > /sys/kernel/debug/kvm/pkvm_cov/enable" EXIT
+       timeout 30 ./syz-execprog -procs=1 -threaded=0 -coverfile=/tmp/pkvm-el2.raw \
+         arm64-syz_kvm_run_fw_fault
+     '
+   Notes: -collide is a no-op in this syzkaller; -procs=1 -threaded=0 is what serializes.
+   The outer `timeout` + GWDT are the hang net (the helper has no alarm()); a killed
+   worker => smoke FAILURE, never a faked pass.
+
+ACCEPTANCE (ALL required; any miss = FAIL, do not call it a pass)
+----------------------------------------------------------------
+- call 1 (syz_kvm_run_fw_fault) returns errno 0  (clean KVM_EXIT_MMIO reached).
+- owner_cpu == the taskset CPU (0).
+- first guest fault is at ipa 0x7fc00000 and pkvm_mem_abort returns 0 (kprobe, as in
+  the earlier firmware smoke).
+- /tmp/pkvm-el2.raw contains >= 1 EL2 __kvm_nvhe_ PC.
+- syz-cover with the SAME debuginfo vmlinux maps >= 1 such PC to a Rust
+  rust/src/.../*.rs:line.
+- dmesg has NONE of: "CPU != owner", "ring overflow", "teardown unconfirmed",
+  "unshare unconfirmed", WARN, BUG.
+- after the run, disable shows the real "pkvm_cov: ring disarmed" (not just echo 0
+  returning success).
+
+IF IT FAILS — classify by symptom BEFORE changing code
+------------------------------------------------------
+- #23 reached but no EL2 PC:            ring enable / CPU affinity / HVC setup.
+- EL2 PC present but no .rs:line:       runtime->link conversion or same-build symbolization.
+- owner-CPU skip in dmesg:              affinity not closed (shell vs execprog on different CPUs).
+- overflow:                            KEEP the result; assess ring capacity; do NOT
+                                        call it complete coverage.
+
+AFTER a green smoke (NOT before): add the syzkaller executor CPU-pin + a Stage-2 exec
+mode that disables Threaded/Collide (syz-manager has no knob today); then a short,
+procs:1, supervised manager campaign; per-online-CPU rings last. Do not enter a
+manager campaign yet.
