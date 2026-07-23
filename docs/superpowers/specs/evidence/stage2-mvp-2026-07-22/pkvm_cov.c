@@ -113,7 +113,7 @@ static int pkvm_cov_enable(void)
 
 	ret = kvm_share_hyp(ring, (char *)ring + PAGE_SIZE);
 	if (ret)
-		goto free;
+		goto unshare;
 
 	cpu = get_cpu();	/* pin to this CPU for the setup hypercall */
 	ret = kvm_call_hyp_nvhe(__pkvm_cov_setup, page_to_pfn(virt_to_page(ring)));
@@ -129,16 +129,17 @@ static int pkvm_cov_enable(void)
 
 unshare:
 	/*
-	 * EL2 setup failed after the share succeeded. Undo the share CHECKED (as in
-	 * disable()): if the unshare is not confirmed the page may still be
-	 * hyp-mapped, so leak it rather than free. (The `free` path below is only for
-	 * a share that never succeeded, where the page is safe to free directly.)
+	 * The share OR the EL2 setup failed. kvm_share_hyp()/share_pfn_hyp() inserts
+	 * the host shared-PFN record BEFORE the __pkvm_host_share_hyp EL2 completion
+	 * (mmu.c) and does NOT roll it back on hypercall failure, so a failed share is
+	 * not proof the page was never shared. Undo CHECKED and only free when the
+	 * unshare is confirmed; otherwise leak — never hand a possibly-shared page back
+	 * to the page allocator (UAF / ownership violation).
 	 */
 	if (kvm_unshare_hyp_checked(ring, (char *)ring + PAGE_SIZE)) {
 		pr_warn("pkvm_cov: enable rollback — unshare unconfirmed, leaking ring page (EL2 may still map it)\n");
 		goto out;
 	}
-free:
 	free_page(page);
 out:
 	mutex_unlock(&pkvm_cov_lock);

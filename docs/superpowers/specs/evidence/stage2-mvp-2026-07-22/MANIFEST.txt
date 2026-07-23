@@ -1,0 +1,53 @@
+Stage-2 EL2-KCOV — frozen deploy package MANIFEST
+=================================================
+Date: 2026-07-22. Single canonical, reproducible source of truth for the N90 smoke.
+NOT deployed.
+
+CANONICAL KERNEL PATCH
+----------------------
+stage2-el2-kcov.patch  — the ONE Stage-2 kernel diff (13 files). Reverse-applies clean
+  to the experiment tree with `git apply --whitespace=error`. Excludes the unrelated
+  virt/kvm/kvm_main.c debugfs log downgrade (reverted; it weakened dmesg).
+Apply on top of the base commit below to reproduce the experiment tree.
+
+SUPERSEDED (removed — do NOT use to reproduce): mvp-full.patch, producer.patch,
+  producer-delivery.patch. They predate the RCU active-drain, checked-unshare,
+  !PREEMPT_RT gate, overflow ordering, and the enable() share-fail rollback.
+
+EXPERIMENT TREE
+---------------
+Kernel source:   /home/jose/common-stage2mvp
+Base commit:     da966ce9a047bedffb02e0bdc87f3ccb5fb3f9d9
+                 ("KYLIN: xcore: rust: Fix state masking in guest_request_walker()")
+Kernel release:  6.6.30+
+Required config: CONFIG_PKVM_EL2_COV=y (depends KVM && X1_RMS && KCOV && !RANDOMIZE_BASE
+                 && !PREEMPT_RT); the .config below is the exact fuzzing config.
+
+FROZEN ARTIFACT HASHES (sha256; rebuilt after the enable() share-fail P0 fix)
+----------------------------------------------------------------------------
+  vmlinux     c5801a008910bc85f923903cecf144c773e1c221f624da1025474afdfd70976a
+  Image       37a09e5bf4eb02c5a86dd2c1497ac14866fa69677c41123c62d35d51ef774248
+  .config     b1f010f5917a2eab6e7719380a777717443817d366ff34227645586aa9d256cf
+  System.map  15f4ea6178eba2e7450d59906aeae0d6010cae1359743b2dc886794265a70a18
+  Build ID    33774811160f920789f518c8dd3fc884b9b73d6c
+The running kernel's Build ID MUST equal 33774811... and syz-cover MUST use this exact
+vmlinux (link addresses shift on every relink). vmlinux resolves EL2 Rust
+(__kvm_nvhe___pkvm_init_vm -> pkvm.rs:4014); 7311 EL2 SanCov call sites.
+
+MODULES (6.6.30+)
+-----------------
+The module set is defined reproducibly by (base commit + stage2-el2-kcov.patch +
+.config). KVM is built-in (=y), so the smoke does not need modules; a full install
+does. Build them from the SAME tree at deploy:
+  make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc) modules
+  make ... INSTALL_MOD_PATH=<stage> modules_install   # usrmerge /lib hazard: use kylin-v10-kernel-deploy
+
+SYZKALLER BINARIES (aarch64; contain syz_kvm_run_fw_fault)
+---------------------------------------------------------
+  syz-executor eafdb83d738ff7dc34b74ea5220036cbeb6d032f95fda3473252843a3906655d
+  syz-execprog 5fa8ccc625d4944790ab40d54d4ff0bd765a1871957bc204441c84053f9c2324
+Build (from /home/jose/syzkaller, NO CC/CXX override):
+  make target TARGETOS=linux TARGETARCH=arm64 TARGETVMARCH=arm64
+  make cover                                            # bin/syz-cover (host symbolization)
+
+SMOKE: see smoke-runbook.txt. Config for syz-cover: pkvm-stage2-smoke.cfg (this dir).
