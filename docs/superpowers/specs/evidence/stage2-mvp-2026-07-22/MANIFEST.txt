@@ -20,8 +20,22 @@ Kernel source:   /home/jose/common-stage2mvp
 Base commit:     da966ce9a047bedffb02e0bdc87f3ccb5fb3f9d9
                  ("KYLIN: xcore: rust: Fix state masking in guest_request_walker()")
 Kernel release:  6.6.30+
-Required config: CONFIG_PKVM_EL2_COV=y (depends KVM && X1_RMS && KCOV && !RANDOMIZE_BASE
-                 && !PREEMPT_RT); the .config below is the exact fuzzing config.
+Deploy config:   stage2.config (this dir) == the exact fuzzing .config, sha256
+                 b1f010f5...  It is REQUIRED to reproduce this kernel: CONFIG_PKVM_EL2_COV=y
+                 and CONFIG_X1_RMS=y live ONLY in the .config, NOT in the base
+                 gwd3000_lenovox1d3000m_defconfig (whose baseline also enables KASLR,
+                 which PKVM_EL2_COV forbids). So base + canonical patch ALONE cannot
+                 regenerate this kernel -- you must supply stage2.config.
+
+REPRODUCE (from recorded inputs only)
+-------------------------------------
+  git -C <tree> checkout da966ce9a047bedffb02e0bdc87f3ccb5fb3f9d9
+  git -C <tree> apply /path/to/stage2-el2-kcov.patch
+  cp /path/to/stage2.config <tree>/.config
+  make -C <tree> ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+  make -C <tree> ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j$(nproc) Image modules
+  # then verify sha256(Image/vmlinux/System.map) and the vmlinux Build ID below.
+  # (olddefconfig must leave CONFIG_PKVM_EL2_COV=y: grep it in <tree>/.config.)
 
 FROZEN ARTIFACT HASHES (sha256; rebuilt after the enable() share-fail P0 fix)
 ----------------------------------------------------------------------------
