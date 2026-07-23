@@ -48,6 +48,22 @@ The running kernel's Build ID MUST equal 33774811... and syz-cover MUST use this
 vmlinux (link addresses shift on every relink). vmlinux resolves EL2 Rust
 (__kvm_nvhe___pkvm_init_vm -> pkvm.rs:4014); 7311 EL2 SanCov call sites.
 
+REPRODUCIBILITY SCOPE (be precise)
+----------------------------------
+The REPRODUCE recipe gives FUNCTIONAL reproducibility: same source + same .config ->
+a functionally identical CONFIG_PKVM_EL2_COV=y kernel. It does NOT guarantee a
+bit-for-bit identical SHA-256 on another machine/time, because the build embeds a
+build identity that is not yet pinned: KBUILD_BUILD_TIMESTAMP, KBUILD_BUILD_VERSION
+(e.g. "#25 SMP Thu Jul 23 11:01:29 +08 2026"), KBUILD_BUILD_USER/HOST, and the exact
+toolchain. So the recorded hashes VERIFY the frozen binary is unchanged; they are not
+a promise that a rebuild reproduces the same hash.
+Toolchain used for the frozen build:
+  C:    aarch64-linux-gnu-gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0 ; GNU ld 2.46
+  Rust: nightly-2025-05-05  (rustc 1.88.0-nightly 13e879094 2025-05-04)
+FOR THE SMOKE: deploy THIS frozen Image + THIS vmlinux (hashes above); do NOT rebuild
+just to run the smoke. If true bit-for-bit reproducibility is ever required, pin the
+KBUILD_BUILD_* vars and the toolchain identity, then rebuild.
+
 MODULES (6.6.30+)
 -----------------
 The module set is defined reproducibly by (base commit + stage2-el2-kcov.patch +
