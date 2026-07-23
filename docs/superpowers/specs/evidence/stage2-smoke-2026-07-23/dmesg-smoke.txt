@@ -1,0 +1,7 @@
+[  824.785652] pkvm_cov: ring armed on CPU 0
+[  826.419939] Adding 124996k swap on ./swap-file.  Priority:0 extents:1 across:124996k SS
+[  831.720454] pkvm_cov: ring overflow (count=511) \xe2\x80\x94 coverage truncated
+[  831.728171] pkvm_cov: ring overflow (count=511) \xe2\x80\x94 coverage truncated
+[  831.735589] pkvm_cov: ring overflow (count=511) \xe2\x80\x94 coverage truncated
+[  831.746136] pkvm_cov: ring overflow (count=511) \xe2\x80\x94 coverage truncated
+[  832.060264] pkvm_cov: ring disarmed

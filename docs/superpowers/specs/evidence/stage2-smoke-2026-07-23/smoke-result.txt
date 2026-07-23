@@ -1,0 +1,71 @@
+Stage-2 EL2-KCOV — single-CPU manual closed-loop smoke: PASS (N90, 2026-07-23)
+==============================================================================
+The first real-hardware proof that EL2 (Rust pKVM hyp) coverage reaches syzkaller
+and symbolizes to Rust source. Scope: the loop only; NOT a manager campaign, and
+coverage is TRUNCATED (see OVERFLOW below).
+
+THE CLOSED LOOP (all validated):
+  executor KVM_RUN (syz_kvm_run_fw_fault)
+   -> #23 guest fault at 0x7fc00000  (pkvm_mem_abort -> __pkvm_host_map_guest)
+   -> Rust EL2 SanCov writes the per-CPU host-shared ring
+   -> EL1 #23 drain: pkvm_cov_runtime_to_link() + kcov_add_pcs() into current's KCOV
+   -> syz-executor KCOV -> syz-execprog coverfile _prog1.1
+   -> addr2line/syz-cover (same-build vmlinux) -> rust/src/*.rs:line
+
+PROVENANCE (deploy AND symbolize use the same build):
+  kernel   6.6.30+   Build ID 33774811160f920789f518c8dd3fc884b9b73d6c
+  Image    sha256 37a09e5bf4eb02c5a86dd2c1497ac14866fa69677c41123c62d35d51ef774248
+  vmlinux  sha256 c5801a008910bc85f923903cecf144c773e1c221f624da1025474afdfd70976a
+  .config  sha256 b1f010f5917a2eab6e7719380a777717443817d366ff34227645586aa9d256cf  (CONFIG_PKVM_EL2_COV=y)
+  reproduce: base da966ce9a047 + stage2-el2-kcov.patch + stage2.config (see ../stage2-mvp-2026-07-22/MANIFEST.txt)
+  syz-executor sha256 eafdb83d738ff7dc34b74ea5220036cbeb6d032f95fda3473252843a3906655d
+  syz-execprog sha256 5fa8ccc625d4944790ab40d54d4ff0bd765a1871957bc204441c84053f9c2324
+
+METHOD (on N90, non-default GRUB entry '6.6.30+ pKVM EL2-cov smoke'):
+  # kprobe on pkvm_mem_abort (fault ipa = *x1, ret = $retval)
+  # all pinned to CPU 0; ring enabled via debugfs on CPU 0:
+  sudo taskset -c 0 sh -c 'echo 1 > /sys/kernel/debug/kvm/pkvm_cov/enable;
+    ./syz-execprog -executor=./syz-executor -procs=1 -threaded=0 -cover=1 \
+      -slowdown=10 -coverfile=/tmp/pkvm-el2.raw arm64-syz_kvm_run_fw_fault;
+    echo 0 > /sys/kernel/debug/kvm/pkvm_cov/enable'
+  Note: this kernel has CONFIG_KCOV_ENABLE_COMPARISONS=n, so the executor's
+  comparison-coverage probe returns errno 524 (ENOTSUPP) and it falls back to
+  trace-pc (comps=0 cover=1) -- which is exactly what the EL2 drain needs.
+
+ACCEPTANCE (all met):
+  [PASS] #23 fault at EXACTLY 0x7fc00000, pkvm_mem_abort ret 0
+         kprobe: "syz.2.17-12949 [000] ... fw_abort_in ipa=0x7fc00000" / "fw_abort_ret ... ret=0"
+  [PASS] pvmfw actually ran the donation path: 78 total pkvm_mem_abort faults
+         (0x7fc00000, 0x7fcc4000, ... 0x7fe09000, ...) ALL ret 0 -> the KVM_RUN
+         proceeded to a clean MMIO exit (== the helper's errno-0 success condition).
+  [PASS] owner_cpu == 0; task ran on CPU [000].
+  [PASS] EL2 PCs in the coverfile: 87 unique PCs in the hyp .text range
+         [__hyp_text_start 0xffff800081d88ed4, __hyp_text_end 0xffff800081de8000)
+         out of 524287 total PCs in _prog1.1.
+  [PASS] 77/87 EL2 PCs symbolize to rust/src/*.rs:line against the SAME vmlinux.
+         The #23 handler itself is covered:
+           handle___pkvm_host_map_guest -> hyp_main.rs:1069
+         plus the donation/protection path: mem_protect/{mem_region,transition,host,
+         hyp,utils}.rs, page_alloc.rs, tlb.rs, kvm_host.rs:164, early_alloc.rs, and
+         C nvhe pgtable.c. Full list: el2-symbolized.txt.
+  [PASS] dmesg clean: "pkvm_cov: ring armed on CPU 0" ... "ring disarmed"; NO WARN,
+         BUG, owner-skip, teardown-unconfirmed, or unshare-unconfirmed.
+
+OVERFLOW (must not be called complete coverage):
+  4x "pkvm_cov: ring overflow (count=511) -- coverage truncated". A pvmfw boot
+  generates >511 instrumented EL2 basic-block hits per #23 fault, so each drain
+  captured only the first 511. The loop is PROVEN; the coverage is a SAMPLE, not
+  the full EL2 trace. Follow-up before any campaign: larger ring and/or more
+  frequent drain, plus the executor CPU-pin + Threaded/Collide-off Stage-2 exec
+  mode (this smoke forced serialization by hand with taskset + -procs=1 -threaded=0).
+
+FILES IN THIS BUNDLE:
+  smoke-result.txt          this summary
+  syz-execprog-full.log     complete syz-execprog -debug output (1247 lines)
+  kprobe-trace.txt          full pkvm_mem_abort kprobe trace (78 faults)
+  dmesg-smoke.txt           dmesg across the run (arm / 4x overflow / disarm)
+  owner_cpu.txt             "0"
+  el2-pcs.txt               the 87 unique EL2 (hyp-range) PCs
+  el2-symbolized.txt        every EL2 PC -> func + rust/src/*.rs:line
+  pkvm-el2.raw_prog1.1.gz   FULL call-1 coverfile, all 524287 PCs (gz of the 10MB raw)
+  pkvm-el2.raw_prog1.0.gz   call-0 (openat$kvm) coverfile

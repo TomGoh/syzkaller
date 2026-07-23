@@ -1,0 +1,1247 @@
+2026/07/23 13:55:14 parsed 1 programs
+2026/07/23 13:55:14 serving rpc on tcp://38195
+connected to manager: procs=1 cover_edges=1 kernel_64_bit=1 slowdown=10 syscall_timeout=500 program_timeout=15000 features=0xffffffffffffffff
+reading file /proc/cpuinfo: size=2336 exists=1 error=
+reading file /proc/modules: size=5367 exists=1 error=
+reading file /proc/kallsyms: size=7892982 exists=1 error=
+glob /sys/module/*/sections/.text resolved to 95 files
+reading file /sys/module/sha2_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/rtk_btusb/sections/.text: size=19 exists=1 error=
+reading file /sys/module/i2c_hid_acpi/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sm4_ce_ccm/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ftv310_vpu_driver/sections/.text: size=19 exists=1 error=
+reading file /sys/module/xhci_plat_hcd/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ip_tables/sections/.text: size=19 exists=1 error=
+reading file /sys/module/iptable_nat/sections/.text: size=19 exists=1 error=
+reading file /sys/module/r8152/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_soc_phytium_i2s_v2/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_core/sections/.text: size=19 exists=1 error=
+reading file /sys/module/aes_ce_blk/sections/.text: size=19 exists=1 error=
+reading file /sys/module/rfcomm/sections/.text: size=19 exists=1 error=
+reading file /sys/module/stp/sections/.text: size=19 exists=1 error=
+reading file /sys/module/udc_core/sections/.text: size=19 exists=1 error=
+reading file /sys/module/vfat/sections/.text: size=19 exists=1 error=
+reading file /sys/module/multipath/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sha512_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_soc_pmdk_dp/sections/.text: size=19 exists=1 error=
+reading file /sys/module/videobuf2_memops/sections/.text: size=19 exists=1 error=
+reading file /sys/module/drm/sections/.text: size=19 exists=1 error=
+reading file /sys/module/uvc/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_codec_aw882xx/sections/.text: size=19 exists=1 error=
+reading file /sys/module/mii/sections/.text: size=19 exists=1 error=
+reading file /sys/module/videobuf2_vmalloc/sections/.text: size=19 exists=1 error=
+reading file /sys/module/algif_hash/sections/.text: size=19 exists=1 error=
+reading file /sys/module/nf_defrag_ipv6/sections/.text: size=19 exists=1 error=
+reading file /sys/module/hid_multitouch/sections/.text: size=19 exists=1 error=
+reading file /sys/module/btmtk/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ftd330_drm_dc/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_codec/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_soc_hdmi_codec/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sha512_arm64/sections/.text: size=19 exists=1 error=
+reading file /sys/module/nf_defrag_ipv4/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sm3_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/videobuf2_v4l2/sections/.text: size=19 exists=1 error=
+reading file /sys/module/libcrc32c/sections/.text: size=19 exists=1 error=
+reading file /sys/module/parport/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sha3_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ppdev/sections/.text: size=19 exists=1 error=
+reading file /sys/module/crct10dif_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/drm_display_helper/sections/.text: size=19 exists=1 error=
+reading file /sys/module/algif_skcipher/sections/.text: size=19 exists=1 error=
+reading file /sys/module/r8153_ecm/sections/.text: size=19 exists=1 error=
+reading file /sys/module/serio_raw/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ledtrig_audio/sections/.text: size=19 exists=1 error=
+reading file /sys/module/hid/sections/.text: size=19 exists=1 error=
+reading file /sys/module/rfkill/sections/.text: size=19 exists=1 error=
+reading file /sys/module/btintel/sections/.text: size=19 exists=1 error=
+reading file /sys/module/joydev/sections/.text: size=19 exists=1 error=
+reading file /sys/module/af_alg/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sm4_ce_cipher/sections/.text: size=19 exists=1 error=
+reading file /sys/module/uvcvideo/sections/.text: size=19 exists=1 error=
+reading file /sys/module/nls_iso8859_1/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sm4_ce_gcm/sections/.text: size=19 exists=1 error=
+reading file /sys/module/bluetooth/sections/.text: size=19 exists=1 error=
+reading file /sys/module/hid_generic/sections/.text: size=19 exists=1 error=
+reading file /sys/module/cppc_cpufreq/sections/.text: size=19 exists=1 error=
+reading file /sys/module/btbcm/sections/.text: size=19 exists=1 error=
+reading file /sys/module/libarc4/sections/.text: size=19 exists=1 error=
+reading file /sys/module/videobuf2_common/sections/.text: size=19 exists=1 error=
+reading file /sys/module/bnep/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ghash_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_codec_aw883xx/sections/.text: size=19 exists=1 error=
+reading file /sys/module/btusb/sections/.text: size=19 exists=1 error=
+reading file /sys/module/x_tables/sections/.text: size=19 exists=1 error=
+reading file /sys/module/linear/sections/.text: size=19 exists=1 error=
+reading file /sys/module/cdc_ether/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_aw883xx/sections/.text: size=19 exists=1 error=
+reading file /sys/module/llc/sections/.text: size=19 exists=1 error=
+reading file /sys/module/parport_pc/sections/.text: size=19 exists=1 error=
+reading file /sys/module/thermal/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_codec_generic/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sha256_arm64/sections/.text: size=19 exists=1 error=
+reading file /sys/module/gadgetfs/sections/.text: size=19 exists=1 error=
+reading file /sys/module/nf_conntrack/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_aw882xx/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_codec_conexant/sections/.text: size=19 exists=1 error=
+reading file /sys/module/lp/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sm4_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/i2c_hid/sections/.text: size=19 exists=1 error=
+reading file /sys/module/btrtl/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ecdh_generic/sections/.text: size=19 exists=1 error=
+reading file /sys/module/snd_hda_phytium/sections/.text: size=19 exists=1 error=
+reading file /sys/module/iptable_filter/sections/.text: size=19 exists=1 error=
+reading file /sys/module/sha1_ce/sections/.text: size=19 exists=1 error=
+reading file /sys/module/st/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ecc/sections/.text: size=19 exists=1 error=
+reading file /sys/module/nf_nat/sections/.text: size=19 exists=1 error=
+reading file /sys/module/drm_kms_helper/sections/.text: size=19 exists=1 error=
+reading file /sys/module/bridge/sections/.text: size=19 exists=1 error=
+reading file /sys/module/ftg340/sections/.text: size=19 exists=1 error=
+reading file /sys/module/aes_ce_cipher/sections/.text: size=19 exists=1 error=
+reading file /sys/module/hwmon_vid/sections/.text: size=19 exists=1 error=
+reading file /sys/module/usbnet/sections/.text: size=19 exists=1 error=
+glob /sys/module/kvm*/parameters/* resolved to 4 files
+reading file /sys/module/kvm/parameters/halt_poll_ns_shrink: size=2 exists=1 error=
+reading file /sys/module/kvm/parameters/halt_poll_ns: size=7 exists=1 error=
+reading file /sys/module/kvm/parameters/halt_poll_ns_grow_start: size=6 exists=1 error=
+reading file /sys/module/kvm/parameters/halt_poll_ns_grow: size=2 exists=1 error=
+reading file /proc/version: size=171 exists=1 error=
+reading file /proc/filesystems: size=452 exists=1 error=
+reading file /sys/kernel/security/lsm: size=20 exists=1 error=
+mkdir(/syzcgroup) failed: 17
+setting up feature DelayKcovMmap
+setting up feature KcovResetIoctl
+failed: kernel does not support ioctl(KCOV_RESET_TRACE)
+setting up feature Fault
+failed: CONFIG_FAULT_INJECTION is not enabled
+setting up feature Leak
+failed: failed to write(kmemleak, "scan=off")
+setting up feature KCSAN
+failed: write(/sys/kernel/debug/kcsan, on) failed
+setting up feature USBEmulation
+failed: failed to chmod /dev/raw-gadget
+setting up feature LRWPANEmulation
+netlink: failed to get family id for nl802154: No such file or directory
+failed: netlink_query_family_id failed
+setting up feature BinFmtMisc
+write(/proc/sys/fs/binfmt_misc/register) failed: 17
+failed: write(/proc/sys/fs/binfmt_misc/register) failed
+setting up feature Swap
+mkswap ./swap-file
+Setting up swapspace version 1, size = 122.1 MiB (127995904 bytes)
+no label, UUID=c45b891b-b15d-4777-a9fb-8d14ed0f8971
+setting up feature NicVF
+failed: PCI device 0000:00:11.0 is not available
+setting up feature DevlinkPCI
+failed: PCI device 0000:00:10.0 is not available
+setting up feature MemoryDump
+failed: makedumpfile is missing
+received info reply: covfilter=0
+recv exec request 1: type=0 flags=0x3 env=0x7811 exec=0x10 size=74
+proc 0: handshaking to execute request 1
+recv exec request 2: type=0 flags=0x3 env=0xb811 exec=0x10 size=74
+proc 0: got output: spawned loop pid 11969
+proc 0: got output: netlink: failed to get family id for devlink: No such file or directory
+proc 0: got output: netlink: failed to get family id for devlink: No such file or directory
+proc 0: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 0: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+mount(cgroup/net, MS_BIND) failed: 2
+pivot_root OK
+proc 0: got output: mkdir(/dev/gadgetfs) failed: 17
+mount of gadgetfs at /dev/gadgetfs failed: 19
+mkdir(/dev/binderfs) failed: 17
+proc 0: got output: mount of binder at /dev/binderfs failed: 19
+mount(fusectl) failed: 16
+iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 0: got handshake reply
+proc 0: start executing request 1
+proc 0: got output: [99ms] exec opts: reqid=1 type=0 procid=0 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 kernel_64_bit=1
+spawned worker pid 2
+proc 0: got output: #0 [108ms] -> mmap(0x1ffff000, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+#0 [108ms] <- mmap=0x1ffff000
+proc 0: got output: #0 [108ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [108ms] <- mmap=0x20000000
+proc 0: got output: #0 [108ms] -> mmap(0x21000000, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+#0 [108ms] <- mmap=0x21000000
+recv exec request 3: type=0 flags=0x3 env=0x3811 exec=0x10 size=74
+proc 0: got execute reply
+handle completion: completed=3 output_size=262144
+proc 0: restarting subprocess, current state 2 attempts 0
+proc 0: subprocess exit status 9
+proc 0: handshaking to execute request 2
+proc 0: got output: NOTFAIL: open /dev/vhci failed
+proc 0: got output:  (errno 2: No such file or directory)
+proc 0: got output: spawned loop pid 11980
+proc 0: got output: loop exited with status 67
+proc 0: got handshake reply
+proc 0: start executing request 2
+request pipe write failed (errno=32)
+proc 0: restarting subprocess, current state 3 attempts 0
+proc 0: subprocess exit status 67
+proc 0: output pipe EOF
+handle completion: completed=0 output_size=14680064
+proc 0: changing proc id to 1
+proc 1: handshaking to execute request 3
+proc 1: got output: spawned loop pid 11982
+proc 1: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 1: got output: pivot_root OK
+proc 1: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 1: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 1: got output: mkdir(/dev/binderfs) failed: 17
+proc 1: got output: mount of binder at /dev/binderfs failed: 19
+proc 1: got output: mount(fusectl) failed: 16
+proc 1: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 1: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+recv exec request 4: type=0 flags=0x3 env=0x23813 exec=0x13 size=74
+proc 1: got handshake reply
+proc 1: start executing request 3
+recv exec request 5: type=0 flags=0x3 env=0x43811 exec=0x10 size=74
+proc 1: got output: [34ms] exec opts: reqid=3 type=0 procid=1 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 ker
+proc 1: got output: nel_64_bit=1
+proc 1: got output: spawned worker pid 2
+proc 1: got output: #0 [36ms] -> mmap(
+proc 1: got output: 0x1ffff000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [36ms] <- mmap=0x1ffff000
+proc 1: got output: 
+proc 1: got output: #0 [36ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [37ms] <- mmap=0x20000000
+proc 1: got output: #0 [37ms] -> mmap(
+proc 1: got output: 0x21000000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [37ms] <- mmap=0x21000000
+proc 1: got output: 
+proc 1: got execute reply
+handle completion: completed=3 output_size=262144
+proc 1: restarting subprocess, current state 2 attempts 0
+proc 1: subprocess exit status 9
+proc 1: handshaking to execute request 4
+proc 1: got output: spawned loop pid 11990
+proc 1: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 1: got output: pivot_root OK
+proc 1: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 1: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 1: got output: mkdir(/dev/binderfs) failed: 17
+proc 1: got output: mount of binder at /dev/binderfs failed: 19
+proc 1: got output: mount(fusectl) failed: 16
+proc 1: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 1: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 1: got handshake reply
+proc 1: start executing request 4
+recv exec request 6: type=0 flags=0x3 env=0x3841 exec=0x10 size=74
+proc 1: got output: [47ms] exec opts: reqid=4 type=0 procid=1 threaded=1 cover=1 comps=0 dedup=0 signal=1  sandbox=1/0/0/0 timeouts=500/15000/10 ker
+proc 1: got output: nel_64_bit=1
+proc 1: got output: spawned worker pid 2
+proc 1: got output: #0 [50ms] -> mmap(
+proc 1: got output: 0x1ffff000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [50ms] <- mmap=0x1ffff000
+proc 1: got output:  cover=2728
+proc 1: got output: 
+proc 1: got output: #0 [58ms] -> mmap(
+proc 1: got output: 0x20000000
+proc 1: got output: , 
+proc 1: got output: 0x1000000
+proc 1: got output: , 
+proc 1: got output: 0x7
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [59ms] <- mmap=0x20000000
+proc 1: got output:  cover=1822
+proc 1: got output: 
+proc 1: got output: #0 [59ms] -> mmap(
+proc 1: got output: 0x21000000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [59ms] <- mmap=0x21000000
+proc 1: got output:  cover=2151
+proc 1: got output: 
+proc 1: got execute reply
+handle completion: completed=3 output_size=6291456
+proc 1: restarting subprocess, current state 2 attempts 0
+proc 1: subprocess exit status 9
+proc 1: handshaking to execute request 5
+proc 1: got output: spawned loop pid 11998
+proc 1: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 1: got output: pivot_root OK
+proc 1: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 1: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 1: got output: mkdir(/dev/binderfs) failed: 17
+proc 1: got output: mount of binder at /dev/binderfs failed: 19
+proc 1: got output: mount(fusectl) failed: 16
+proc 1: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 1: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 1: got handshake reply
+proc 1: start executing request 5
+recv exec request 7: type=0 flags=0x3 env=0x13811 exec=0x10 size=74
+proc 1: got output: [38ms] exec opts: reqid=5 type=0 procid=1 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 ker
+proc 1: got output: nel_64_bit=1
+proc 1: got output: spawned worker pid 2
+proc 1: got output: #0 [39ms] -> mmap(
+proc 1: got output: 0x1ffff000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [40ms] <- mmap=0x1ffff000
+proc 1: got output: 
+proc 1: got output: #0 [41ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [41ms] <- mmap=0x20000000
+proc 1: got output: #0 [41ms] -> mmap(0x21000000, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+#0 [41ms] <- mmap=0x21000000
+proc 1: got execute reply
+handle completion: completed=3 output_size=262144
+proc 1: restarting subprocess, current state 2 attempts 0
+proc 1: subprocess exit status 9
+proc 1: handshaking to execute request 6
+proc 1: got output: spawned loop pid 12006
+proc 1: got output: write(/proc/sys/net/ipv4/ping_group_range) failed: 22
+proc 1: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 1: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 1: got output: pivot_root OK
+proc 1: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 1: got output: mount of gadgetfs at /dev/gadgetfs failed: 1
+proc 1: got output: mkdir(/dev/binderfs) failed: 17
+proc 1: got output: mount of binder at /dev/binderfs failed: 19
+proc 1: got output: mount(fusectl) failed: 1
+proc 1: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 1: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 1: got handshake reply
+proc 1: start executing request 6
+proc 1: got output: [32ms] exec opts: reqid=6 type=0 procid=1 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=0/0/1/0 timeouts=500/15000/10 ker
+proc 1: got output: nel_64_bit=1
+proc 1: got output: spawned worker pid 2
+proc 1: got output: #0 [34ms] -> mmap(
+proc 1: got output: 0x1ffff000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [34ms] <- mmap=0x1ffff000
+proc 1: got output: 
+proc 1: got output: #0 [34ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [34ms] <- mmap=0x20000000
+proc 1: got output: #0 [34ms] -> mmap(
+proc 1: got output: 0x21000000
+proc 1: got output: , 
+proc 1: got output: 0x1000
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: , 
+proc 1: got output: 0x32
+proc 1: got output: , 
+proc 1: got output: 0xffffffffffffffff
+proc 1: got output: , 
+proc 1: got output: 0x0
+proc 1: got output: )
+proc 1: got output: #0 [35ms] <- mmap=0x21000000
+proc 1: got output: 
+proc 1: got execute reply
+handle completion: completed=3 output_size=262144
+proc 1: restarting subprocess, current state 2 attempts 0
+proc 1: subprocess exit status 9
+proc 1: handshaking to execute request 7
+recv exec request 8: type=0 flags=0x3 env=0x3913 exec=0x13 size=74
+proc 1: got output: spawned loop pid 12014
+proc 1: got output: netlink: failed to get family id for MAC80211_HWSIM: No such file or directory
+proc 1: got output: netlink: failed to get family id for nl80211: No such file or directory
+proc 1: got output: NOTFAIL: netlink_query_family_id failed
+proc 1: got output:  (errno 2: No such file or directory)
+proc 1: got output: loop exited with status 67
+proc 1: got handshake reply
+proc 1: start executing request 7
+recv exec request 9: type=0 flags=0x3 env=0x3821 exec=0x10 size=74
+proc 1: response pipe EOF
+proc 1: restarting subprocess, current state 3 attempts 0
+proc 1: subprocess exit status 67
+proc 1: output pipe EOF
+handle completion: completed=0 output_size=14680064
+proc 1: changing proc id to 2
+proc 2: handshaking to execute request 8
+proc 2: got output: spawned loop pid 12026
+proc 2: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 2: got output: pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 2: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 2: got handshake reply
+proc 2: start executing request 8
+recv exec request 10: type=0 flags=0x3 env=0x3881 exec=0x10 size=74
+proc 2: got output: [46ms] exec opts: reqid=8 type=0 procid=2 threaded=1 cover=1 comps=0 dedup=0 signal=1  sandbox=1/0/0/0 timeouts=500/15000/10 ker
+proc 2: got output: nel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: #0 [49ms] -> mmap(
+proc 2: got output: 0x1ffff000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [50ms] <- mmap=0x1ffff000
+proc 2: got output:  cover=2785
+proc 2: got output: 
+proc 2: got output: #0 [50ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [50ms] <- mmap=0x20000000 cover=1471
+proc 2: got output: #0 [50ms] -> mmap(
+proc 2: got output: 0x21000000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [51ms] <- mmap=0x21000000
+proc 2: got output:  cover=2104
+proc 2: got output: 
+proc 2: got execute reply
+handle completion: completed=3 output_size=6291456
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 9
+proc 2: got output: spawned loop pid 12034
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: mkdir(/syzcgroup/unified/syz2) failed: 2
+proc 2: got output: mkdir(/syzcgroup/cpu/syz2) failed: 2
+proc 2: got output: mkdir(/syzcgroup/net/syz2) failed: 2
+proc 2: got handshake reply
+proc 2: start executing request 9
+recv exec request 11: type=0 flags=0x3 env=0x3c11 exec=0x10 size=74
+proc 2: got output: [22ms] exec opts: reqid=9 type=0 procid=2 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=0/1/0/0 timeouts=500/15000/10 ker
+proc 2: got output: nel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: #0 [23ms] -> mmap(
+proc 2: got output: 0x1ffff000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [24ms] <- mmap=0x1ffff000
+proc 2: got output: 
+proc 2: got output: #0 [24ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [24ms] <- mmap=0x20000000
+proc 2: got output: #0 [24ms] -> mmap(
+proc 2: got output: 0x21000000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [24ms] <- mmap=0x21000000
+proc 2: got output: 
+proc 2: got execute reply
+handle completion: completed=3 output_size=262144
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 10
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: executor received sandbox_arg=0
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: NOTFAIL: setcon: could not write entire context
+proc 2: got output: wrote=-1, expected=30
+proc 2: got output:  (errno 22: Invalid argument)
+proc 2: response pipe EOF
+proc 2: restarting subprocess, current state 1 attempts 0
+proc 2: subprocess exit status 67
+proc 2: output pipe EOF
+handle completion: completed=0 output_size=14680064
+proc 2: handshaking to execute request 11
+proc 2: got output: spawned loop pid 12041
+proc 2: got output: netlink: add addr 172.30.0.3 dev nr2: No such device
+recv exec request 12: type=0 flags=0x3 env=0x3813 exec=0x13 size=74
+proc 2: got output: netlink: device nr2 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.30.1.3 dev rose2: No such device
+proc 2: got output: netlink: device rose2 up master NULL: No such device
+proc 2: got output: netlink: adding device ip6gretap0 type ip6gretap: Operation not supported
+proc 2: got output: netlink: adding device vcan0 type vcan: Operation not supported
+proc 2: got output: netlink: adding device bond0 type bond: Operation not supported
+proc 2: got output: netlink: adding device team0 type team: Operation not supported
+proc 2: got output: netlink: adding device dummy0 type dummy: Operation not supported
+proc 2: got output: netlink: adding device nicvf0 type nicvf: Operation not supported
+proc 2: got output: netlink: adding device nlmon0 type nlmon: Operation not supported
+proc 2: got output: netlink: adding device caif0 type caif: Operation not supported
+proc 2: got output: netlink: adding device batadv0 type batadv: Operation not supported
+proc 2: got output: netlink: adding device vxcan1 type vxcan: Operation not supported
+proc 2: got output: netlink: adding device (null) type veth: Operation not supported
+proc 2: got output: netlink: adding device wg0 type wireguard: Operation not supported
+proc 2: got output: netlink: adding device wg1 type wireguard: Operation not supported
+proc 2: got output: netlink: adding device wg2 type wireguard: Operation not supported
+proc 2: got output: netlink: adding device bridge_slave_0 type veth peer veth0_to_bridge: Operation not supported
+proc 2: got output: netlink: adding device bridge_slave_1 type veth peer veth1_to_bridge: Operation not supported
+proc 2: got output: netlink: device bridge_slave_0 up master bridge0: No such device
+proc 2: got output: netlink: device bridge_slave_1 up master bridge0: No such device
+proc 2: got output: netlink: adding device bond_slave_0 type veth peer veth0_to_bond: Operation not supported
+proc 2: got output: netlink: adding device bond_slave_1 type veth peer veth1_to_bond: Operation not supported
+proc 2: got output: netlink: device bond_slave_0 up master bond0: No such device
+proc 2: got output: netlink: device bond_slave_1 up master bond0: No such device
+proc 2: got output: netlink: adding device team_slave_0 type veth peer veth0_to_team: Operation not supported
+proc 2: got output: netlink: adding device team_slave_1 type veth peer veth1_to_team: Operation not supported
+proc 2: got output: netlink: device team_slave_0 up master team0: No such device
+proc 2: got output: netlink: device team_slave_1 up master team0: No such device
+proc 2: got output: netlink: adding device batadv_slave_0 type veth peer veth0_to_batadv: Operation not supported
+proc 2: got output: netlink: adding device batadv_slave_1 type veth peer veth1_to_batadv: Operation not supported
+proc 2: got output: netlink: device batadv_slave_0 up master batadv0: No such device
+proc 2: got output: netlink: device batadv_slave_1 up master batadv0: No such device
+proc 2: got output: netlink: adding device xfrm0 type xfrm if_id 1: Operation not supported
+proc 2: got output: netlink: device bridge_slave_0 up master NULL: No such device
+proc 2: got output: netlink: device bridge_slave_1 up master NULL: No such device
+proc 2: got output: netlink: adding device hsr_slave_0 type veth peer veth0_to_hsr: Operation not supported
+proc 2: got output: netlink: adding device hsr_slave_1 type veth peer veth1_to_hsr: Operation not supported
+proc 2: got output: netlink: adding device hsr0 type hsr slave1 hsr_slave_0 slave2 hsr_slave_1: Operation not supported
+proc 2: got output: netlink: device hsr_slave_0 up master NULL: No such device
+proc 2: got output: netlink: device hsr_slave_1 up master NULL: No such device
+proc 2: got output: netlink: adding device veth0_virt_wifi type veth peer veth1_virt_wifi: Operation not supported
+proc 2: got output: netlink: adding device virt_wifi0 type virt_wifi link veth1_virt_wifi: Operation not supported
+proc 2: got output: netlink: adding device veth0_vlan type veth peer veth1_vlan: Operation not supported
+proc 2: got output: netlink: add vlan0 type vlan link veth0_vlan id 0: Operation not supported
+proc 2: got output: netlink: add vlan1 type vlan link veth0_vlan id 1: Operation not supported
+proc 2: got output: netlink: add macvlan0 type macvlan link veth1_vlan mode 4: Operation not supported
+proc 2: got output: netlink: add macvlan1 type macvlan link veth1_vlan mode 4: Operation not supported
+proc 2: got output: netlink: add ipvlan0 type ipvlan link veth0_vlan mode 0: Operation not supported
+proc 2: got output: netlink: add ipvlan1 type ipvlan link veth0_vlan mode 2: Operation not supported
+proc 2: got output: netlink: adding device veth0_macvtap type veth peer veth1_macvtap: Operation not supported
+proc 2: got output: netlink: adding device macvtap0 type macvtap link veth0_macvtap: Operation not supported
+proc 2: got output: netlink: adding device macsec0 type macsec link veth1_macvtap: Operation not supported
+proc 2: got output: netlink: add geneve0 type geneve vni 0: Operation not supported
+proc 2: got output: netlink: add geneve1 type geneve vni 1: Operation not supported
+proc 2: got output: netlink: failed to get family id for wireguard: No such file or directory
+proc 2: got output: netlink: add addr 172.20.20.13 dev vcan0: No such device
+proc 2: got output: netlink: device vcan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.14 dev tunl0: No such device
+proc 2: got output: netlink: add addr fe80::0e dev tunl0: No such device
+proc 2: got output: netlink: device tunl0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.15 dev gre0: No such device
+proc 2: got output: netlink: add addr fe80::0f dev gre0: No such device
+proc 2: got output: netlink: device gre0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.16 dev gretap0: No such device
+proc 2: got output: netlink: add addr fe80::10 dev gretap0: No such device
+proc 2: got output: netlink: device gretap0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.17 dev ip_vti0: No such device
+proc 2: got output: netlink: add addr fe80::11 dev ip_vti0: No such device
+proc 2: got output: netlink: device ip_vti0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.18 dev ip6_vti0: No such device
+proc 2: got output: netlink: add addr fe80::12 dev ip6_vti0: No such device
+proc 2: got output: netlink: device ip6_vti0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.20 dev ip6gre0: No such device
+proc 2: got output: netlink: add addr fe80::14 dev ip6gre0: No such device
+proc 2: got output: netlink: device ip6gre0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.21 dev ip6gretap0: No such device
+proc 2: got output: netlink: add addr fe80::15 dev ip6gretap0: No such device
+proc 2: got output: netlink: device ip6gretap0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.22 dev erspan0: No such device
+proc 2: got output: netlink: add addr fe80::16 dev erspan0: No such device
+proc 2: got output: netlink: device erspan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.23 dev bond0: No such device
+proc 2: got output: netlink: add addr fe80::17 dev bond0: No such device
+proc 2: got output: netlink: device bond0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.24 dev veth0: No such device
+proc 2: got output: netlink: add addr fe80::18 dev veth0: No such device
+proc 2: got output: netlink: device veth0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.25 dev veth1: No such device
+proc 2: got output: netlink: add addr fe80::19 dev veth1: No such device
+proc 2: got output: netlink: device veth1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.26 dev team0: No such device
+proc 2: got output: netlink: add addr fe80::1a dev team0: No such device
+proc 2: got output: netlink: device team0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.27 dev veth0_to_bridge: No such device
+proc 2: got output: netlink: add addr fe80::1b dev veth0_to_bridge: No such device
+proc 2: got output: netlink: device veth0_to_bridge up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.28 dev veth1_to_bridge: No such device
+proc 2: got output: netlink: add addr fe80::1c dev veth1_to_bridge: No such device
+proc 2: got output: netlink: device veth1_to_bridge up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.29 dev veth0_to_bond: No such device
+proc 2: got output: netlink: add addr fe80::1d dev veth0_to_bond: No such device
+proc 2: got output: netlink: device veth0_to_bond up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.30 dev veth1_to_bond: No such device
+proc 2: got output: netlink: add addr fe80::1e dev veth1_to_bond: No such device
+proc 2: got output: netlink: device veth1_to_bond up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.31 dev veth0_to_team: No such device
+proc 2: got output: netlink: add addr fe80::1f dev veth0_to_team: No such device
+proc 2: got output: netlink: device veth0_to_team up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.32 dev veth1_to_team: No such device
+proc 2: got output: netlink: add addr fe80::20 dev veth1_to_team: No such device
+proc 2: got output: netlink: device veth1_to_team up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.33 dev veth0_to_hsr: No such device
+proc 2: got output: netlink: add addr fe80::21 dev veth0_to_hsr: No such device
+proc 2: got output: netlink: device veth0_to_hsr up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.34 dev veth1_to_hsr: No such device
+proc 2: got output: netlink: add addr fe80::22 dev veth1_to_hsr: No such device
+proc 2: got output: netlink: device veth1_to_hsr up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.35 dev hsr0: No such device
+proc 2: got output: netlink: add addr fe80::23 dev hsr0: No such device
+proc 2: got output: netlink: device hsr0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.36 dev dummy0: No such device
+proc 2: got output: netlink: add addr fe80::24 dev dummy0: No such device
+proc 2: got output: netlink: device dummy0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.37 dev nicvf0: No such device
+proc 2: got output: netlink: device nicvf0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.38 dev nlmon0: No such device
+proc 2: got output: netlink: add addr fe80::26 dev nlmon0: No such device
+proc 2: got output: netlink: device nlmon0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.39 dev vxcan0: No such device
+proc 2: got output: netlink: device vxcan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.40 dev vxcan1: No such device
+proc 2: got output: netlink: device vxcan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.41 dev caif0: No such device
+proc 2: got output: netlink: add addr fe80::29 dev caif0: No such device
+proc 2: got output: netlink: device caif0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.42 dev batadv0: No such device
+proc 2: got output: netlink: add addr fe80::2a dev batadv0: No such device
+proc 2: got output: netlink: device batadv0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.43 dev netdevsim2: No such device
+proc 2: got output: netlink: add addr fe80::2b dev netdevsim2: No such device
+proc 2: got output: netlink: device netdevsim2 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.44 dev xfrm0: No such device
+proc 2: got output: netlink: add addr fe80::2c dev xfrm0: No such device
+proc 2: got output: netlink: device xfrm0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.45 dev veth0_virt_wifi: No such device
+proc 2: got output: netlink: add addr fe80::2d dev veth0_virt_wifi: No such device
+proc 2: got output: netlink: device veth0_virt_wifi up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.46 dev veth1_virt_wifi: No such device
+proc 2: got output: netlink: add addr fe80::2e dev veth1_virt_wifi: No such device
+proc 2: got output: netlink: device veth1_virt_wifi up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.47 dev virt_wifi0: No such device
+proc 2: got output: netlink: add addr fe80::2f dev virt_wifi0: No such device
+proc 2: got output: netlink: device virt_wifi0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.48 dev veth0_vlan: No such device
+proc 2: got output: netlink: add addr fe80::30 dev veth0_vlan: No such device
+proc 2: got output: netlink: device veth0_vlan up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.49 dev veth1_vlan: No such device
+proc 2: got output: netlink: add addr fe80::31 dev veth1_vlan: No such device
+proc 2: got output: netlink: device veth1_vlan up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.50 dev vlan0: No such device
+proc 2: got output: netlink: add addr fe80::32 dev vlan0: No such device
+proc 2: got output: netlink: device vlan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.51 dev vlan1: No such device
+proc 2: got output: netlink: add addr fe80::33 dev vlan1: No such device
+proc 2: got output: netlink: device vlan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.52 dev macvlan0: No such device
+proc 2: got output: netlink: add addr fe80::34 dev macvlan0: No such device
+proc 2: got output: netlink: device macvlan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.53 dev macvlan1: No such device
+proc 2: got output: netlink: add addr fe80::35 dev macvlan1: No such device
+proc 2: got output: netlink: device macvlan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.54 dev ipvlan0: No such device
+proc 2: got output: netlink: add addr fe80::36 dev ipvlan0: No such device
+proc 2: got output: netlink: device ipvlan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.55 dev ipvlan1: No such device
+proc 2: got output: netlink: add addr fe80::37 dev ipvlan1: No such device
+proc 2: got output: netlink: device ipvlan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.56 dev veth0_macvtap: No such device
+proc 2: got output: netlink: add addr fe80::38 dev veth0_macvtap: No such device
+proc 2: got output: netlink: device veth0_macvtap up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.57 dev veth1_macvtap: No such device
+proc 2: got output: netlink: add addr fe80::39 dev veth1_macvtap: No such device
+proc 2: got output: netlink: device veth1_macvtap up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.58 dev macvtap0: No such device
+proc 2: got output: netlink: add addr fe80::3a dev macvtap0: No such device
+proc 2: got output: netlink: device macvtap0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.59 dev macsec0: No such device
+proc 2: got output: netlink: add addr fe80::3b dev macsec0: No such device
+proc 2: got output: netlink: device macsec0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.60 dev veth0_to_batadv: No such device
+proc 2: got output: netlink: add addr fe80::3c dev veth0_to_batadv: No such device
+proc 2: got output: netlink: device veth0_to_batadv up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.61 dev veth1_to_batadv: No such device
+proc 2: got output: netlink: add addr fe80::3d dev veth1_to_batadv: No such device
+proc 2: got output: netlink: device veth1_to_batadv up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.62 dev batadv_slave_0: No such device
+proc 2: got output: netlink: add addr fe80::3e dev batadv_slave_0: No such device
+proc 2: got output: netlink: device batadv_slave_0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.63 dev batadv_slave_1: No such device
+proc 2: got output: netlink: add addr fe80::3f dev batadv_slave_1: No such device
+proc 2: got output: netlink: device batadv_slave_1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.64 dev geneve0: No such device
+proc 2: got output: netlink: add addr fe80::40 dev geneve0: No such device
+proc 2: got output: netlink: device geneve0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.65 dev geneve1: No such device
+proc 2: got output: netlink: add addr fe80::41 dev geneve1: No such device
+proc 2: got output: netlink: device geneve1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.66 dev wg0: No such device
+proc 2: got output: netlink: add addr fe80::42 dev wg0: No such device
+proc 2: got output: netlink: device wg0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.67 dev wg1: No such device
+proc 2: got output: netlink: add addr fe80::43 dev wg1: No such device
+proc 2: got output: netlink: device wg1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.68 dev wg2: No such device
+proc 2: got output: netlink: add addr fe80::44 dev wg2: No such device
+proc 2: got output: netlink: device wg2 up master NULL: No such device
+mount(cgroup2, MS_BIND) failed: 2
+mount(cgroup/cpu, MS_BIND) failed: 2
+mount(cgroup/net, MS_BIND) failed: 2
+pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 2: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 2: got handshake reply
+proc 2: start executing request 11
+recv exec request 13: type=0 flags=0x3 env=0x3813 exec=0x18 size=74
+proc 2: got output: [2054ms] exec opts: reqid=11 type=0 procid=2 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 
+proc 2: got output: kernel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: #0 [2055ms] -> mmap(
+proc 2: got output: 0x1ffff000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [2055ms] <- mmap=0x1ffff000
+proc 2: got output: 
+proc 2: got output: #0 [2055ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [2056ms] <- mmap=0x20000000
+proc 2: got output: #0 [2056ms] -> mmap(0x21000000, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+#0 [2056ms] <- mmap=0x21000000
+proc 2: got execute reply
+handle completion: completed=3 output_size=262144
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 12
+proc 2: got output: spawned loop pid 12481
+proc 2: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 2: got output: pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 2: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 2: got handshake reply
+proc 2: start executing request 12
+recv exec request 14: type=0 flags=0x3 env=0x3815 exec=0x10 size=74
+proc 2: got output: [48ms] exec opts: reqid=12 type=0 procid=2 threaded=1 cover=1 comps=0 dedup=0 signal=1  sandbox=1/0/0/0 timeouts=500/15000/10 ke
+proc 2: got output: rnel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: #0 [50ms] -> mmap(
+proc 2: got output: 0x1ffff000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [51ms] <- mmap=0x1ffff000
+proc 2: got output:  cover=2479
+proc 2: got output: 
+proc 2: got output: #0 [51ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [51ms] <- mmap=0x20000000 cover=1471
+proc 2: got output: #0 [51ms] -> mmap(
+proc 2: got output: 0x21000000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [52ms] <- mmap=0x21000000
+proc 2: got output:  cover=2104
+proc 2: got output: 
+proc 2: got execute reply
+handle completion: completed=3 output_size=6291456
+proc 2: start executing request 13
+recv exec request 15: type=0 flags=0x3 env=0x3a11 exec=0x10 size=74
+proc 2: got output: [57ms] exec opts: reqid=13 type=0 procid=2 threaded=1 cover=0 comps=1 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 ke
+proc 2: got output: rnel_64_bit=1
+proc 2: got output: spawned worker pid 4
+proc 2: got output: cover enable write trace failed, mode=1 (errno 524)
+proc 2: got execute reply
+handle completion: completed=0 output_size=14680064
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 14
+proc 2: got output: spawned loop pid 12491
+proc 2: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 2: got output: pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 2: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 2: got handshake reply
+proc 2: start executing request 14
+recv exec request 16: type=2 flags=0x1 env=0x11 exec=0x0 size=10
+proc 2: got output: [40ms] exec opts: reqid=14 type=0 procid=2 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 ke
+proc 2: got output: rnel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: #0 [41ms] -> mmap(
+proc 2: got output: 0x1ffff000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [42ms] <- mmap=0x1ffff000
+proc 2: got output: 
+proc 2: got output: #0 [42ms] -> mmap(
+proc 2: got output: 0x20000000
+proc 2: got output: , 
+proc 2: got output: 0x1000000
+proc 2: got output: , 
+proc 2: got output: 0x7
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [42ms] <- mmap=0x20000000
+proc 2: got output: 
+proc 2: got output: #0 [42ms] -> mmap(
+proc 2: got output: 0x21000000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [43ms] <- mmap=0x21000000
+proc 2: got output: 
+proc 2: got execute reply
+handle completion: completed=3 output_size=262144
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 15
+proc 2: got output: spawned loop pid 12499
+proc 2: got output: mount(cgroup2, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/cpu, MS_BIND) failed: 2
+proc 2: got output: mount(cgroup/net, MS_BIND) failed: 2
+proc 2: got output: pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 2: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 2: got handshake reply
+proc 2: start executing request 15
+proc 2: got output: [80ms] exec opts: reqid=15 type=0 procid=2 threaded=1 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/15000/10 ke
+proc 2: got output: rnel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: #0 [82ms] -> mmap(
+proc 2: got output: 0x1ffff000
+proc 2: got output: , 
+proc 2: got output: 0x1000
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: , 
+proc 2: got output: 0x32
+proc 2: got output: , 
+proc 2: got output: 0xffffffffffffffff
+proc 2: got output: , 
+proc 2: got output: 0x0
+proc 2: got output: )
+proc 2: got output: #0 [82ms] <- mmap=0x1ffff000
+proc 2: got output: 
+proc 2: got output: #0 [82ms] -> mmap(0x20000000, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+#0 [82ms] <- mmap=0x20000000
+proc 2: got output: #0 [82ms] -> mmap(0x21000000, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+#0 [82ms] <- mmap=0x21000000
+proc 2: got execute reply
+handle completion: completed=3 output_size=262144
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 16
+proc 2: got output: spawned loop pid 12507
+proc 2: got output: pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got handshake reply
+proc 2: start executing request 16
+proc 2: got output: [16ms] exec opts: reqid=16 type=2 procid=2 threaded=0 cover=0 comps=0 dedup=0 signal=0  sandbox=1/0/0/0 timeouts=500/150000/10 k
+proc 2: got output: ernel_64_bit=1
+proc 2: got output: spawned worker pid 2
+proc 2: got output: glob /sys/**/* resolved to 30 files
+proc 2: got execute reply
+handle completion: completed=0 output_size=14680064
+2026/07/23 13:55:18 executed programs: 0
+recv exec request 17: type=0 flags=0x0 env=0x23f13 exec=0x3 size=52
+proc 2: restarting subprocess, current state 2 attempts 0
+proc 2: subprocess exit status 9
+proc 2: handshaking to execute request 17
+recv corpus triaged
+proc 2: got output: spawned loop pid 12512
+proc 2: got output: netlink: add addr 172.30.0.3 dev nr2: No such device
+proc 2: got output: netlink: device nr2 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.30.1.3 dev rose2: No such device
+proc 2: got output: netlink: device rose2 up master NULL: No such device
+proc 2: got output: netlink: adding device ip6gretap0 type ip6gretap: Operation not supported
+proc 2: got output: netlink: adding device vcan0 type vcan: Operation not supported
+proc 2: got output: netlink: adding device bond0 type bond: Operation not supported
+proc 2: got output: netlink: adding device team0 type team: Operation not supported
+proc 2: got output: netlink: adding device dummy0 type dummy: Operation not supported
+proc 2: got output: netlink: adding device nicvf0 type nicvf: Operation not supported
+proc 2: got output: netlink: adding device nlmon0 type nlmon: Operation not supported
+proc 2: got output: netlink: adding device caif0 type caif: Operation not supported
+proc 2: got output: netlink: adding device batadv0 type batadv: Operation not supported
+proc 2: got output: netlink: adding device vxcan1 type vxcan: Operation not supported
+proc 2: got output: netlink: adding device (null) type veth: Operation not supported
+proc 2: got output: netlink: adding device wg0 type wireguard: Operation not supported
+proc 2: got output: netlink: adding device wg1 type wireguard: Operation not supported
+proc 2: got output: netlink: adding device wg2 type wireguard: Operation not supported
+proc 2: got output: netlink: adding device bridge_slave_0 type veth peer veth0_to_bridge: Operation not supported
+proc 2: got output: netlink: adding device bridge_slave_1 type veth peer veth1_to_bridge: Operation not supported
+proc 2: got output: netlink: device bridge_slave_0 up master bridge0: No such device
+proc 2: got output: netlink: device bridge_slave_1 up master bridge0: No such device
+proc 2: got output: netlink: adding device bond_slave_0 type veth peer veth0_to_bond: Operation not supported
+proc 2: got output: netlink: adding device bond_slave_1 type veth peer veth1_to_bond: Operation not supported
+proc 2: got output: netlink: device bond_slave_0 up master bond0: No such device
+proc 2: got output: netlink: device bond_slave_1 up master bond0: No such device
+proc 2: got output: netlink: adding device team_slave_0 type veth peer veth0_to_team: Operation not supported
+proc 2: got output: netlink: adding device team_slave_1 type veth peer veth1_to_team: Operation not supported
+proc 2: got output: netlink: device team_slave_0 up master team0: No such device
+proc 2: got output: netlink: device team_slave_1 up master team0: No such device
+proc 2: got output: netlink: adding device batadv_slave_0 type veth peer veth0_to_batadv: Operation not supported
+proc 2: got output: netlink: adding device batadv_slave_1 type veth peer veth1_to_batadv: Operation not supported
+proc 2: got output: netlink: device batadv_slave_0 up master batadv0: No such device
+proc 2: got output: netlink: device batadv_slave_1 up master batadv0: No such device
+proc 2: got output: netlink: adding device xfrm0 type xfrm if_id 1: Operation not supported
+proc 2: got output: netlink: device bridge_slave_0 up master NULL: No such device
+proc 2: got output: netlink: device bridge_slave_1 up master NULL: No such device
+proc 2: got output: netlink: adding device hsr_slave_0 type veth peer veth0_to_hsr: Operation not supported
+proc 2: got output: netlink: adding device hsr_slave_1 type veth peer veth1_to_hsr: Operation not supported
+proc 2: got output: netlink: adding device hsr0 type hsr slave1 hsr_slave_0 slave2 hsr_slave_1: Operation not supported
+proc 2: got output: netlink: device hsr_slave_0 up master NULL: No such device
+proc 2: got output: netlink: device hsr_slave_1 up master NULL: No such device
+proc 2: got output: netlink: adding device veth0_virt_wifi type veth peer veth1_virt_wifi: Operation not supported
+proc 2: got output: netlink: adding device virt_wifi0 type virt_wifi link veth1_virt_wifi: Operation not supported
+proc 2: got output: netlink: adding device veth0_vlan type veth peer veth1_vlan: Operation not supported
+proc 2: got output: netlink: add vlan0 type vlan link veth0_vlan id 0: Operation not supported
+proc 2: got output: netlink: add vlan1 type vlan link veth0_vlan id 1: Operation not supported
+proc 2: got output: netlink: add macvlan0 type macvlan link veth1_vlan mode 4: Operation not supported
+proc 2: got output: netlink: add macvlan1 type macvlan link veth1_vlan mode 4: Operation not supported
+proc 2: got output: netlink: add ipvlan0 type ipvlan link veth0_vlan mode 0: Operation not supported
+proc 2: got output: netlink: add ipvlan1 type ipvlan link veth0_vlan mode 2: Operation not supported
+proc 2: got output: netlink: adding device veth0_macvtap type veth peer veth1_macvtap: Operation not supported
+proc 2: got output: netlink: adding device macvtap0 type macvtap link veth0_macvtap: Operation not supported
+proc 2: got output: netlink: adding device macsec0 type macsec link veth1_macvtap: Operation not supported
+proc 2: got output: netlink: add geneve0 type geneve vni 0: Operation not supported
+proc 2: got output: netlink: add geneve1 type geneve vni 1: Operation not supported
+proc 2: got output: netlink: failed to get family id for wireguard: No such file or directory
+proc 2: got output: netlink: add addr 172.20.20.13 dev vcan0: No such device
+proc 2: got output: netlink: device vcan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.14 dev tunl0: No such device
+proc 2: got output: netlink: add addr fe80::0e dev tunl0: No such device
+proc 2: got output: netlink: device tunl0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.15 dev gre0: No such device
+proc 2: got output: netlink: add addr fe80::0f dev gre0: No such device
+proc 2: got output: netlink: device gre0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.16 dev gretap0: No such device
+proc 2: got output: netlink: add addr fe80::10 dev gretap0: No such device
+proc 2: got output: netlink: device gretap0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.17 dev ip_vti0: No such device
+proc 2: got output: netlink: add addr fe80::11 dev ip_vti0: No such device
+proc 2: got output: netlink: device ip_vti0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.18 dev ip6_vti0: No such device
+proc 2: got output: netlink: add addr fe80::12 dev ip6_vti0: No such device
+proc 2: got output: netlink: device ip6_vti0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.20 dev ip6gre0: No such device
+proc 2: got output: netlink: add addr fe80::14 dev ip6gre0: No such device
+proc 2: got output: netlink: device ip6gre0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.21 dev ip6gretap0: No such device
+proc 2: got output: netlink: add addr fe80::15 dev ip6gretap0: No such device
+proc 2: got output: netlink: device ip6gretap0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.22 dev erspan0: No such device
+proc 2: got output: netlink: add addr fe80::16 dev erspan0: No such device
+proc 2: got output: netlink: device erspan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.23 dev bond0: No such device
+proc 2: got output: netlink: add addr fe80::17 dev bond0: No such device
+proc 2: got output: netlink: device bond0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.24 dev veth0: No such device
+proc 2: got output: netlink: add addr fe80::18 dev veth0: No such device
+proc 2: got output: netlink: device veth0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.25 dev veth1: No such device
+proc 2: got output: netlink: add addr fe80::19 dev veth1: No such device
+proc 2: got output: netlink: device veth1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.26 dev team0: No such device
+proc 2: got output: netlink: add addr fe80::1a dev team0: No such device
+proc 2: got output: netlink: device team0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.27 dev veth0_to_bridge: No such device
+proc 2: got output: netlink: add addr fe80::1b dev veth0_to_bridge: No such device
+proc 2: got output: netlink: device veth0_to_bridge up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.28 dev veth1_to_bridge: No such device
+proc 2: got output: netlink: add addr fe80::1c dev veth1_to_bridge: No such device
+proc 2: got output: netlink: device veth1_to_bridge up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.29 dev veth0_to_bond: No such device
+proc 2: got output: netlink: add addr fe80::1d dev veth0_to_bond: No such device
+proc 2: got output: netlink: device veth0_to_bond up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.30 dev veth1_to_bond: No such device
+proc 2: got output: netlink: add addr fe80::1e dev veth1_to_bond: No such device
+proc 2: got output: netlink: device veth1_to_bond up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.31 dev veth0_to_team: No such device
+proc 2: got output: netlink: add addr fe80::1f dev veth0_to_team: No such device
+proc 2: got output: netlink: device veth0_to_team up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.32 dev veth1_to_team: No such device
+proc 2: got output: netlink: add addr fe80::20 dev veth1_to_team: No such device
+proc 2: got output: netlink: device veth1_to_team up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.33 dev veth0_to_hsr: No such device
+proc 2: got output: netlink: add addr fe80::21 dev veth0_to_hsr: No such device
+proc 2: got output: netlink: device veth0_to_hsr up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.34 dev veth1_to_hsr: No such device
+proc 2: got output: netlink: add addr fe80::22 dev veth1_to_hsr: No such device
+proc 2: got output: netlink: device veth1_to_hsr up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.35 dev hsr0: No such device
+proc 2: got output: netlink: add addr fe80::23 dev hsr0: No such device
+proc 2: got output: netlink: device hsr0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.36 dev dummy0: No such device
+proc 2: got output: netlink: add addr fe80::24 dev dummy0: No such device
+proc 2: got output: netlink: device dummy0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.37 dev nicvf0: No such device
+proc 2: got output: netlink: device nicvf0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.38 dev nlmon0: No such device
+proc 2: got output: netlink: add addr fe80::26 dev nlmon0: No such device
+proc 2: got output: netlink: device nlmon0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.39 dev vxcan0: No such device
+proc 2: got output: netlink: device vxcan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.40 dev vxcan1: No such device
+proc 2: got output: netlink: device vxcan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.41 dev caif0: No such device
+proc 2: got output: netlink: add addr fe80::29 dev caif0: No such device
+proc 2: got output: netlink: device caif0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.42 dev batadv0: No such device
+proc 2: got output: netlink: add addr fe80::2a dev batadv0: No such device
+proc 2: got output: netlink: device batadv0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.43 dev netdevsim2: No such device
+proc 2: got output: netlink: add addr fe80::2b dev netdevsim2: No such device
+proc 2: got output: netlink: device netdevsim2 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.44 dev xfrm0: No such device
+proc 2: got output: netlink: add addr fe80::2c dev xfrm0: No such device
+proc 2: got output: netlink: device xfrm0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.45 dev veth0_virt_wifi: No such device
+proc 2: got output: netlink: add addr fe80::2d dev veth0_virt_wifi: No such device
+proc 2: got output: netlink: device veth0_virt_wifi up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.46 dev veth1_virt_wifi: No such device
+proc 2: got output: netlink: add addr fe80::2e dev veth1_virt_wifi: No such device
+proc 2: got output: netlink: device veth1_virt_wifi up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.47 dev virt_wifi0: No such device
+proc 2: got output: netlink: add addr fe80::2f dev virt_wifi0: No such device
+proc 2: got output: netlink: device virt_wifi0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.48 dev veth0_vlan: No such device
+proc 2: got output: netlink: add addr fe80::30 dev veth0_vlan: No such device
+proc 2: got output: netlink: device veth0_vlan up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.49 dev veth1_vlan: No such device
+proc 2: got output: netlink: add addr fe80::31 dev veth1_vlan: No such device
+proc 2: got output: netlink: device veth1_vlan up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.50 dev vlan0: No such device
+proc 2: got output: netlink: add addr fe80::32 dev vlan0: No such device
+proc 2: got output: netlink: device vlan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.51 dev vlan1: No such device
+proc 2: got output: netlink: add addr fe80::33 dev vlan1: No such device
+proc 2: got output: netlink: device vlan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.52 dev macvlan0: No such device
+proc 2: got output: netlink: add addr fe80::34 dev macvlan0: No such device
+proc 2: got output: netlink: device macvlan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.53 dev macvlan1: No such device
+proc 2: got output: netlink: add addr fe80::35 dev macvlan1: No such device
+proc 2: got output: netlink: device macvlan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.54 dev ipvlan0: No such device
+proc 2: got output: netlink: add addr fe80::36 dev ipvlan0: No such device
+proc 2: got output: netlink: device ipvlan0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.55 dev ipvlan1: No such device
+proc 2: got output: netlink: add addr fe80::37 dev ipvlan1: No such device
+proc 2: got output: netlink: device ipvlan1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.56 dev veth0_macvtap: No such device
+proc 2: got output: netlink: add addr fe80::38 dev veth0_macvtap: No such device
+proc 2: got output: netlink: device veth0_macvtap up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.57 dev veth1_macvtap: No such device
+proc 2: got output: netlink: add addr fe80::39 dev veth1_macvtap: No such device
+proc 2: got output: netlink: device veth1_macvtap up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.58 dev macvtap0: No such device
+proc 2: got output: netlink: add addr fe80::3a dev macvtap0: No such device
+proc 2: got output: netlink: device macvtap0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.59 dev macsec0: No such device
+proc 2: got output: netlink: add addr fe80::3b dev macsec0: No such device
+proc 2: got output: netlink: device macsec0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.60 dev veth0_to_batadv: No such device
+proc 2: got output: netlink: add addr fe80::3c dev veth0_to_batadv: No such device
+proc 2: got output: netlink: device veth0_to_batadv up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.61 dev veth1_to_batadv: No such device
+proc 2: got output: netlink: add addr fe80::3d dev veth1_to_batadv: No such device
+proc 2: got output: netlink: device veth1_to_batadv up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.62 dev batadv_slave_0: No such device
+proc 2: got output: netlink: add addr fe80::3e dev batadv_slave_0: No such device
+proc 2: got output: netlink: device batadv_slave_0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.63 dev batadv_slave_1: No such device
+proc 2: got output: netlink: add addr fe80::3f dev batadv_slave_1: No such device
+proc 2: got output: netlink: device batadv_slave_1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.64 dev geneve0: No such device
+proc 2: got output: netlink: add addr fe80::40 dev geneve0: No such device
+proc 2: got output: netlink: device geneve0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.65 dev geneve1: No such device
+proc 2: got output: netlink: add addr fe80::41 dev geneve1: No such device
+proc 2: got output: netlink: device geneve1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.66 dev wg0: No such device
+proc 2: got output: netlink: add addr fe80::42 dev wg0: No such device
+proc 2: got output: netlink: device wg0 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.67 dev wg1: No such device
+proc 2: got output: netlink: add addr fe80::43 dev wg1: No such device
+proc 2: got output: netlink: device wg1 up master NULL: No such device
+proc 2: got output: netlink: add addr 172.20.20.68 dev wg2: No such device
+proc 2: got output: netlink: add addr fe80::44 dev wg2: No such device
+proc 2: got output: netlink: device wg2 up master NULL: No such device
+mount(cgroup2, MS_BIND) failed: 2
+mount(cgroup/cpu, MS_BIND) failed: 2
+mount(cgroup/net, MS_BIND) failed: 2
+pivot_root OK
+proc 2: got output: mkdir(/dev/gadgetfs) failed: 17
+proc 2: got output: mount of gadgetfs at /dev/gadgetfs failed: 19
+proc 2: got output: mkdir(/dev/binderfs) failed: 17
+proc 2: got output: mount of binder at /dev/binderfs failed: 19
+proc 2: got output: mount(fusectl) failed: 16
+proc 2: got output: iptable checkpoint filter/2: checkpoint entries=4 hooks=e size=632
+proc 2: got output: iptable checkpoint nat/2: checkpoint entries=5 hooks=1b size=784
+proc 2: got handshake reply
+proc 2: start executing request 17
+proc 2: got output: [2151ms] exec opts: reqid=17 type=0 procid=2 threaded=0 cover=1 comps=0 dedup=0 signal=1  sandbox=1/0/0/0 timeouts=500/15000/10 
+proc 2: got output: kernel_64_bit=1
+proc 2: got output: spawned worker pid 2
+#0 [2155ms] -> openat$kvm(0xffffffffffffff9c, 0x20000040, 0x2, 0x0)
+#0 [2155ms] <- openat$kvm=0x3 cover=1234
+#0 [2155ms] -> syz_kvm_run_fw_fault$arm64(0x3)
+proc 2: got output: #0 [2192ms] <- syz_kvm_run_fw_fault$arm64=0x0
+proc 2: got output:  cover=524287
+proc 2: got output: 
+proc 2: got execute reply
+handle completion: completed=2 output_size=6291456
+2026/07/23 13:55:20 call #0: signal 735, coverage 1234
+2026/07/23 13:55:20 call #1: signal 5841, coverage 524287
