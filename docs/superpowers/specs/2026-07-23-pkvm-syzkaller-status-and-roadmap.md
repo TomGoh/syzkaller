@@ -2,6 +2,22 @@
 
 > 状态快照：2026-07-23。本文不是对既有设计或实现记录的替换，而是把已经验证的 Host 侧结果、Stage-2 真机 smoke，以及仍未完成的工作放在同一张图里。本文所说的“已验证”以 `pkvm-lifecycle-fuzzing@b04ed35e0` 的证据和 `/home/jose/common-stage2mvp` 中与该证据哈希一致的构建为准。
 
+> **⚠️ 2026-07-24 更新：§6.1 与 §7「第一步」提出的度量已经做完，本文若干结论被实测推翻。**
+> 记录见 `2026-07-24-pkvm-stage2-step1-feedback-measurement.md`，数据见 `evidence/step1-measurement-2026-07-24/`。
+> **下列具体表述现已过时，保留仅作为「2026-07-23 当时的认知」，不要再据以决策：**
+>
+> | 本文表述 | 位置 | 实测结论 |
+> |---|---|---|
+> | 「87 个 EL2 PC、其中 77 个解析到 Rust 源码」 | §4.4、§5 | **是串口洪水挤出来的假象。真值 132 个唯一 EL2 PC**；被挤掉的 45 个恰是 donation 状态机 |
+> | 「`_prog1.1` 恰有 524287 项 …… task KCOV buffer 也已经构成实际瓶颈」 | §6.1 | **推翻。** 该 coverfile 84% 是 pl011 串口驱动自旋，由 bridge 自己 4 行 overflow printk 触发。去掉 hot-path printk 后同一 smoke 只用掉 area 的 49%，**KCOV 侧丢失恒为 0** |
+> | 「双层容量截断」是第一优先级 | §6.1 | **只剩上游一层。** 下游那层是测量仪器假象；上游 ring 实测丢失 5.02% |
+> | 「EL1 drain 去重仍是很有价值的后续减压阀」及其预分配 / per-`KVM_RUN` session 设计 | §6.1、§7 第二步(3) | **建议放弃。** `kcov_requested == kcov_accepted`，没有需要缓解的 KCOV 压力；这省掉第二步最复杂的一块 |
+> | `PKVM_COV_RING_PCS 511`、「一页 8 字节 header + 511 个 PC」 | §4.2、§6.1 | **现为 509**：header 扩到 24 字节以容纳每次 #23 的 producer 计数（1B） |
+> | 「`kcov_add_pcs()` …… 当前不报告丢失计数」 | §4.4 | **已实现**：返回实际写入条数或 `-ENODEV`；全部计数经 `kvm/pkvm_cov/stats` 导出 |
+> | 1A+ 建议「增至 2M，必要时 4M」 | §7 1A+ | **实际做到 1M 即止**：executor 输出共享内存 `ConstMaxOutputSize = 14 MiB` 才是先到的天花板，且翻倍 area **没有换来任何新的 unique EL2 PC** |
+>
+> §7 的整体次序（先度量、不先开 campaign）是对的，并已按此执行完毕。
+
 ## 1. 结论
 
 项目已经跨过了两个重要里程碑，但还不能称为“可长期运行的 EL2 coverage-guided campaign”。

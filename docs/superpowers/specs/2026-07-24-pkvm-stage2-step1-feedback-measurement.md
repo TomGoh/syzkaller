@@ -23,6 +23,8 @@
 
 一句话：**先前判断的「两层容量截断」里，下游那一层是测量仪器造成的假象；上游 ring 的截断是真的，但只有 5%，而且已经量化到可以直接定容量。**
 
+**适用范围（贯穿全文）：以上所有数字都来自同一个固定输入 `syz_kvm_run_fw_fault`（`no_generate`）、同一条 #23 边界、单 CPU 手工串行。** 78 次 #23 的形状由 pvmfw 启动决定。它们是这条路径的可信实测值，不是 pKVM 的普遍结论；换输入面（3B）或换 boundary（#21 / #34-35 / #36-38）之后必须重测。
+
 ---
 
 ## 2. 方法与三个混杂因素
@@ -118,7 +120,14 @@ HypSpinlock::lock / assert_lock_held / psci_mem_protect / ...
 
 `kCoverSize` 512K→1M。**同时必须改 `kMaxOutputCoverage`（6 MiB → 13 MiB）**：输出共享内存才是先到的天花板，`ConstMaxOutputSize = 14 MiB`（`pkg/flatrpc/flatrpc.fbs`）是硬上限，`write_cover()` 没有边界检查。补丁：`evidence/.../1aplus-executor-kcovsize.patch`。
 
-构建可复现性顺带得到验证：重编出的 `syz-execprog` sha256 与冻结件**完全一致**（`5fa8ccc6…`），因此 `kCoverSize` 是唯一变量。
+**实验 executor 的身份（可复现）：**
+
+```
+syz-executor (kCoverSize = 1<<20)  sha256 0946370918ed3bdd7dd7cdb30ed73dfae075b3b97b766542056621d88b31af8b
+syz-execprog (未改动)              sha256 5fa8ccc625d4944790ab40d54d4ff0bd765a1871957bc204441c84053f9c2324
+```
+
+两个都验证过 **bit-for-bit 可复现**：在同一棵树上打上 `1aplus-executor-kcovsize.patch` 重编，`syz-executor` 得到同一个 sha256；不打补丁重编，`syz-execprog` 与冻结件 `5fa8ccc6…` 完全一致（因此 `kCoverSize` 确实是唯一变量）。工具链 gcc 15.2.0 / GNU ld 2.46、Go 1.26.5。二进制本身没有入库（48 MB），但补丁在库里、且已证明能重建出同一个哈希；板上副本为 `/root/stage2-1a/syz-executor-1m`。运行时旁证：该 executor 的 KCOV 上限确实变成 `1,048,575`。
 
 | arm | total(avg) | EL2 raw | EL2 uniq | pl011 raw |
 |---|---|---|---|---|
@@ -176,12 +185,14 @@ struct pkvm_cov_ring {
 | `kcov_requested` / `kcov_accepted` | 相等，**`LOST_IN_KCOV_AREA` = 0** |
 | `skip_not_owner` / `skip_no_kcov` | **0 / 0** |
 
-**单次 #23 的命中分布（log2 桶）：**
+**单次 #23 的命中分布（log2 桶）。** 12 次运行分成两种形态，**必须两种都列**——只引用其中一种会漏掉最上面那个桶：
 
 ```
-hits_256_511    74      <- 78 次里 74 次装得下
-hits_512_1023    4      <- 只有这 4 次溢出
+6 / 12 次运行：   hits_256_511 74    hits_512_1023 4
+6 / 12 次运行：   hits_256_511 74    hits_512_1023 3    hits_1024_2047 1
 ```
+
+也就是说：**74 次稳定落在 [256,511]；溢出的永远是另外 4 次，但其中最大的那一次会在 1023 上下摆动**（`hits_max` 实测区间 966–1088，12 次里有 6 次 > 1023）。这个「高水位正好骑在 1024 边界上」的事实，是下面反对 2 页 ring 的直接依据。
 
 ### 5.3 1A 两个修复的验证
 
@@ -212,7 +223,13 @@ hits_512_1023    4      <- 只有这 4 次溢出
    6,285  trace.rs    /  合计 15,383 = 58.5%
    ```
 
-   `__hyp_ftrace_trace` / `hyp_ftrace_func_push` / `trace_func` / `trace_func_ret` 这些是 hyp 的追踪基础设施，不是被 fuzz 的 pKVM 逻辑。把它们排除出 SanCov 插桩（EL2 侧对应 `KCOV_INSTRUMENT_pkvm_cov.o := n` 的做法）应当能让每个 ring 槽位承载的有效 pKVM 覆盖率翻倍以上。
+   `__hyp_ftrace_trace` / `hyp_ftrace_func_push` / `trace_func` / `trace_func_ret` 这些是 hyp 的追踪基础设施，不是被 fuzz 的 pKVM 逻辑。把它们排除出 SanCov 插桩应当能让每个 ring 槽位承载的有效 pKVM 覆盖率翻倍以上。
+
+   **但排除机制本身尚未验证，不能假定它像 EL1 侧那样是一行 Makefile。** EL1 侧能用 `KCOV_INSTRUMENT_pkvm_cov.o := n` 是因为 kbuild 按 .o 逐个决定编译选项；Rust hyp 是**一个 crate 一次编译**，SanCov 是通过 `-C passes=sancov-module -C llvm-args=-sanitizer-coverage-*` 全 crate 打开的，没有对应的 per-module 开关。两点具体风险：
+   - clang 的 `-fsanitize-coverage-ignorelist=` 走的是 CodeGen 构造 pass 时传入的 `SpecialCaseList`，**不是 `-mllvm` 选项**，因此很可能根本无法通过 `-C llvm-args` 到达；
+   - `#[coverage(off)]` 属于 `-C instrument-coverage`（LLVM instrprof）体系，与 SanCov 是**两套不同机制**，几乎可以肯定不适用。
+
+   所以这一项要按**可行性实验**做，并且要先试最便宜的路径：查 hyp ftrace/trace 是否本来就有 Kconfig 可以在 fuzz build 里关掉；若没有，再考虑把这两个模块拆成独立编译单元、不带 SanCov 标志。在拿到 `nvhe_rust.o` 的 call-site 增减实测之前，不把任何一种写成既定方案。
 
    **外推的注意事项：** 58.5% 这个比例是在单次运行（r1-on-quiet-kpoff）**已投递**的 26,311 个 PC 上测的，而 high-water 说的是 `hits`（28,178，含被丢掉的 1,416）。若假设被丢掉的那部分成分相同，单次 #23 的 high-water 会从 1,088 降到约 460——那样现有 509 的 ring 就不再溢出。但这个假设本身未经验证：溢出发生在一次 #23 的尾部，尾部的代码成分未必与整体相同。所以建议的顺序是**先排除 EL2 自插桩、重测 `hits_max`，再据实测值决定 ring 要不要扩到 4 页**，而不是拿这个外推值直接定容量。
 
