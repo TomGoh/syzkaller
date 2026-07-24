@@ -276,6 +276,13 @@ func (cfg *Config) initTimeouts() {
 		// but a smaller value should be enough to finish at least some syscalls.
 		// Note: the name check is a hack.
 		slowdown = 10
+	case cfg.PkvmSerial:
+		// The pKVM Stage-2 #23 path does a REAL KVM_RUN (pvmfw boot: tens of ms plus many
+		// stage-2 faults); at slowdown 1 the per-call timeout kills the run before its clean
+		// exit, so the executor discards the coverage even though the EL2 faults already
+		// happened kernel-side (drains climb but manager coverage stays 0). Match the manual
+		// smoke's -slowdown=10 so the run completes and its coverage is read out.
+		slowdown = 10
 	}
 	// Note: we could also consider heavy debug tools (KASAN/KMSAN/KCSAN/KMEMLEAK) if necessary.
 	cfg.Timeouts = cfg.SysTarget.Timeouts(slowdown)
