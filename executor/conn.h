@@ -84,13 +84,21 @@ private:
 				recv += n;
 				continue;
 			}
+			// read() == 0 is EOF: the PEER closed the connection. A 0-return does NOT
+			// set errno, so the EINTR/EAGAIN checks below and any errno printed for this
+			// case would be a stale value from an earlier syscall -- report EOF distinctly
+			// and never attribute an errno to it. This is what makes an RPC teardown log
+			// tell "peer closed" apart from a real read error (n < 0).
+			if (n == 0)
+				failmsg("rpc peer closed connection (EOF)", "fd=%d want=%zu recv=%zu", fd_, size, recv);
 			if (errno == EINTR)
 				continue;
 			if (errno == EAGAIN) {
 				sleep_ms(1);
 				continue;
 			}
-			failmsg("failed to recv rpc", "fd=%d want=%zu recv=%zu n=%zd", fd_, size, recv, n);
+			// n < 0: a genuine read error; errno is meaningful here.
+			failmsg("failed to recv rpc", "fd=%d want=%zu recv=%zu n=%zd errno=%d", fd_, size, recv, n, errno);
 		}
 	}
 
