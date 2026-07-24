@@ -216,7 +216,7 @@ func linuxSyzKvmSupported(ctx *checkContext, call *prog.Syscall) string {
 		"syz_kvm_memslot_reject_delete$arm64", "syz_kvm_memslot_reject_move$arm64",
 		"syz_kvm_memslot_reject_flags$arm64",
 		"syz_kvm_pvm_info$arm64", "syz_kvm_set_fw_ipa$arm64", "syz_kvm_set_fw_ipa_busy$arm64",
-		"syz_kvm_run_fw_fault$arm64",
+		"syz_kvm_run_fw_fault$arm64", "syz_kvm_run_fw_fault_gen$arm64",
 		"syz_kvm_assert_syzos_uexit$arm64", "syz_kvm_assert_syzos_kvm_exit$arm64",
 		"syz_kvm_assert_reg%arm64":
 		if ctx.target.Arch == targets.ARM64 {
