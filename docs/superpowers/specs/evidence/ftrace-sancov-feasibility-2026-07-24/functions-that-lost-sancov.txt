@@ -1,0 +1,10 @@
+nvhe_rust::ftrace::hyp_ftrace_patch::he3f552c3eb865629
+nvhe_rust::ftrace::hyp_ftrace_setup::hfa4e266fbcdc8710
+nvhe_rust::ftrace::__get_disable_ins::h7ed35961ad724811
+nvhe_rust::ftrace::__get_offset_idx_ins::ha57066f5f5e20028
+nvhe_rust::ftrace::hyp_ftrace_ret_flush::h33601618d1d10ab9
+nvhe_rust::ftrace::__get_enable_disable_ins_early::ha94748178af3df53
+nvhe_rust::ftrace::__get_enable_disable_ins_from_funcs_pg::h3edaf17c707c7be3
+nvhe_rust::hyp_main::<impl nvhe_rust::bindings::bindings_raw::kvm_cpu_context>::handle___pkvm_disable_ftrace::h67cf8eaa1e56ab46
+__hyp_ftrace_ret_trace
+__hyp_ftrace_trace

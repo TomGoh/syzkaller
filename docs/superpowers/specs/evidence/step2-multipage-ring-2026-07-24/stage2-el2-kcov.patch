@@ -516,10 +516,10 @@ index 55c8ae82c3dc..08f5b59d430f 100644
  			ret = 0;
 diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
 new file mode 100644
-index 000000000000..77428a179659
+index 000000000000..4694af6eba70
 --- /dev/null
 +++ b/arch/arm64/kvm/pkvm_cov.c
-@@ -0,0 +1,676 @@
+@@ -0,0 +1,678 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Stage-2 EL2 coverage — host (EL1) side.
@@ -529,18 +529,20 @@ index 000000000000..77428a179659
 + *
 + *   - pkvm_cov_runtime_to_link(): convert a runtime hyp PC to its vmlinux
 + *     __kvm_nvhe_ *link* address, so syzkaller/DWARF can symbolize it.
-+ *   - pkvm_cov_enable()/disable(): allocate + kvm_share_hyp() the ring page and
-+ *     register/unregister it with EL2 on the owner CPU (debugfs-triggered).
++ *   - pkvm_cov_enable()/disable(): allocate + kvm_share_hyp() the ring pages and
++ *     register/unregister them with EL2 on the owner CPU (debugfs-triggered).
 + *   - pkvm_cov_begin()/end(): the pKVM #23 (pkvm_host_map_guest) drain — arm the
 + *     ring, let EL2 fill it during the map, then convert + hand the PCs to
 + *     kcov_add_pcs() in the faulting task's KCOV area.
 + *
-+ * MVP scope: ONE page, ONE CPU. Coverage is attributed by `current` (the task
-+ * whose KVM_RUN took the #23 fault), so the drain lands in exactly that task's
-+ * KCOV area. Because the ring is single-CPU, KVM_RUNs on any other CPU collect
-+ * nothing (owner-CPU guard below) — so this mode REQUIRES strict serialization
-+ * (procs=1, no Threaded, no Collide) and the executor pinned to the owner CPU.
-+ * Per-online-CPU rings (to allow controlled concurrency) are a later step.
++ * Scope: SINGLE CPU, a configurable physically-contiguous MULTI-PAGE ring
++ * (nr_pages via debugfs, default 4). Coverage is attributed by `current` (the
++ * task whose KVM_RUN took the #23 fault), so the drain lands in exactly that
++ * task's KCOV area. Because the ring is single-CPU, KVM_RUNs on any other CPU
++ * collect nothing (owner-CPU guard below) — so this mode REQUIRES strict
++ * serialization (procs=1, no Threaded, no Collide) and the executor pinned to
++ * the owner CPU. Per-online-CPU rings (to allow controlled concurrency) are a
++ * later step.
 + */
 +#include <linux/types.h>
 +#include <linux/kcov.h>

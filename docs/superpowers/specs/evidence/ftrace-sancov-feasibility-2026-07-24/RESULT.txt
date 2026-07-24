@@ -1,0 +1,48 @@
+ftrace/trace SanCov exclusion — board-free feasibility (2026-07-24)
+==================================================================
+Mechanism tested: CONFIG_PROTECTED_NVHE_FTRACE  (Kconfig, upstream default n;
+the fuzz config had it =y).  Isolated worktree /home/jose/common-ftrace-expt,
+base da966ce9a047 + stage2-el2-kcov.patch + stage2.config, ONLY that Kconfig
+toggled between two builds; no board, no deploy, no change to the main prototype.
+
+Total static __sanitizer_cov_trace_pc call sites in nvhe_rust.o:
+  CONFIG_PROTECTED_NVHE_FTRACE=y : 7311
+  CONFIG_PROTECTED_NVHE_FTRACE=n : 7167   (-144)
+
+Functions that lost SanCov instrumentation ENTIRELY (10) — all ftrace/trace:
+  nvhe_rust::ftrace::hyp_ftrace_patch::he3f552c3eb865629
+  nvhe_rust::ftrace::hyp_ftrace_setup::hfa4e266fbcdc8710
+  nvhe_rust::ftrace::__get_disable_ins::h7ed35961ad724811
+  nvhe_rust::ftrace::__get_offset_idx_ins::ha57066f5f5e20028
+  nvhe_rust::ftrace::hyp_ftrace_ret_flush::h33601618d1d10ab9
+  nvhe_rust::ftrace::__get_enable_disable_ins_early::ha94748178af3df53
+  nvhe_rust::ftrace::__get_enable_disable_ins_from_funcs_pg::h3edaf17c707c7be3
+  nvhe_rust::hyp_main::<impl nvhe_rust::bindings::bindings_raw::kvm_cpu_context>::handle___pkvm_disable_ftrace::h67cf8eaa1e56ab46
+  __hyp_ftrace_ret_trace
+  __hyp_ftrace_trace
+
+NON-ftrace functions that lost instrumentation: NONE.
+Other functions: only minor codegen-driven per-block shuffles (e.g.
+__pkvm_init_finalise, __host_stage2_set_owner_locked) from removing the
+-fpatchable-function-entry hooks; none stripped, all still instrumented.
+
+Symbols removed with =n: __kvm_nvhe___hyp_ftrace_trace, __kvm_nvhe___hyp_ftrace_ret_trace
+  (1 -> 0 each).  trace_func / trace_func_ret stubbed to empty bodies
+  (#[cfg(not(CONFIG_PROTECTED_NVHE_FTRACE))], trace.rs:2100-2106).
+  These four were 4 of the top-5 runtime-noise functions in Step 1.
+
+Closed loop intact under =n:
+  callback __kvm_nvhe___sanitizer_cov_trace_pc links (1 symbol)
+  DWARF: __pkvm_init_vm -> pkvm.rs:4014 ; __pkvm_host_share_hyp -> permissions.rs:251
+         (identical to =y build)
+
+Fallback mechanisms (only needed if no Kconfig existed) are MOOT:
+  no -C llvm-args ignorelist gymnastics, no #[coverage(off)] (SanCov != instrprof).
+
+Board-free caveat: the RUNTIME magnitude of the reduction (Step-1's 58.5% of
+delivered EL2 PCs) cannot be measured without N90.  What is proven: the exact
+functions that dominated Step-1 runtime are removed/stubbed, so the mechanism is
+sound; only the magnitude is pending one N90 confirmation run.
+
+Build IDs: ftrace=y vmlinux f71d8ff2c6813cf0... ; ftrace=n Image built in-worktree (not deployed).
+Toolchain: rustc nightly-2025-05-05, gcc 15.2.0, ld 2.46.
