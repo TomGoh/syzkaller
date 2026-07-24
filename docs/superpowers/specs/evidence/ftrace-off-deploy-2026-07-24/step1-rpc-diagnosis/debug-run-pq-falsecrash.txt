@@ -1,0 +1,18 @@
+2026/07/24 17:13:25 serving rpc on tcp://36763
+2026/07/24 17:13:37 result: 
+SYZFAIL: rpc peer closed connection (EOF)
+2026/07/24 17:14:07 VM 0: crash: WARNING: connection is not using a post-quantum key exchange algorithm.
+2026/07/24 17:14:07 VM 0: crash(tail0): WARNING: connection is not using a post-quantum key exchange algorithm.
+2026/07/24 17:14:07 VM 0: crash(tail1): SYZFAIL: rpc peer closed connection (EOF)
+2026/07/24 17:14:19 result: 
+SYZFAIL: rpc peer closed connection (EOF)
+2026/07/24 17:14:49 VM 0: crash: WARNING: connection is not using a post-quantum key exchange algorithm.
+2026/07/24 17:14:49 VM 0: crash(tail0): WARNING: connection is not using a post-quantum key exchange algorithm.
+2026/07/24 17:14:49 VM 0: crash(tail1): SYZFAIL: rpc peer closed connection (EOF)
+2026/07/24 17:15:01 result: 
+SYZFAIL: rpc peer closed connection (EOF)
+2026/07/24 17:15:31 VM 0: crash: WARNING: connection is not using a post-quantum key exchange algorithm.
+2026/07/24 17:15:31 VM 0: crash(tail0): WARNING: connection is not using a post-quantum key exchange algorithm.
+2026/07/24 17:15:31 VM 0: crash(tail1): SYZFAIL: rpc peer closed connection (EOF)
+2026/07/24 17:15:43 result: 
+SYZFAIL: rpc peer closed connection (EOF)

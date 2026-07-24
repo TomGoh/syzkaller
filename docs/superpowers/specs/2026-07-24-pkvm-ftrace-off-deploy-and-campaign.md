@@ -81,7 +81,15 @@ config `workdir-ftraceoff/pkvm-campaign.cfg`：`type: isolated`、`pkvm_serial: 
 
 **剩余一项（follow-up）：** manager 的**语料/覆盖率没有增长**（corpus=0/coverage=0）——executor 到 manager 的 **RPC 链路在运行中被关闭**，已收集的覆盖率没能回传。
 
-**措辞更正（colleague，已对 `executor/conn.h:79-95` 核实）：** 日志 `failed to recv rpc … fd=3 want=4 recv=0 n=0 (errno 9)` 里，`read()` 返回 `n=0` 是 **EOF（对端关闭连接）**；`n=0` 不设置 `errno`，所以随后的 `errno 9: Bad file descriptor` 是**上一次系统调用留下的旧值**，不是原因。因此**只能说 RPC 链路被对端关闭，尚不知道是哪一端先关（manager kill/restart、executor 退出、SSH forward、还是超时）**。我先前记的「flaky SSH-forward errno-9 Bad FD」是过度归因，撤回。**这不是 Stage-2 机制问题**——机制已由 syz-execprog 手工运行 + 内核 drains 证明（手工跑 gen 得 coverage 6124/signal 8507、drains 78）；是 manager feedback transport 的诊断问题（下一步先定位关闭发起方，不要直接改 SSH）。
+**措辞更正（colleague，已对 `executor/conn.h:79-95` 核实）：** 日志 `failed to recv rpc … n=0 (errno 9)` 里 `read()` 返回 `n=0` 是 **EOF（对端关闭）**；`n=0` 不设置 `errno`，所以 `errno 9: Bad file descriptor` 是旧值、不是原因。我先前记的「flaky SSH-forward errno-9 Bad FD」是过度归因，撤回。
+
+**Step 1 诊断已做（N90，evidence `evidence/ftrace-off-deploy-2026-07-24/step1-rpc-diagnosis/`），把「谁先关」定位清楚了：**
+1. **`-debug` 下的 RPC EOF 是 SSH PQ banner 的假崩溃。** manager 日志：`VM 0: crash: WARNING: connection is not using a post-quantum key exchange algorithm` 紧接 `crash(tail1): SYZFAIL: rpc peer closed connection (EOF)`——console reader 的 ssh 打印 OpenSSH「post-quantum」安全横幅，crash 检测器把它当内核崩溃，manager 拆掉 VM，于是 runner 的 RPC 被关，executor 看到 peer-close EOF。新插桩确认是 `n==0` peer-close，不是 read error。
+2. **`LogLevel=ERROR` 在这台机的 OpenSSH 上根本压不住这个 banner**（`ssh -o LogLevel=ERROR host true` 仍打印）。所以 `vm/vmimpl/util.go` 的 `!debug -> LogLevel=ERROR` 缓解**无效**，banner 在 debug 与 non-debug 都会泄漏；只是 `-debug`（`-v`）下才被判成 crash。真正的修法是在 crash 检测里**过滤** `post-quantum`/`store now, decrypt later` 行，或协商 PQ KEX，而不是靠 LogLevel。
+3. **non-debug 下没有崩溃，且 fast 程序的覆盖率收集正常。** 同一 slowdown=10 二进制的 A/B：fast-only（openat\$kvm + close）→ corpus=27、coverage=1406、43 exec/s；**gen enabled → corpus=0、coverage=0、~0.4 exec/s、candidates=0**（manager 看不到新 signal），但内核 drains=339、el2_hits~60k、LOST_IN_RING=0、skip_not_owner=0。**问题专属于「开启 gen」，不是二进制坏了。**
+4. **gen 的 signal ~98% 稳定，非确定性不是主因**（同一 gen 程序 3 次：signal 8339/8249/8238，coverage 6014/5968/5965）。
+
+**真正的开放问题（比「flaky RPC」精确得多）：** 为什么 manager 在 campaign 里对 gen 程序**登记不到任何新 signal / candidate**，而手工 syz-execprog 跑同一程序能得 coverage ~6000、内核 drain 正常？这是 manager 侧 per-exec 结果处理的问题（可能：慢速 gen 与 triage/timeout/hang 检测相互作用把结果丢弃；或 exec 速率崩到 0.4/s 饿死一切）。**下一步先在 crash 检测里过滤 PQ banner**（解决 Finding 2），才能用干净的 `-debug` campaign 去 trace manager 为什么丢 gen 的 signal。**这不是 Stage-2 机制问题**——机制已由手工运行 + 内核 drains 证明。
 
 另外 **3B 的非默认 `fw_ipa`（如 0x7fd00000）会干净失败、不到达 #23**（drains=0，非 hang）——「调用被 fuzz 了」≠「EL2 donation/map 被 fuzz 了」；多数 gen 变异没打到 EL2。**收窄/修正 fw_ipa 使多数生成程序高 reach** 是并行 follow-up（Step 2 的 reachability matrix 量化后再定）。
 

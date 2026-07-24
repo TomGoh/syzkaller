@@ -1,0 +1,47 @@
+Step 1 — RPC-EOF diagnosis (N90, 2026-07-24) — REFINED, supersedes "flaky RPC"
+=============================================================================
+Goal: find WHO closes the executor<->manager RPC, why the campaign corpus stays 0.
+
+INSTRUMENTATION (d0fc91cc1): executor conn.h now distinguishes n==0 (EOF) from n<0.
+
+FINDING 1 — the RPC "EOF" under -debug is a FALSE CRASH from the SSH PQ banner.
+  A -debug manager run logged:
+    VM 0: crash: WARNING: connection is not using a post-quantum key exchange algorithm.
+    VM 0: crash(tail1): SYZFAIL: rpc peer closed connection (EOF)
+  i.e. the console reader's ssh emits the OpenSSH "post-quantum" security banner,
+  the crash detector misreads it as a kernel crash, the manager tears down the VM,
+  and THAT closes the runner's RPC -> the executor sees a peer-closed EOF. The new
+  instrumentation confirms it is a peer close (n==0), not a read error.
+
+FINDING 2 — LogLevel=ERROR does NOT suppress that banner on this OpenSSH.
+  Tested directly: `ssh -o LogLevel=ERROR host true` STILL prints the banner (and
+  so does plain `ssh`, and `ssh -v`). So vm/vmimpl/util.go's "!debug ->
+  LogLevel=ERROR" mitigation is INEFFECTIVE against this banner on this client --
+  the banner leaks into the console stream in BOTH debug and non-debug. It only
+  gets FLAGGED as a crash under -debug (the -v output tips the report parser). The
+  real fix must FILTER the "post-quantum"/"store now, decrypt later" lines in the
+  crash detector, or negotiate a PQ KEX, not rely on LogLevel.
+
+FINDING 3 — in NON-debug there is no crash, and fast-program coverage WORKS.
+  A/B on the SAME slowdown=10 binaries:
+    fast-only (openat$kvm + close, no gen):  corpus=27, coverage=1406, 43 exec/s.
+    gen enabled (openat$kvm + gen + close):  corpus=0,  coverage=0,   ~0.4 exec/s,
+                                             candidates=0 (no new signal seen),
+                                             but kernel drains=339, el2_hits~60k,
+                                             LOST_IN_RING=0, skip_not_owner=0.
+  So the binaries collect coverage fine; the problem is SPECIFIC to enabling gen.
+
+FINDING 4 — gen's signal is ~98% stable, so non-determinism is NOT the cause.
+  Same gen program run 3x (syz-execprog): signal 8339 / 8249 / 8238, coverage
+  6014 / 5968 / 5965 (errno 0 each). ~1-2% variation -> triage would keep the
+  stable ~98%. Yet the manager sees candidates=0 for gen in the campaign.
+
+OPEN QUESTION (the real one, sharper than "flaky RPC"):
+  Why does the manager register NO new signal / NO candidate from gen programs in
+  the campaign, when a manual syz-execprog run of the same program reports coverage
+  ~6000 and the executor+kernel show the EL2 drain working? This is a manager-side
+  per-exec result-processing question (possibly: the slow gen call interacts with
+  triage/timeout/hang-detection so its result is dropped; or the exec-rate collapse
+  starves everything). It needs a CLEAN -debug run first -- which is blocked by
+  Finding 2, so the immediate next code step is to filter the PQ banner in crash
+  detection so a -debug campaign no longer false-crashes.
