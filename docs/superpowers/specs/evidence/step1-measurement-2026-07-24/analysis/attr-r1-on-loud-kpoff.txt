@@ -1,0 +1,30 @@
+=== r1-on-loud-kpoff ===
+raw entries: 524287   unique PCs: 4642
+
+--- by source file (top 12, raw entries) ---
+    219730      12   41.9%  /home/jose/common/drivers/tty/serial/amba-pl011.c
+    146332       7   27.9%  /home/jose/common/./include/asm-generic/io.h
+     72907       2   13.9%  /home/jose/common/./arch/arm64/include/asm/vdso/processor.h
+     35343      17    6.7%  /home/jose/common/./arch/arm64/include/asm/stacktrace/common.h
+      7193      21    1.4%  /home/jose/common-stage2mvp/arch/arm64/kvm/pkvm_cov.c
+      5017     467    1.0%  /home/jose/common/lib/maple_tree.c
+      4167     139    0.8%  /home/jose/common/lib/vsprintf.c
+      3481      70    0.7%  /home/jose/common/kernel/auditsc.c
+      2095      60    0.4%  /home/jose/common-stage2mvp/arch/arm64/kvm/sys_regs.c
+      1935      45    0.4%  /home/jose/common/fs/namei.c
+      1743      99    0.3%  /home/jose/common/fs/dcache.c
+      1128       4    0.2%  /home/jose/common/./arch/arm64/include/asm/stacktrace.h
+
+--- by function (top 12, raw entries) ---
+    146154       4   27.9%  readl_relaxed
+    146149       2   27.9%  pl011_read
+     72907       2   13.9%  cpu_relax
+     53839       6   10.3%  pl011_console_write
+     19576       3    3.7%  pl011_console_putchar
+     19350       8    3.7%  stackinfo_on_stack
+      9534       2    1.8%  unwind_next_frame_record
+      5613       4    1.1%  unwind_consume_stack
+      4088       4    0.8%  pkvm_cov_runtime_to_link
+      3095      12    0.6%  pkvm_cov_end
+      2447      14    0.5%  __audit_inode_child
+      1860      40    0.4%  format_decode

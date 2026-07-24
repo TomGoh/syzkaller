@@ -1,0 +1,30 @@
+=== r1-on-quiet-kpon ===
+raw entries: 476542   unique PCs: 6588
+
+--- by source file (top 12, raw entries) ---
+    183717      22   38.6%  /home/jose/common-stage2mvp/arch/arm64/kvm/pkvm_cov.c
+     96670      17   20.3%  /home/jose/common/./arch/arm64/include/asm/stacktrace/common.h
+     31288     844    6.6%  /home/jose/common/lib/maple_tree.c
+      9769      91    2.0%  /home/jose/common/kernel/trace/ring_buffer.c
+      9036       3    1.9%  /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/rust/src/ftrace.rs
+      6874     103    1.4%  /home/jose/common/mm/gup.c
+      6246       5    1.3%  /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/rust/src/trace.rs
+      6072     119    1.3%  /home/jose/common/lib/vsprintf.c
+      4074      36    0.9%  /home/jose/common/kernel/kprobes.c
+      4059     159    0.9%  /home/jose/common/./arch/arm64/include/asm/atomic_lse.h
+      3620      70    0.8%  /home/jose/common/kernel/auditsc.c
+      3089     119    0.6%  /home/jose/common-stage2mvp/arch/arm64/kvm/arch_timer.c
+
+--- by function (top 12, raw entries) ---
+    104252       4   21.9%  pkvm_cov_runtime_to_link
+     79075      13   16.6%  pkvm_cov_end
+     53179       8   11.2%  stackinfo_on_stack
+     26246       2    5.5%  unwind_next_frame_record
+     15184       4    3.2%  unwind_consume_stack
+      4158      19    0.9%  mtree_range_walk
+      3017       1    0.6%  __kvm_nvhe___hyp_ftrace_trace
+      3015       1    0.6%  _ZN9nvhe_rust6ftrace20hyp_ftrace_func_push17hcc2d43c434649fd8E
+      3015       1    0.6%  _ZN9nvhe_rust5trace10trace_func17ha5fc641f5423be93E
+      3004       1    0.6%  __kvm_nvhe___hyp_ftrace_ret_trace
+      3004       1    0.6%  _ZN9nvhe_rust5trace14trace_func_ret17h73b3787464ba358cE
+      2835      35    0.6%  format_decode

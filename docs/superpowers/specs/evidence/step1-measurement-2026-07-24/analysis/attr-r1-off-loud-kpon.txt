@@ -1,0 +1,30 @@
+=== r1-off-loud-kpon ===
+raw entries: 263276   unique PCs: 6203
+
+--- by source file (top 12, raw entries) ---
+     96390      17   36.6%  /home/jose/common/./arch/arm64/include/asm/stacktrace/common.h
+     31288     844   11.9%  /home/jose/common/lib/maple_tree.c
+      9769      91    3.7%  /home/jose/common/kernel/trace/ring_buffer.c
+      6874     103    2.6%  /home/jose/common/mm/gup.c
+      4332     114    1.6%  /home/jose/common/lib/vsprintf.c
+      4074      36    1.5%  /home/jose/common/kernel/kprobes.c
+      4023     150    1.5%  /home/jose/common/./arch/arm64/include/asm/atomic_lse.h
+      3620      70    1.4%  /home/jose/common/kernel/auditsc.c
+      3089     119    1.2%  /home/jose/common-stage2mvp/arch/arm64/kvm/arch_timer.c
+      3048     125    1.2%  /home/jose/common/fs/dcache.c
+      2741       6    1.0%  /home/jose/common/./arch/arm64/include/asm/stacktrace.h
+      2634     108    1.0%  /home/jose/common-stage2mvp/arch/arm64/kvm/mmu.c
+
+--- by function (top 12, raw entries) ---
+     53025       8   20.1%  stackinfo_on_stack
+     26170       2    9.9%  unwind_next_frame_record
+     15140       4    5.8%  unwind_consume_stack
+      4158      19    1.6%  mtree_range_walk
+      2795      98    1.1%  get_current
+      2447      14    0.9%  __audit_inode_child
+      2352      12    0.9%  mas_wr_node_walk
+      2344       4    0.9%  mtree_lookup_walk
+      2184       8    0.8%  call_break_hook
+      2024       7    0.8%  _find_next_bit
+      1843      20    0.7%  mas_next_slot
+      1681      30    0.6%  ma_slots

@@ -1,0 +1,20 @@
+=== r1-off-quiet-kpoff : 229301 raw entries, 5813 unique PCs ===
+    96670   42.2%  /home/jose/common/./arch/arm64/include/asm/stacktrace/common.h
+    31388   13.7%  /home/jose/common/lib/maple_tree.c
+     6874    3.0%  /home/jose/common/mm/gup.c
+     4262    1.9%  /home/jose/common/lib/vsprintf.c
+     3620    1.6%  /home/jose/common/kernel/auditsc.c
+     3195    1.4%  /home/jose/common-stage2mvp/arch/arm64/kvm/arch_timer.c
+     3056    1.3%  /home/jose/common/fs/dcache.c
+     2748    1.2%  /home/jose/common/./arch/arm64/include/asm/stacktrace.h
+
+=== r1-on-quiet-kpoff : 255876 raw entries, 6053 unique PCs ===
+    96390   37.7%  /home/jose/common/./arch/arm64/include/asm/stacktrace/common.h
+    31338   12.2%  /home/jose/common/lib/maple_tree.c
+     9098    3.6%  /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/rust/src/ftrace.rs
+     6874    2.7%  /home/jose/common/mm/gup.c
+     6285    2.5%  /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/rust/src/trace.rs
+     4306    1.7%  /home/jose/common/lib/vsprintf.c
+     3620    1.4%  /home/jose/common/kernel/auditsc.c
+     3158    1.2%  /home/jose/common-stage2mvp/arch/arm64/kvm/arch_timer.c
+

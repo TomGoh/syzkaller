@@ -1,9 +1,20 @@
 Stage-2 EL2-KCOV — frozen deploy package MANIFEST
 =================================================
 Date: 2026-07-22. Single canonical, reproducible source of truth for the N90 smoke.
-NOT deployed.
 
-CANONICAL KERNEL PATCH
+*** SUPERSEDED FOR THE KERNEL PATCH, 2026-07-24 ***
+  This directory describes the kernel that ran the 2026-07-23 closed-loop smoke
+  and the Step-1A / 1A+ measurements (Build ID 33774811...). Step 1B added
+  per-#23 loss accounting and stopped the bridge from instrumenting itself, so
+  the CURRENT canonical kernel patch is
+      ../step1-measurement-2026-07-24/stage2-el2-kcov.patch   (13 files, 1033 lines)
+  built and deployed as Build ID 3b2d02254e05253fb8d5e0441a249611d4c32964. Same
+  base commit, same stage2.config (sha256 b1f010f5... unchanged). Use THIS
+  directory only to reproduce the pre-1B kernel; use the step1 directory for
+  anything current. Note the ring capacity changed 511 -> 509 PCs, because the
+  header now carries the per-#23 producer counters.
+
+CANONICAL KERNEL PATCH (as of 2026-07-22 — see the note above)
 ----------------------
 stage2-el2-kcov.patch  — the ONE Stage-2 kernel diff (13 files). Reverse-applies clean
   to the experiment tree with `git apply --whitespace=error`. Excludes the unrelated
