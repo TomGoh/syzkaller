@@ -1,0 +1,11 @@
+=== efi_pstore params ===
+  pstore_disable = N
+  record_size = 1024
+=== pstore backend registered ===
+efi_pstore
+=== EFI runtime services (empty = none) ===
+(end)
+=== pstore records now ===
+0
+=== minimal EFI SetVariable test (write must FAIL on N90 firmware) ===
+WRITE FAILED (errno 1) -> firmware cannot SetVariable

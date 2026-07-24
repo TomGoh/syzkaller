@@ -1,0 +1,20 @@
+3B syz_kvm_run_fw_fault_gen reachability — observed this session (NOT the full matrix)
+=====================================================================================
+Manual syz-execprog runs, ring armed on CPU 0, -slowdown=10:
+
+  ipa_size=0, fw_ipa=0x7fc00000 (window base, = the fixed smoke's value):
+    CALL 1 errno 0 (clean KVM_EXIT_MMIO); coverage 6124, signal 8507;
+    kernel drains 78, el2_hits ~12636 -> REACHES #23, produces EL2 coverage.
+
+  ipa_size=0, fw_ipa=0x7fd00000:
+    syz-execprog rc=1 (helper returned -1), NO CALL success line;
+    kernel drains 0 -> FAILS CLEANLY, does NOT reach #23, does NOT hang.
+
+IMPLICATION: the fw_ipa flag set {0x7fc00000,0x7fd00000,0x7fe00000,0x7ff00000}
+is NOT uniformly reachable -- only the window base reached #23 in the observed
+runs. So "the call was fuzzed" != "EL2 donation/map was fuzzed": most generated
+programs fail before #23 and yield no new EL2 signal. This is exactly what
+Step 2 (the full ipa_size x fw_ipa reachability matrix) must quantify, after
+which the generator should keep only high-reach values (and, if the firmware IPA
+is effectively fixed on this pvmfw, fix it and expand other controlled host-state
+dimensions instead).

@@ -1,0 +1,127 @@
+__host_exit	host.S:61
+hyp_map_walker	../pgtable.c:438
+hyp_map_walker_try_leaf	../pgtable.c:412
+stage2_make_pte	../pgtable.c:824
+__kvm_nvhe_hyp_phys_to_virt	rust/src/early_alloc.rs:91
+__kvm_nvhe_hyp_virt_to_phys	rust/src/early_alloc.rs:99
+nvhe_rust::hyp_main::<impl nvhe_rust::bindings::bindings_raw::kvm_cpu_context>::handle___pkvm_host_map_guest::h2e7eb0fb92ef7ffb	rust/src/hyp_main.rs:1069
+nvhe_rust::kvm_host::<impl nvhe_rust::bindings::bindings_raw::kvm_hyp_memcache>::__topup_hyp_memcache::h6c1696c1620a53a5	rust/src/kvm_host.rs:164
+nvhe_rust::kvm_host::<impl nvhe_rust::bindings::bindings_raw::kvm_hyp_memcache>::__topup_hyp_memcache::h6c1696c1620a53a5	rust/src/kvm_host.rs:164
+nvhe_rust::kvm_host::<impl nvhe_rust::bindings::bindings_raw::kvm_hyp_memcache>::__topup_hyp_memcache::h6c1696c1620a53a5	rust/src/kvm_host.rs:164
+nvhe_rust::page_alloc::hyp_pfn_to_phys::h397647948c9f8520	rust/src/page_alloc.rs:70
+__kvm_nvhe_handle_trap	rust/src/hyp_main.rs:2995
+nvhe_rust::trace::trace_hyp_enter::h6e53f56269768151	rust/src/trace.rs:2045
+nvhe_rust::hyp_main::__pkvm_unmask_serror::hbdad1460a54a737b	rust/src/hyp_main.rs:286
+<aarch64_cpu::registers::esr_el2::ESR_EL2::EC::Value as tock_registers::fields::TryFromValue<u64>>::try_from_value::h49d9ea02580e7bb9	/home/jose/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tock-registers-0.9.0/src/fields.rs:417
+<aarch64_cpu::registers::esr_el2::ESR_EL2::EC::Value as tock_registers::fields::TryFromValue<u64>>::try_from_value::h49d9ea02580e7bb9	/home/jose/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tock-registers-0.9.0/src/fields.rs:421
+nvhe_rust::hyp_main::__pkvm_mask_serror::h2f574af3d7346016	rust/src/hyp_main.rs:301
+nvhe_rust::hyp_main::<impl nvhe_rust::bindings::bindings_raw::kvm_cpu_context>::handle_host_hcall::hd1bfd1baf062dc9f	rust/src/hyp_main.rs:1627
+nvhe_rust::module::handle_host_dynamic_hcall::h1595c0ea5f5b0e39	rust/src/module.rs:833
+nvhe_rust::trace::trace_host_hcall::h0d8697d4feee57f5	rust/src/trace.rs:2045
+nvhe_rust::iommu::kvm_iommu_host_stage2_idmap::hed11799e96fbe9f1	rust/src/iommu.rs:381
+__kvm_nvhe_guest_s2_zalloc_page	rust/src/mem_protect/guest.rs:219
+core::intrinsics::unlikely::h0c7707188cedef98	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:1310
+core::intrinsics::unlikely::h0c7707188cedef98	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:1310
+__kvm_nvhe___fixmap_guest_page	rust/src/mem_protect/guest.rs:282
+__kvm_nvhe___fixmap_guest_page	rust/src/setup.rs:109
+__kvm_nvhe_guest_get_page_state	rust/src/mem_protect/guest.rs:331
+__kvm_nvhe_guest_get_page_state	rust/src/mem_protect/guest.rs:335
+__kvm_nvhe___fixunmap_guest_page	rust/src/mem_protect/guest.rs:360
+nvhe_rust::mm::HypFixmapSlot::fixmap_clear_slot::hb5e5166a72ea2aef	rust/src/mm.rs:191
+__kvm_nvhe_guest_s2_get_page	rust/src/mem_protect/guest.rs:378
+nvhe_rust::refcount::lse_refcount_fetch_add_16::hf3d627ba41bb7046	rust/src/refcount.rs:79
+__kvm_nvhe_clean_dcache_guest_page	rust/src/mem_protect/guest.rs:399
+nvhe_rust::mem_protect::guest::__clean_dcache_guest_page::hb4e49bf28b529c86	rust/src/mem_protect/guest.rs:510
+__kvm_nvhe_clean_dcache_guest_page	rust/src/mem_protect/guest.rs:400
+__kvm_nvhe_invalidate_icache_guest_page	rust/src/mem_protect/guest.rs:462
+nvhe_rust::mem_protect::guest::__invalidate_icache_guest_page::hd4bc355a5f14b521	rust/src/mem_protect/guest.rs:450
+__kvm_nvhe_invalidate_icache_guest_page	rust/src/mem_protect/guest.rs:463
+__kvm_nvhe_guest_stage2_force_pte_cb	rust/src/mem_protect/guest.rs:520
+__kvm_nvhe_guest_stage2_pte_is_counted	rust/src/mem_protect/guest.rs:526
+nvhe_rust::mem_protect::guest::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::guest_complete_donation::heec53ee9231a970f	rust/src/mem_protect/guest.rs:1195
+core::intrinsics::unlikely::h0c7707188cedef98	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:1310
+nvhe_rust::mm::HypFixmapSlot::fixmap_clear_slot::hb5e5166a72ea2aef	rust/src/mm.rs:191
+nvhe_rust::bindings::HypSpinlock::lock::h0e2d1d4e2b717f5c	rust/src/bindings/mod.rs:230
+nvhe_rust::mem_protect::utils::pkvm_ipa_range_has_pvmfw::hf15fd1badebc58c1	rust/src/mem_protect/utils.rs:461
+<core::ops::range::Range<T> as core::iter::range::RangeIteratorImpl>::spec_next::hc4375c0b3c3317df	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:764
+nvhe_rust::mem_protect::guest::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::guest_ack_donation::ha1f4a1fc0dd0baf9	rust/src/mem_protect/guest.rs:1271
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+__kvm_nvhe_host_s2_zalloc_page_adapter	rust/src/mem_protect/host.rs:200
+__kvm_nvhe_host_s2_get_page	rust/src/mem_protect/host.rs:215
+nvhe_rust::refcount::lse_refcount_fetch_add_16::hf3d627ba41bb7046	rust/src/refcount.rs:79
+__kvm_nvhe_host_stage2_pte_is_counted	rust/src/mem_protect/host.rs:479
+__kvm_nvhe_host_stage2_pte_is_counted	rust/src/mem_protect/host.rs:482
+nvhe_rust::mem_protect::utils::kvm_pte_table::h8d589edc8b1f4c22	rust/src/mem_protect/utils.rs:211
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+__kvm_nvhe_host_stage2_pte_is_counted	rust/src/mem_protect/host.rs:495
+__kvm_nvhe___host_stage2_set_owner_locked	rust/src/mem_protect/host.rs:785
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+__kvm_nvhe___host_stage2_set_owner_locked	rust/src/mem_protect/host.rs:338
+__kvm_nvhe___host_stage2_set_owner_locked	rust/src/mem_protect/host.rs:825
+__kvm_nvhe___host_stage2_set_owner_locked	rust/src/mem_protect/host.rs:830
+nvhe_rust::page_alloc::get_hyp_vmemmap::h4129e8af5d0cf4a9	rust/src/page_alloc.rs:65
+__kvm_nvhe___host_stage2_set_owner_locked	rust/src/mem_protect/host.rs:752
+nvhe_rust::mem_protect::host::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::host_request_owned_transition::h5185b906b74fadfd	rust/src/mem_protect/host.rs:1089
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::mem_protect::mem_region::is_range_refcounted::hc3fb03ac996ebc62	rust/src/mem_protect/mem_region.rs:171
+<core::ops::range::Range<T> as core::iter::range::RangeIteratorImpl>::spec_next::hc4375c0b3c3317df	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/range.rs:764
+nvhe_rust::mem_protect::host::__host_check_page_state_range::h234eb89226d78b4c	rust/src/mem_protect/host.rs:1254
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:46
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+nvhe_rust::mem_protect::host::___host_check_page_state_range::h5e282369de70d76f	rust/src/mem_protect/host.rs:1230
+__kvm_nvhe____pkvm_host_donate_hyp_prot	rust/src/mem_protect/host.rs:1560
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+__kvm_nvhe____pkvm_host_donate_hyp_prot	rust/src/mem_protect/host.rs:1571
+nvhe_rust::mem_protect::hyp::hyp_get_page_state::heb7a721cf2f47175	rust/src/mem_protect/hyp.rs:184
+nvhe_rust::mem_protect::hyp::hyp_get_page_state::heb7a721cf2f47175	rust/src/mem_protect/hyp.rs:187
+nvhe_rust::mem_protect::transition::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::do_donate::hde56c9d09d2e3491	rust/src/mem_protect/transition.rs:91
+nvhe_rust::mem_protect::transition::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::check_donation::hb74382e0cc53cb0c	rust/src/mem_protect/transition.rs:36
+nvhe_rust::mem_protect::transition::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::check_donation::hb74382e0cc53cb0c	rust/src/mem_protect/transition.rs:25
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:46
+nvhe_rust::mem_protect::transition::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::__do_donate::h8384b5e1463d0dfc	rust/src/mem_protect/transition.rs:63
+nvhe_rust::mem_protect::transition::<impl nvhe_rust::mem_protect::mem_types::PkvmMemTransition>::__do_donate::h8384b5e1463d0dfc	rust/src/mem_protect/transition.rs:71
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+<core::iter::adapters::step_by::StepBy<core::ops::range::Range<u64>> as core::iter::adapters::step_by::StepByImpl<core::ops::range::Range<u64>>>::spec_next::h0e60adcbbeaac5fa	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/step_by.rs:446
+core::intrinsics::unlikely::h0c7707188cedef98	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:1310
+__kvm_nvhe_hyp_page_count	rust/src/mem_protect/utils.rs:128
+nvhe_rust::page_alloc::get_hyp_vmemmap::h4129e8af5d0cf4a9	rust/src/page_alloc.rs:65
+__kvm_nvhe___check_page_state_visitor	rust/src/mem_protect/utils.rs:333
+__kvm_nvhe___check_page_state_visitor	rust/src/mem_protect/utils.rs:343
+nvhe_rust::mm::admit_host_page::h31044c6d86fc6403	rust/src/mm.rs:969
+core::intrinsics::unlikely::h0c7707188cedef98	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:1310
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:48
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:35
+nvhe_rust::mem_protect::mem_region::<impl nvhe_rust::mem_protect::mem_types::KvmMemRange>::find_memory_region::hb1fb27c966bc3579	rust/src/mem_protect/mem_region.rs:46
+nvhe_rust::kvm_host::<impl nvhe_rust::bindings::bindings_raw::kvm_hyp_memcache>::pop_hyp_memcache::h8bdd1872ffc491eb	rust/src/kvm_host.rs:51
+nvhe_rust::page_alloc::HypPool::hyp_alloc_pages::ha50408c5fc1cf714	rust/src/page_alloc.rs:385
+nvhe_rust::page_alloc::HypPool::hyp_alloc_pages::ha50408c5fc1cf714	rust/src/page_alloc.rs:391
+nvhe_rust::page_alloc::HypPool::__hyp_extract_page::he951687557090e8b	rust/src/page_alloc.rs:332
+nvhe_rust::page_alloc::HypPool::hyp_alloc_pages::ha50408c5fc1cf714	rust/src/page_alloc.rs:391
+nvhe_rust::page_alloc::HypPool::__hyp_extract_page::he951687557090e8b	rust/src/page_alloc.rs:332
+nvhe_rust::page_alloc::HypPool::__hyp_extract_page::he951687557090e8b	rust/src/page_alloc.rs:332
+core::intrinsics::unlikely::h0c7707188cedef98	/home/jose/.rustup/toolchains/nightly-2025-05-05-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/intrinsics/mod.rs:1310
+nvhe_rust::psci_relay::psci_mem_protect::hd27f02cceb6270e0	rust/src/psci_relay.rs:615
+nvhe_rust::bindings::HypSpinlock::assert_lock_held::hce710bf9e232ff8b	rust/src/bindings/mod.rs:303
+nvhe_rust::psci_relay::psci_mem_protect::hd27f02cceb6270e0	rust/src/psci_relay.rs:645
+nvhe_rust::trace::trace_psci_mem_protect::hd6bb48dce8d156ce	rust/src/trace.rs:2045
+nvhe_rust::setup::hyp_zalloc_hyp_page::h6872209d00852f2f	rust/src/setup.rs:482
+nvhe_rust::tlb::enter_vmid_context::haa02641846b97edf	rust/src/tlb.rs:44
+<aarch64_cpu::asm::barrier::ISH as aarch64_cpu::asm::barrier::sealed::Dsb>::__dsb::ha69bb8c0c0499ae6	rust/patch/aarch64-cpu/src/asm/barrier.rs:46
+nvhe_rust::tlb::exit_vmid_context::ha3e9ade3f4ab3f13	rust/src/tlb.rs:114
+__kvm_nvhe___kvm_tlb_flush_vmid_ipa	rust/src/tlb.rs:292
+__kvm_nvhe___kvm_tlb_flush_vmid_ipa	rust/src/tlb.rs:300
+__kvm_nvhe___kvm_tlb_flush_vmid_ipa	rust/src/cpufeature.rs:109
+__kvm_nvhe___kvm_tlb_flush_vmid_ipa	rust/src/tlb.rs:316

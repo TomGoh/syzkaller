@@ -1,0 +1,17 @@
+=== ftrace-off kernel (this session) ===
+kernel.release: 6.6.30+
+Build ID: 2c8458f9298d97adce5854aaac595064416550b9
+3c170824b31f9466df97a61555c1108bdbbd2fad01bc8dcbf15d328c4646bbb2  vmlinux
+928f81556c8c3a0d9ce6b786f64e28f6e49bf6993404c0351e0396a42f111e74  arch/arm64/boot/Image
+123b7053f95f276976d910f3dd451319f2ba6e2318ccff8b93ffb27040b85d39  System.map
+fd7f4a4eae877cafe5e1c6b6da70549f3fdb9ed590c9c8f336dd31d694b9e77e  .config
+
+=== hyp text anchors ===
+ffff800081d86ed4 T __hyp_text_start
+ffff800081de4000 T __hyp_text_end
+
+=== syzkaller (branch pkvm-lifecycle-fuzzing) ===
+last FUNCTIONAL code commit: 2cbf12e65 (3A slowdown fixup)
+record commit (summary):         0368b1630
+manager built at 2cbf12e65: bc9f57d70c74...
+executor built at 2cbf12e65: 74b19ae00d3a...

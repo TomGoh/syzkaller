@@ -1,0 +1,6 @@
+SYZFAIL: failed to recv rpc
+fd=3 want=4 recv=0 n=0 (errno 9: Bad file descriptor)
+debug1: channel 1: free: 127.0.0.1, nchannels 2
+--
+2026/07/24 16:35:29 VM 0: crash(tail1): SYZFAIL: failed to recv rpc
+2026/07/24 16:35:39 running ssh: []string{"-p", "22", "-F", "/dev/null", "-o", "UserKnownHostsFile=/dev/null", "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=no", "-o", "ConnectTimeout=10", "-i", "/home/jose/.ssh/id_ed25519", "-v", "root@10.42.27.17", "pwd"}

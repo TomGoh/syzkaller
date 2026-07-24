@@ -1,0 +1,28 @@
+Supervised campaign — kernel pkvm_cov/stats snapshot (peak observed during the run)
+===================================================================================
+Config: type=isolated, pkvm_serial=true, procs=1, vm.pkvm_owner_cpu=0, pstore=false,
+enable_syscalls=[openat$kvm, syz_kvm_run_fw_fault_gen$arm64, close]; ring armed on CPU 0.
+Manager 2cbf12e65 (matching executor). Kernel Build ID 2c8458f9.
+
+  owner_cpu           0
+  begin_calls         323
+  drains              323
+  el2_hits            51484
+  el2_written         51484
+  el2_dropped_ringful 0
+  el2_nested_dropped  0
+  el2_overflow_drains 0
+  el2_hits_max        497
+  el2_written_max     497
+  LOST_IN_RING        0
+  link_dropped        0
+  kcov_requested/accepted  equal
+  LOST_IN_KCOV_AREA   0
+  skip_not_owner      0
+  skip_no_kcov        0
+
+INTERPRETATION: the Stage-2 EL2 loop works under the REAL manager, kernel-side --
+#23 drains climb, ZERO ring/KCOV loss, ZERO owner-CPU skip, 3A CPU-pin holds
+(executor taskset-pinned to CPU 0). But the MANAGER's corpus/coverage stayed 0:
+the executor's RPC link to the manager closed mid-run (see rpc-eof-raw.txt), so
+the already-collected coverage never reached the manager and no corpus was saved.

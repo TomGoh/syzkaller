@@ -79,12 +79,17 @@ config `workdir-ftraceoff/pkvm-campaign.cfg`：`type: isolated`、`pkvm_serial: 
 
 **修完后内核侧验收达成：** manager 驱动下 `begin_calls`/`drains` 持续增长（观测到 323 drains、`el2_hits=51,484`），`LOST_IN_RING=0`、`skip_not_owner=0`、`LOST_IN_KCOV=0`、`overflow=0`、`el2_hits_max=497`。**即 Stage-2 EL2 闭环在真实 manager + 3A 串行/CPU-pin 下无截断、无 skip 地工作。**
 
-**剩余一项（follow-up，已 root-cause 为基础设施层）：** manager 的**语料/覆盖率没有增长**（corpus=0/coverage=0），根因是 **executor 的 RPC-over-SSH-forward 不稳定**（`SYZFAIL: failed to recv rpc … errno 9 Bad file descriptor`）——慢速 KVM_RUN 下 in-flight 覆盖率丢失，语料无法累积。这是 isolated backend 的 RPC 可靠性问题，**不是 Stage-2 机制问题**（机制已由 syz-execprog 手工运行 + 内核 drains 证明：手工跑 gen 得 coverage 6124/signal 8507、drains 78）。另外 **3B 的非默认 `fw_ipa`（如 0x7fd00000）会干净失败、不到达 #23**（drains=0，非 hang）——多数 gen 变异其实没打到 EL2；改进输入面（收窄/修正 fw_ipa，或让 gen run 更快/有界）是并行 follow-up。
+**剩余一项（follow-up）：** manager 的**语料/覆盖率没有增长**（corpus=0/coverage=0）——executor 到 manager 的 **RPC 链路在运行中被关闭**，已收集的覆盖率没能回传。
+
+**措辞更正（colleague，已对 `executor/conn.h:79-95` 核实）：** 日志 `failed to recv rpc … fd=3 want=4 recv=0 n=0 (errno 9)` 里，`read()` 返回 `n=0` 是 **EOF（对端关闭连接）**；`n=0` 不设置 `errno`，所以随后的 `errno 9: Bad file descriptor` 是**上一次系统调用留下的旧值**，不是原因。因此**只能说 RPC 链路被对端关闭，尚不知道是哪一端先关（manager kill/restart、executor 退出、SSH forward、还是超时）**。我先前记的「flaky SSH-forward errno-9 Bad FD」是过度归因，撤回。**这不是 Stage-2 机制问题**——机制已由 syz-execprog 手工运行 + 内核 drains 证明（手工跑 gen 得 coverage 6124/signal 8507、drains 78）；是 manager feedback transport 的诊断问题（下一步先定位关闭发起方，不要直接改 SSH）。
+
+另外 **3B 的非默认 `fw_ipa`（如 0x7fd00000）会干净失败、不到达 #23**（drains=0，非 hang）——「调用被 fuzz 了」≠「EL2 donation/map 被 fuzz 了」；多数 gen 变异没打到 EL2。**收窄/修正 fw_ipa 使多数生成程序高 reach** 是并行 follow-up（Step 2 的 reachability matrix 量化后再定）。
 
 ---
 
 ## 6. 板子与代码状态
 
 - N90 静息在 ftrace-off `6.6.30+`（Build `2c8458f9`），ring 关闭、`leaked_bytes 0`、无 WARN/BUG；GRUB 默认仍是已知可用的 `6.6.30-pkvm-fuzz`；回退镜像 `.1abuild/.1bbuild/.bit2build.bak` 在板上。
-- syzkaller `pkvm-lifecycle-fuzzing` @ `2cbf12e65`（与 origin 同步）：3B、3A、EFI-pstore、3 个 campaign fixup。
-- **下一步（未做，follow-up）：** (a) manager RPC-over-SSH 可靠性（慢 KVM_RUN 下丢覆盖率）；(b) 3B 输入面（多数 fw_ipa 变异不到 #23）；(c) N90 无人值守恢复改用 live dmesg/serial/netconsole（efi-pstore 固件不支持）。这些解决后再谈更大 campaign 与 #21/#34-35/#36-38 的 per-boundary arm/drain。
+- **提交状态区分：** **最后一个功能代码提交 = `2cbf12e65`**（3A slowdown fixup；本轮 board session 用的 manager/executor 都由它构建）；**记录/摘要提交 = `0368b1630`**（deploy-session 摘要）；**本次（evidence + 措辞更正）= 见下**。三者都在 `pkvm-lifecycle-fuzzing`，与 origin 同步。
+- **本轮 raw evidence：** `evidence/ftrace-off-deploy-2026-07-24/`（smoke stats/EL2 PC set/symbolization、manager log + kernel counters、RPC EOF 原文 + 更正分析、EFI SetVariable 失败输出、3B reachability 观测、provenance 哈希）。
+- **下一步（未做，follow-up；顺序按 colleague 的 Step 0-5）：** Step 0 补证据（本次做）→ Step 1 先**定位 RPC EOF 的关闭发起方**（executor 侧分开记 `n==0` EOF 与 `n<0` read-error，记 manager runner kill/restart 与远端 ssh 退出码；不要直接改 SSH）→ Step 2 做 **3B ipa_size×fw_ipa reachability matrix** 并据此收敛 generator → Step 3 重验四层 manager feedback（执行/attribution/signal/学习，第四层 corpus 因 EL2 signal 增长才算成功）→ Step 4 N90 无人值守恢复改用 serial/netconsole/live-dmesg（efi-pstore 固件不支持）→ Step 5 才逐条扩 #21/#34-35/#36-38（绝不全局包裹 `kvm_call_hyp_nvhe()`）。

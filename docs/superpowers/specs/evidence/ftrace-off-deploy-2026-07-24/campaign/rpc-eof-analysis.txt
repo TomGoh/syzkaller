@@ -1,0 +1,19 @@
+RPC failure — corrected analysis
+================================
+Raw (rpc-eof-raw.txt):
+  SYZFAIL: failed to recv rpc
+  fd=3 want=4 recv=0 n=0 (errno 9: Bad file descriptor)
+
+CORRECTION (colleague, verified against executor/conn.h:79-95):
+  Recv() loops on read(fd). n == 0 from read() is EOF -- the PEER CLOSED the
+  connection. A 0-return does NOT set errno, so the subsequent errno checks
+  (EINTR/EAGAIN) and the "errno 9: Bad file descriptor" printed by the SYZFAIL
+  wrapper are a STALE errno from an earlier syscall, NOT the cause. So this is
+  "the RPC link was closed by the peer", and we do NOT yet know which end closed
+  first (manager kill/restart, executor exit, SSH-forward drop, or a timeout).
+
+  My earlier record called this "flaky SSH-forward errno-9 Bad FD" -- that was an
+  over-attribution and is retracted. The next board session must instrument the
+  recv path to (a) split n==0 (EOF) from n<0 (read error, errno meaningful), and
+  (b) log the manager's runner kill/restart and the remote ssh exit code, to
+  identify the initiator before changing any SSH/timeout config.
