@@ -23,7 +23,19 @@ import (
 	"github.com/google/syzkaller/vm/vmimpl"
 )
 
-const pstoreConsoleFile = "/sys/fs/pstore/console-ramoops-0"
+const pstoreDir = "/sys/fs/pstore"
+
+// pstoreReadCmd cats every crash record in the pstore mount (in glob order) and then removes them.
+// It is backend-agnostic on purpose: ramoops exposes a continuous console-ramoops-0 plus dmesg-ramoops-*
+// records, while EFI pstore (e.g. N90, which is ACPI/UEFI with no device-tree ramoops region) exposes
+// only chunked dmesg-efi-* records and no console file at all. Globbing the directory discovers, reads
+// and recycles whichever the board produced; the `[ -f ]` guard makes the empty case a clean no-op
+// (no crash left nothing behind), and removing the records frees the backing store (EFI NVRAM slots are
+// limited, so leftover records would eventually stop new crashes from being recorded).
+const pstoreReadCmd = `for f in ` + pstoreDir + `/*; do [ -f "$f" ] && cat "$f"; done; rm -f ` + pstoreDir + `/* 2>/dev/null; true`
+
+// pstoreCleanCmd drops any stale records before a run so a recovered log can only be from this run.
+const pstoreCleanCmd = `rm -f ` + pstoreDir + `/* 2>/dev/null; true`
 
 func init() {
 	vmimpl.Register("isolated", vmimpl.Type{
@@ -137,9 +149,9 @@ func (pool *Pool) Create(_ context.Context, workdir string, index int) (vmimpl.I
 	// Remove temp files from previous runs.
 	inst.ssh("rm -rf '" + filepath.Join(inst.cfg.TargetDir, "*") + "'")
 
-	// Remove pstore files from previous runs.
+	// Remove pstore files from previous runs (ramoops and/or EFI pstore).
 	if inst.cfg.Pstore {
-		inst.ssh(fmt.Sprintf("rm %v", pstoreConsoleFile))
+		inst.ssh(pstoreCleanCmd)
 	}
 
 	closeInst = nil
@@ -381,7 +393,7 @@ func (inst *instance) Run(ctx context.Context, command string) (
 func (inst *instance) readPstoreContents() ([]byte, error) {
 	log.Logf(0, "reading pstore contents")
 	args := append(vmimpl.SSHArgs(inst.debug, inst.Key, inst.Port, inst.cfg.SystemSSHCfg),
-		inst.User+"@"+inst.Addr, "cat "+pstoreConsoleFile+" && rm "+pstoreConsoleFile)
+		inst.User+"@"+inst.Addr, pstoreReadCmd)
 	if inst.debug {
 		log.Logf(0, "running command: ssh %#v", args)
 	}
