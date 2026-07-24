@@ -241,7 +241,7 @@ struct pkvm_cov_ring {
 
 ## 7. 本步骤没有回答的问题
 
-- **那 5% 的 ring 丢失里有没有 unique PC。** 132 个 unique EL2 PC 在 ring=511（1A）、ring=509（1B）、area=512K、area=1M 下全都一样，说明对这个固定 workload 相当稳定；但计划里已经指出：只要 ring 还会截断，就无法从现有样本推断溢出之后的 unique 数。要确定，得先把 ring 扩容再测一次——那属于第二步。
+- ~~**那 5% 的 ring 丢失里有没有 unique PC。**~~ **已于 2026-07-24 回答（见 `2026-07-24-pkvm-stage2-step2-multipage-ring.md`）：没有。** 把 ring 扫到 1/2/4 页（509/1021/2045 槽位）后，2 页和 4 页均 `LOST_IN_RING = 0`，而 unique EL2 PC 在三种容量下都是 **同一个 132 元素集合**（两两对称差为 0，`new − old = ∅`）。被丢掉的全是重复 PC。仍限于当前固定 #23 smoke。
 - **只覆盖 #23 一条边界、只有一个固定输入。** 上面所有数字都是 `syz_kvm_run_fw_fault` 这一个 no_generate smoke 的，78 次 #23 的形状由 pvmfw 启动决定。可变异输入面（3B）与其它 boundary（#21 / #34-35 / #36-38）的分布还完全未知。
 - **仍然是单 CPU 手工串行。** `skip_not_owner = 0` 只是说明 taskset 生效了，不代表 manager 下也会这样。3A 仍是 campaign 的前置条件。
 
