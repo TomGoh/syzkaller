@@ -40,6 +40,12 @@ type Config struct {
 	StartupScript string   `json:"startup_script"` // script to execute after each startup
 	Pstore        bool     `json:"pstore"`         // use crashlogs from pstore
 	SystemSSHCfg  bool     `json:"system_ssh_cfg"` // whether to allow system-wide SSH configuration
+	// Stage-2 pKVM EL2-coverage serial mode: pin the executor process (and, via inheritance, the
+	// forked program-runners that issue KVM_RUN) to this CPU with `taskset -c`. It MUST match the CPU
+	// that wrote the debugfs kvm/pkvm_cov/enable (the ring owner CPU) -- the single-page ring collects
+	// only on its owner, so a mismatch shows up as the kernel's skip_not_owner counter climbing. Unset
+	// (nil) = no pin. Use together with the top-level pkvm_serial (no Threaded/Collide, procs:1).
+	PkvmOwnerCPU *int `json:"pkvm_owner_cpu"`
 }
 
 type Pool struct {
@@ -76,6 +82,9 @@ func ctor(env *vmimpl.Env) (vmimpl.Pool, error) {
 		if _, _, err := splitTargetPort(target); err != nil {
 			return nil, fmt.Errorf("bad target %q: %w", target, err)
 		}
+	}
+	if cfg.PkvmOwnerCPU != nil && *cfg.PkvmOwnerCPU < 0 {
+		return nil, fmt.Errorf("bad config param pkvm_owner_cpu: %v, want >= 0", *cfg.PkvmOwnerCPU)
 	}
 	if len(cfg.USBDevNums) > 0 {
 		if len(cfg.USBDevNums) != len(cfg.Targets) {
@@ -328,7 +337,13 @@ func (inst *instance) Run(ctx context.Context, command string) (
 		args = append(args, "-o", "ServerAliveInterval=6")
 		args = append(args, "-o", "ServerAliveCountMax=5")
 	}
-	args = append(args, inst.User+"@"+inst.Addr, "cd "+inst.cfg.TargetDir+" && exec "+command)
+	// Stage-2 pKVM serial mode: pin the executor (and its forked program-runners, which inherit the
+	// affinity) to the ring owner CPU. This is the same taskset the manual smoke used, made integral.
+	runCmd := command
+	if inst.cfg.PkvmOwnerCPU != nil {
+		runCmd = fmt.Sprintf("taskset -c %d %s", *inst.cfg.PkvmOwnerCPU, command)
+	}
+	args = append(args, inst.User+"@"+inst.Addr, "cd "+inst.cfg.TargetDir+" && exec "+runCmd)
 	if inst.debug {
 		log.Logf(0, "running command: ssh %#v", args)
 	}

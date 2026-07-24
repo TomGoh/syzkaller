@@ -171,6 +171,12 @@ func Complete(cfg *Config) error {
 	if cfg.Procs < 1 || cfg.Procs > prog.MaxPids {
 		return fmt.Errorf("bad config param procs: '%v', want [1, %v]", cfg.Procs, prog.MaxPids)
 	}
+	if cfg.PkvmSerial && cfg.Procs != 1 {
+		// The single-CPU EL2 coverage ring cannot be shared across concurrent procs; more than one
+		// would race the ring and mis-attribute (or drop) coverage. Fail loudly rather than silently
+		// corrupt the signal.
+		return fmt.Errorf("pkvm_serial requires procs: 1, got %v", cfg.Procs)
+	}
 	switch cfg.Sandbox {
 	case "none", "setuid", "namespace", "android":
 	default:

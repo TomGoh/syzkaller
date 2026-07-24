@@ -483,7 +483,14 @@ func DefaultExecOpts(cfg *mgrconfig.Config, features flatrpc.Feature, debug bool
 	}
 	env |= sandbox
 
-	exec := flatrpc.ExecFlagThreaded
+	// Stage-2 pKVM serial mode: do NOT thread. The single-CPU EL2 coverage ring collects only on its
+	// owner CPU and by `current`; a threaded executor runs calls on worker threads that migrate CPUs,
+	// so the KVM_RUN carrying the #23 fault would land off the owner CPU and its EL2 coverage would be
+	// skipped (kernel-side skip_not_owner). Non-threaded keeps the whole program on one (pinned) thread.
+	var exec flatrpc.ExecFlag
+	if !cfg.PkvmSerial {
+		exec |= flatrpc.ExecFlagThreaded
+	}
 	if !cfg.RawCover {
 		exec |= flatrpc.ExecFlagDedupCover
 	}

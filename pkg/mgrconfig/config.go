@@ -155,6 +155,15 @@ type Config struct {
 	// Disabled by default as it slows down fuzzing.
 	RawCover bool `json:"raw_cover"`
 
+	// PkvmSerial enables the Stage-2 pKVM-EL2-coverage SERIAL execution mode. The single-page/
+	// single-CPU EL2 coverage ring (CONFIG_PKVM_EL2_COV) attributes coverage by `current` and only
+	// collects on its owner CPU, so it REQUIRES strict serialization -- procs:1 is NOT enough on its
+	// own, because the fuzzer otherwise forces ExecFlagThreaded and emits collide programs. When set,
+	// the manager runs one proc, does NOT set ExecFlagThreaded, and generates no collide programs; the
+	// executor additionally honors SYZ_PKVM_OWNER_CPU (see below) to pin its run thread to the ring
+	// owner CPU. Requires procs == 1. Off by default; only meaningful with a CONFIG_PKVM_EL2_COV kernel.
+	PkvmSerial bool `json:"pkvm_serial"`
+
 	// Reproduce, localize and minimize crashers (default: true).
 	Reproduce bool `json:"reproduce"`
 
