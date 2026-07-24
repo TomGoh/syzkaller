@@ -103,6 +103,18 @@ syz_kvm_set_fw_ipa_busy$arm64(fd fd_kvm)
 # fd_kvm stays caller-owned.
 syz_kvm_run_fw_fault$arm64(fd fd_kvm) (no_generate)
 
+# --- 3B: GENERATEABLE constrained counterpart of the fixed smoke above -------------------------------
+# Same protected-VM lifecycle + firmware window + KVM_RUN boundary + fd cleanup, enforced entirely in the
+# C helper, but with a SMALL type-constrained mutation surface so the fuzzer can vary the Host KVM config
+# and reach the #23 donation path with a different footprint -- WITHOUT ever being handed the raw ioctl
+# sequence (a raw KVM_CREATE_VM/ENABLE_CAP/KVM_RUN would let it skip the protected-VM/firmware/cleanup
+# constraints). Two dimensions only, both re-validated in C: ipa_size = the protected VM type's low bits
+# (bit 31 is forced in C), and fw_ipa = a page-aligned firmware IPA inside the 4 MiB window (the memslot
+# covers the whole window, so any member stays backed). NO syzlang return type: the status is not a
+# resource (the C returns 0 on a clean KVM_EXIT_MMIO, else -1 with errno). fd_kvm stays caller-owned.
+kvm_arm_pvm_fw_ipa = 0x7fc00000, 0x7fd00000, 0x7fe00000, 0x7ff00000
+syz_kvm_run_fw_fault_gen$arm64(fd fd_kvm, ipa_size flags[kvm_arm_ipa_size], fw_ipa flags[kvm_arm_pvm_fw_ipa])
+
 kvm_num_irqs = 32, 64, 128, 256, 512
 
 # Set up the VGICv3 IRQ controller inside a VM.

@@ -91,6 +91,7 @@ var linuxSyscallChecks = map[string]func(*checkContext, *prog.Syscall) string{
 	"syz_kvm_set_fw_ipa":            linuxSyzKvmSupported,
 	"syz_kvm_set_fw_ipa_busy":       linuxSyzKvmSupported,
 	"syz_kvm_run_fw_fault":          linuxSyzKvmSupported,
+	"syz_kvm_run_fw_fault_gen":      linuxSyzKvmSupported,
 	"syz_kvm_add_vcpu":              linuxSyzKvmSupported,
 	"syz_kvm_assert_syzos_uexit":    linuxSyzKvmSupported,
 	"syz_kvm_assert_syzos_kvm_exit": linuxSyzKvmSupported,

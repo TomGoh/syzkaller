@@ -1,0 +1,11 @@
+# requires: arch=arm64 -threaded
+
+# Stage-2 EL2-coverage GENERATEABLE composite (3B). Unlike the fixed no_generate syz_kvm_run_fw_fault
+# smoke, the fuzzer MAY emit this call and mutate its two constrained arguments (ipa_size, fw_ipa); the
+# C helper keeps the full protected-VM lifecycle, firmware window, KVM_RUN boundary and fd cleanup, and
+# re-validates fw_ipa against the window. This file just exercises the closest-to-proven arguments
+# (ipa_size = 0 default, fw_ipa = 0x7fc00000 window base) so the parser and executor build are covered;
+# real coverage acceptance is the same as the fixed smoke and batches into the ftrace-off deploy.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r0, 0x0, 0x7fc00000)
