@@ -1,0 +1,1269 @@
+diff --git a/arch/arm64/include/asm/kvm_asm.h b/arch/arm64/include/asm/kvm_asm.h
+index 6e2f9a0dd794..ba9795533903 100644
+--- a/arch/arm64/include/asm/kvm_asm.h
++++ b/arch/arm64/include/asm/kvm_asm.h
+@@ -123,6 +123,16 @@ enum __kvm_host_smccc_func {
+ #ifdef CONFIG_XCORE_UNIT_TEST
+ __KVM_HOST_SMCCC_FUNC___pkvm_xcore_unit_test_run,
+ __KVM_HOST_SMCCC_FUNC___pkvm_xcore_unit_test_get_results,
++#endif
++#ifdef CONFIG_PKVM_EL2_COV
++	/*
++	 * EL2 coverage setup (Stage-2 KCOV). Added AFTER the existing entries and
++	 * under its own config gate, so it never shifts any existing hypercall id
++	 * (incl. XCORE_UNIT_TEST). Its own id shifts with the configs before it,
++	 * which is fine because it is dispatched by an explicit id check, not a
++	 * fixed table slot (see hyp_main.rs).
++	 */
++	__KVM_HOST_SMCCC_FUNC___pkvm_cov_setup,
+ #endif
+ 
+ 	/*
+diff --git a/arch/arm64/include/asm/kvm_mmu.h b/arch/arm64/include/asm/kvm_mmu.h
+index 170a7193f24f..2bfa13254640 100644
+--- a/arch/arm64/include/asm/kvm_mmu.h
++++ b/arch/arm64/include/asm/kvm_mmu.h
+@@ -165,6 +165,10 @@ extern u32 hyp_va_bits;
+ 
+ int kvm_share_hyp(void *from, void *to);
+ void kvm_unshare_hyp(void *from, void *to);
++#ifdef CONFIG_PKVM_EL2_COV
++/* Like kvm_unshare_hyp() but returns the first unshare failure (leak-not-free path). */
++int kvm_unshare_hyp_checked(void *from, void *to);
++#endif
+ int create_hyp_mappings(void *from, void *to, enum kvm_pgtable_prot prot);
+ int __create_hyp_mappings(unsigned long start, unsigned long size,
+ 			  unsigned long phys, enum kvm_pgtable_prot prot);
+diff --git a/arch/arm64/include/asm/kvm_pkvm_cov.h b/arch/arm64/include/asm/kvm_pkvm_cov.h
+new file mode 100644
+index 000000000000..6b80e4b45287
+--- /dev/null
++++ b/arch/arm64/include/asm/kvm_pkvm_cov.h
+@@ -0,0 +1,100 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Stage-2 EL2 coverage — shared ring layout between the pKVM hyp (producer) and
++ * the host (consumer). A physically contiguous, host-shared buffer of
++ * `nr_pages` pages: a 24-byte header on page 0 followed by PC slots that run to
++ * the end of the last page. The hyp's __sanitizer_cov_trace_pc appends EL2
++ * hyp-VA PCs; the host drains them into the current task's KCOV area via
++ * kcov_add_pcs().
++ *
++ * WHY CONTIGUOUS: kvm_share_hyp() maps into the 'fixed-offset' region of the hyp
++ * VA space and therefore walks a *physical* range derived from the virtual one
++ * (mmu.c), and the hyp pins the same range off a single PFN. So contiguity is a
++ * requirement of THIS pfn+range design, not a fundamental one — a scatter-gather
++ * mapping would lift it, and is deliberately out of scope here.
++ *
++ * LOSS ACCOUNTING (Step 1B). `count` alone cannot answer "how much did we lose":
++ * once the buffer is full the producer stops incrementing it, so a full buffer
++ * looks identical whether one PC or ten thousand were discarded. The header
++ * therefore also carries per-#23 producer counters (hits/dropped/nested) that
++ * keep counting past the truncation point.
++ */
++#ifndef __ASM_KVM_PKVM_COV_H
++#define __ASM_KVM_PKVM_COV_H
++
++#include <linux/types.h>
++
++/*
++ * Bounds on the host-supplied page count. The host is NOT trusted by the hyp, so
++ * __pkvm_cov_setup() validates nr_pages against these before pinning anything:
++ * an unbounded value would mean an unbounded pin range and loop at EL2.
++ * Must be a power of two so the host can back it with a single order-N allocation.
++ */
++#define PKVM_COV_MAX_PAGES	16
++#define PKVM_COV_DEFAULT_PAGES	4
++
++#define PKVM_COV_HDR_BYTES	24
++
++/* flags: a single u32. */
++#define PKVM_COV_FLAG_ENABLED  (1u << 0)	/* host-set: collect on this CPU */
++#define PKVM_COV_FLAG_OVERFLOW (1u << 1)	/* hyp-set: buffer filled, PCs dropped */
++
++struct pkvm_cov_ring {
++	__u32 count;			/* number of valid entries in pcs[] (hyp-written) */
++	__u32 flags;			/* PKVM_COV_FLAG_* */
++	/*
++	 * Per-#23 producer counters. Host zeroes them in pkvm_cov_begin() before
++	 * the release-set of ENABLED; hyp increments them; host snapshots them in
++	 * pkvm_cov_end() after its acquire-load of `count`.
++	 *
++	 * Publication: `hits` and `dropped` are written before the hyp's
++	 * release-store of `count` / `flags`, so the host's acquire loads expose
++	 * them. `nested` has no such pairing, and is instead published by the
++	 * EL2->EL1 ERET: the drain only ever runs on the buffer's owner CPU (the
++	 * owner guard in pkvm_cov_begin() returns false otherwise), so producer and
++	 * consumer are the same PE and the exception return is a context
++	 * synchronization event. A future per-CPU / cross-CPU buffer MUST replace
++	 * this with an explicit release.
++	 */
++	__u32 hits;			/* armed SanCov callbacks entered, this #23 */
++	__u32 dropped;			/* of those, discarded because the buffer was full */
++	__u32 nested;			/* callbacks discarded by the recursion guard */
++	/*
++	 * PC slots in pcs[]. Written ONCE by the host at setup, before the buffer
++	 * pointer is published, and only ever read by the host — reached through
++	 * the same pointer, so the address dependency orders it with no extra
++	 * barrier. The hyp does NOT read this field: it derives its own bound from
++	 * the nr_pages it validated and pinned, so a corrupted header can never
++	 * make the producer write outside the pinned range.
++	 */
++	__u32 capacity;
++	__u64 pcs[];			/* EL2 hyp-VA program counters */
++};
++
++_Static_assert(sizeof(struct pkvm_cov_ring) == PKVM_COV_HDR_BYTES,
++	       "pkvm_cov_ring header must stay PKVM_COV_HDR_BYTES with pcs[] flexible");
++
++/* PC slots available in an nr_pages buffer. 1 page -> 509, 4 pages -> 2045. */
++static inline __u32 pkvm_cov_capacity_for(__u32 nr_pages)
++{
++	return (nr_pages * PAGE_SIZE - PKVM_COV_HDR_BYTES) / sizeof(__u64);
++}
++
++#ifndef __KVM_NVHE_HYPERVISOR__
++/*
++ * Host (EL1) drain side — arch/arm64/kvm/pkvm_cov.c. Not visible to the hyp build.
++ *
++ * begin() hands back the buffer AND its capacity in one shot, so end() never has
++ * to re-read global state that a concurrent disable() could be changing.
++ */
++struct pkvm_cov_ctx {
++	struct pkvm_cov_ring *ring;
++	__u32 capacity;
++};
++
++unsigned long pkvm_cov_runtime_to_link(unsigned long pc);	/* runtime hyp-VA -> link addr, 0 if out of range */
++bool pkvm_cov_begin(struct pkvm_cov_ctx *ctx);	/* #23 hook: arm iff owner CPU + KCOV active */
++void pkvm_cov_end(struct pkvm_cov_ctx *ctx);	/* #23 hook: disarm, drain+convert PCs, kcov_add_pcs() */
++#endif
++
++#endif /* __ASM_KVM_PKVM_COV_H */
+diff --git a/arch/arm64/kvm/Kconfig b/arch/arm64/kvm/Kconfig
+index a1ca0a9aa7db..529209468f14 100644
+--- a/arch/arm64/kvm/Kconfig
++++ b/arch/arm64/kvm/Kconfig
+@@ -124,6 +124,32 @@ config XCORE_UNIT_TEST
+ 
+ 	  If unsure, say N.
+ 
++config PKVM_EL2_COV
++	bool "pKVM EL2 (Rust hyp) coverage for syzkaller (Stage-2 KCOV)"
++	depends on KVM && X1_RMS && KCOV
++	depends on !RANDOMIZE_BASE
++	depends on !PREEMPT_RT
++	default n
++	help
++	  Instrument the protected-KVM Rust hypervisor with SanCov trace-pc and
++	  build it with DWARF line info, so EL2 program counters can be drained
++	  around a host->hyp boundary into the fuzzer task's KCOV area and
++	  symbolized to Rust source. This is a fuzzing/debug option only; it grows
++	  the hyp image and adds a per-basic-block callback. It never changes any
++	  existing hypercall id (its own id is guarded and explicitly dispatched).
++
++	  Depends on !RANDOMIZE_BASE: the drain converts a runtime hyp PC to its
++	  vmlinux link address (pkvm_cov_runtime_to_link), which only equals the
++	  offline vmlinux address when KASLR is off. With KASLR on the recovered
++	  address would not symbolize against the offline vmlinux.
++
++	  Depends on !PREEMPT_RT: the drain's teardown treats the mmu_lock-held
++	  begin->end window as an RCU read-side section (preemption disabled). On
++	  PREEMPT_RT the rwlock is a sleeping lock and does not disable preemption,
++	  so that assumption — and the single-CPU owner stability — would not hold.
++
++	  If unsure, say N.
++
+ config XCORE_STATS
+ 	bool "X Core stats support"
+ 	depends on KVM
+diff --git a/arch/arm64/kvm/Makefile b/arch/arm64/kvm/Makefile
+index 42b1a0c4141a..7bd2263cffdc 100644
+--- a/arch/arm64/kvm/Makefile
++++ b/arch/arm64/kvm/Makefile
+@@ -26,6 +26,13 @@ kvm-y += arm.o mmu.o mmio.o psci.o hypercalls.o pvtime.o \
+ 
+ kvm-$(CONFIG_XCORE_UNIT_TEST) += xcore_unit_test.o
+ kvm-$(CONFIG_XCORE_STATS) += xcore_stats.o
++kvm-$(CONFIG_PKVM_EL2_COV) += pkvm_cov.o
++# The EL2-coverage drain is coverage plumbing, not a fuzz target. Instrumenting it
++# makes it report on itself: Step-1A measured 186,488 of the 446,058 KCOV entries
++# in one smoke call (42%) coming from pkvm_cov_end()/pkvm_cov_runtime_to_link()
++# looping over the PCs they are delivering -- roughly 7 entries of self-noise per
++# EL2 PC forwarded. Same rationale as KCOV_INSTRUMENT_kcov.o := n in kernel/Makefile.
++KCOV_INSTRUMENT_pkvm_cov.o := n
+ 
+ kvm-$(CONFIG_HW_PERF_EVENTS)  += pmu-emul.o pmu.o
+ kvm-$(CONFIG_PTDUMP_STAGE2_DEBUGFS) += ptdump.o
+diff --git a/arch/arm64/kvm/hyp/nvhe/Makefile b/arch/arm64/kvm/hyp/nvhe/Makefile
+index 444932a04ebe..36e6b36f220c 100644
+--- a/arch/arm64/kvm/hyp/nvhe/Makefile
++++ b/arch/arm64/kvm/hyp/nvhe/Makefile
+@@ -25,6 +25,7 @@ hyp-obj-y := timer-sr.o sysreg-sr.o debug-sr.o switch.o tlb.o hyp-init.o host.o
+ 	 hyp-main.o hyp-smp.o psci-relay.o alloc.o early_alloc.o page_alloc.o \
+ 	 cache.o setup.o mm.o mem_protect.o sys_regs.o pkvm.o stacktrace.o ffa.o \
+ 	 serial.o alloc_mgt.o
++hyp-obj-$(CONFIG_PKVM_EL2_COV) += cov.o
+ hyp-obj-$(CONFIG_XCORE_UNIT_TEST) += xcore_unit_test_hyp.o
+ hyp-obj-y += ../vgic-v3-sr.o ../aarch32.o ../vgic-v2-cpuif-proxy.o ../entry.o \
+ 	 ../fpsimd.o ../hyp-entry.o ../exception.o ../pgtable.o  iommu/iommu.o
+@@ -129,7 +130,7 @@ $(obj)/rust/src/bindings/bindings_generated.rs: $(src)/rust/src/bindings/binding
+ 
+ # 添加Rust构建规则 - 同时创建.o和.nvhe.o文件
+ $(obj)/rust/nvhe_rust.o: $(obj)/rust/src/bindings/bindings_generated.rs FORCE
+-	$(Q)cd $(src) && CONFIG_XCORE_UNIT_TEST=$(CONFIG_XCORE_UNIT_TEST) ./rust/build_rust.sh
++	$(Q)cd $(src) && CONFIG_XCORE_UNIT_TEST=$(CONFIG_XCORE_UNIT_TEST) CONFIG_PKVM_EL2_COV=$(CONFIG_PKVM_EL2_COV) ./rust/build_rust.sh
+ 
+ # 添加.nvhe.o构建规则
+ $(obj)/rust/nvhe_rust.nvhe.o: $(obj)/rust/nvhe_rust.o
+diff --git a/arch/arm64/kvm/hyp/nvhe/cov.c b/arch/arm64/kvm/hyp/nvhe/cov.c
+new file mode 100644
+index 000000000000..09d75fdeb918
+--- /dev/null
++++ b/arch/arm64/kvm/hyp/nvhe/cov.c
+@@ -0,0 +1,133 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Stage-2 EL2 coverage producer (pKVM hyp side).
++ *
++ * The Rust hyp crate is built with SanCov trace-pc (build_rust.sh, gated by
++ * CONFIG_PKVM_EL2_COV), so every basic block calls __sanitizer_cov_trace_pc().
++ * This file provides that callback.  It is in the nvhe C build, which is NOT
++ * SanCov-instrumented, and the callback is additionally marked `notrace`, so it
++ * cannot recurse into itself.
++ *
++ * The ring is a host-shared page (struct pkvm_cov_ring) registered per-CPU by
++ * __pkvm_cov_setup.  The host sets PKVM_COV_FLAG_ENABLED and reads count/pcs[]
++ * directly; the hyp appends PCs with a release (pc, then count) so the host's
++ * acquire load of `count` only exposes fully-written PCs.  MVP assumes the
++ * fuzzer thread is CPU-pinned, so producer and consumer share one CPU.
++ */
++#include <asm/barrier.h>
++#include <asm/percpu.h>
++#include <asm/kvm_pkvm_cov.h>
++#include <nvhe/memory.h>
++#include <nvhe/mem_protect.h>
++
++static DEFINE_PER_CPU(struct pkvm_cov_ring *, pkvm_cov_ring);
++/*
++ * Capacity and byte size are derived at setup from the nr_pages the hyp itself
++ * validated, NOT from the shared header. The host is untrusted here: if the
++ * producer took its bound from a host-writable field, a corrupted header would
++ * make it write past the pinned range.
++ */
++static DEFINE_PER_CPU(u32, pkvm_cov_capacity);
++static DEFINE_PER_CPU(size_t, pkvm_cov_bytes);
++static DEFINE_PER_CPU(bool, pkvm_cov_in_cb);
++
++/* SanCov trace-pc callback: record the caller's PC (the instrumented block). */
++void notrace __sanitizer_cov_trace_pc(void)
++{
++	struct pkvm_cov_ring *r = __this_cpu_read(pkvm_cov_ring);
++	u32 count, capacity;
++
++	/* Acquire: pair with the host's release when it sets ENABLED. */
++	if (!r || !(smp_load_acquire(&r->flags) & PKVM_COV_FLAG_ENABLED))
++		return;
++	/*
++	 * Drop nested callbacks on this CPU (e.g. an EL2 exception re-entering
++	 * instrumented code) rather than racing the ring — better to lose a PC
++	 * than to corrupt count/pcs. Interrupts are masked in the hyp, so the
++	 * CPU is stable across this window. Count them so a nested storm cannot
++	 * masquerade as "the hyp simply executed fewer blocks".
++	 */
++	if (__this_cpu_read(pkvm_cov_in_cb)) {
++		WRITE_ONCE(r->nested, READ_ONCE(r->nested) + 1);
++		return;
++	}
++	__this_cpu_write(pkvm_cov_in_cb, true);
++
++	/*
++	 * Count the hit BEFORE deciding whether it fits. This is the whole point of
++	 * the loss accounting: `count` saturates at the ring size, `hits` does not,
++	 * so hits - count is the exact number of EL2 PCs this #23 could not deliver.
++	 */
++	WRITE_ONCE(r->hits, READ_ONCE(r->hits) + 1);
++
++	capacity = __this_cpu_read(pkvm_cov_capacity);
++	count = READ_ONCE(r->count);
++	if (count < capacity) {
++		r->pcs[count] = (u64)__builtin_return_address(0);
++		/* Release: the PC store, and the `hits` store above, are visible
++		 * before the count the host acquires. */
++		smp_store_release(&r->count, count + 1);
++	} else {
++		WRITE_ONCE(r->dropped, READ_ONCE(r->dropped) + 1);
++		/* Release so the host's acquire-load of flags observes OVERFLOW (and
++		 * the counters stored above); the host also treats
++		 * count == capacity as truncated regardless. */
++		smp_store_release(&r->flags, READ_ONCE(r->flags) | PKVM_COV_FLAG_OVERFLOW);
++	}
++
++	__this_cpu_write(pkvm_cov_in_cb, false);
++}
++
++/*
++ * __pkvm_cov_setup(pfn, nr_pages) hypercall body.  The host has already shared
++ * the whole physically-contiguous range via __pkvm_host_share_hyp(); here we pin
++ * it and register it as this CPU's buffer (pfn != 0), or unpin + clear it
++ * (pfn == 0).  Lifecycle mirrors the hyp trace ring (trace.c): share_hyp (host)
++ * -> hyp_pin_shared_mem (hyp), and the reverse on teardown.  Returns 0 or a
++ * negative errno.
++ *
++ * nr_pages arrives from the untrusted host, so it is validated here before it is
++ * used to size anything: a bogus value would otherwise mean an unbounded pin
++ * range and an unbounded producer bound.  The unpin length is taken from what we
++ * recorded at setup, never from a later host-supplied value.
++ */
++int pkvm_cov_setup(u64 pfn, u64 nr_pages)
++{
++	struct pkvm_cov_ring *old = __this_cpu_read(pkvm_cov_ring);
++	void *va;
++	int ret;
++
++	/* Teardown: unpin the previously-registered buffer on this CPU. */
++	if (!pfn) {
++		if (old) {
++			size_t bytes = __this_cpu_read(pkvm_cov_bytes);
++
++			/*
++			 * Clear the callback-visible pointer FIRST, so a subsequent
++			 * __sanitizer_cov_trace_pc() reads NULL and bails, then unpin.
++			 * Unpinning while the pointer is still live would risk a
++			 * use-after-unpin of the buffer.
++			 */
++			__this_cpu_write(pkvm_cov_ring, NULL);
++			__this_cpu_write(pkvm_cov_capacity, 0);
++			barrier();
++			hyp_unpin_shared_mem((void *)old, (void *)old + bytes);
++			__this_cpu_write(pkvm_cov_bytes, 0);
++		}
++		return 0;
++	}
++	if (old)		/* already set up on this CPU */
++		return -EBUSY;
++	/* Untrusted input: bound it, and require a power of two (host uses order-N). */
++	if (!nr_pages || nr_pages > PKVM_COV_MAX_PAGES || (nr_pages & (nr_pages - 1)))
++		return -EINVAL;
++
++	va = hyp_phys_to_virt((phys_addr_t)pfn << PAGE_SHIFT);
++	ret = hyp_pin_shared_mem(va, va + nr_pages * PAGE_SIZE);
++	if (ret)
++		return ret;
++	__this_cpu_write(pkvm_cov_bytes, (size_t)nr_pages * PAGE_SIZE);
++	__this_cpu_write(pkvm_cov_capacity, pkvm_cov_capacity_for((u32)nr_pages));
++	__this_cpu_write(pkvm_cov_ring, (struct pkvm_cov_ring *)va);
++	return 0;
++}
+diff --git a/arch/arm64/kvm/hyp/nvhe/rust/build_rust.sh b/arch/arm64/kvm/hyp/nvhe/rust/build_rust.sh
+index ed7d912c00cd..38ac50fccc2a 100755
+--- a/arch/arm64/kvm/hyp/nvhe/rust/build_rust.sh
++++ b/arch/arm64/kvm/hyp/nvhe/rust/build_rust.sh
+@@ -26,7 +26,7 @@ echo "Using cross compiler: $CROSS_COMPILE"
+ 
+ # 设置Rust工具链和目标
+ export PATH="$HOME/.cargo/bin:$PATH"
+-export RUSTUP_TOOLCHAIN=nightly
++export RUSTUP_TOOLCHAIN=nightly-2025-05-05
+ export CARGO_BUILD_TARGET=aarch64-unknown-none
+ 
+ # 获取rustc_cfg路径
+@@ -45,12 +45,23 @@ fi
+ # # 清理之前的编译
+ # cargo clean
+ 
+-# 确保rust-src组件已安装
+-rustup component add rust-src --toolchain nightly || true
++# 确保rust-src组件已安装 (pin to the same toolchain as RUSTUP_TOOLCHAIN, not floating nightly)
++rustup component add rust-src --toolchain nightly-2025-05-05 || true
+ 
+ # 设置Rust编译选项，禁用GOT/PLT并使用静态链接
+ export RUSTFLAGS="-C relocation-model=static -C code-model=small -C opt-level=3 -C panic=abort -C force-unwind-tables=no -C target-feature=-neon"
+ 
++# Stage-2 EL2 coverage (config-gated): DWARF line tables (for symbolization) + SanCov trace-pc (the EL2
++# coverage producer). Only when CONFIG_PKVM_EL2_COV is set. The __sanitizer_cov_trace_pc callback body is
++# the (uninstrumented) nvhe C file cov.c.
++if [ -n "$CONFIG_PKVM_EL2_COV" ]; then
++    echo "CONFIG_PKVM_EL2_COV enabled: adding -C debuginfo=2 + SanCov trace-pc to the Rust hyp"
++    # --cfg so #[cfg(CONFIG_PKVM_EL2_COV)] dispatch/handlers in the Rust hyp are compiled in
++    # (mirrors the CONFIG_XCORE_UNIT_TEST handling below).
++    export RUSTFLAGS="$RUSTFLAGS --cfg=CONFIG_PKVM_EL2_COV -C debuginfo=2 -C passes=sancov-module -C llvm-args=-sanitizer-coverage-level=3 -C llvm-args=-sanitizer-coverage-trace-pc"
++    export CARGO_PROFILE_RELEASE_DEBUG=2
++fi
++
+ # 检查是否启用了CONFIG_XCORE_UNIT_TEST
+ # 这个环境变量由内核构建系统设置
+ if [ -n "$CONFIG_XCORE_UNIT_TEST" ]; then
+diff --git a/arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs b/arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs
+index be4049fac6c3..52c4ceea1b64 100644
+--- a/arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs
++++ b/arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs
+@@ -1633,6 +1633,23 @@ fn handle_host_hcall(&mut self) {
+         id &= !(ARM_SMCCC_CALL_HINTS as u64);
+         id = id.wrapping_sub(KVM_HOST_SMCCC_ID_0 as u64);
+ 
++        // Stage-2 EL2 coverage setup: explicit dispatch BEFORE the fixed HOST_HCALL table, so it
++        // never occupies a table slot and never shifts any existing hypercall id (incl. unit-test).
++        #[cfg(CONFIG_PKVM_EL2_COV)]
++        if id == crate::bindings::__kvm_host_smccc_func___KVM_HOST_SMCCC_FUNC___pkvm_cov_setup as u64 {
++            let pfn = unsafe { declare_reg::<u64>(self, 1) };
++            let nr_pages = unsafe { declare_reg::<u64>(self, 2) };
++            // nr_pages comes from the untrusted host; pkvm_cov_setup() validates it
++            // before it is used to size the pin range or the producer's bound.
++            let ret = unsafe { pkvm_cov_setup(pfn, nr_pages) };
++            // HVC return ABI (kvm_host.h): a0 = dispatch status (MUST be SUCCESS, else the host's
++            // kvm_call_hyp_nvhe WARN_ONs), a1 = this function's return value (0 or -errno).
++            self.regs.regs[0] = SMCCC_RET_SUCCESS as u64;
++            self.regs.regs[1] = ret as i64 as u64;
++            trace_host_hcall(id, (ret != 0) as u32);
++            return;
++        }
++
+         // 动态 hypercall 分发
+         if handle_host_dynamic_hcall(&mut self.regs as *mut _, id as i32) == HCALL_HANDLED {
+             trace_host_hcall(id, 0);
+@@ -2909,6 +2926,9 @@ pub fn sync_hyp_vcpu(&mut self, exit_reason: u32) {
+     fn __kvm_hyp_host_forward_smc(host_ctxt: *mut kvm_cpu_context);
+     // vcpu_sev_pffr的包装函数,原函数定义在arch/arm64/include/asm/kvm_host.h中
+     fn xcore_rust_vcpu_sve_pffr(vcpu: *mut kvm_vcpu) -> *mut c_void;
++    // Stage-2 EL2 coverage: pin+register (pfn != 0) or unpin (pfn == 0) this CPU's shared ring. In cov.c.
++    #[cfg(CONFIG_PKVM_EL2_COV)]
++    fn pkvm_cov_setup(pfn: u64, nr_pages: u64) -> core::ffi::c_int;
+ }
+ 
+ ///
+diff --git a/arch/arm64/kvm/mmu.c b/arch/arm64/kvm/mmu.c
+index 55c8ae82c3dc..08f5b59d430f 100644
+--- a/arch/arm64/kvm/mmu.c
++++ b/arch/arm64/kvm/mmu.c
+@@ -21,6 +21,9 @@
+ #include <asm/kvm_asm.h>
+ #include <asm/kvm_emulate.h>
+ #include <asm/virt.h>
++#ifdef CONFIG_PKVM_EL2_COV
++#include <asm/kvm_pkvm_cov.h>	/* pkvm_cov_begin/end — Stage-2 EL2 coverage drain */
++#endif
+ 
+ #include "trace.h"
+ 
+@@ -669,6 +672,41 @@ void kvm_unshare_hyp(void *from, void *to)
+ 	}
+ }
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++/*
++ * Same as kvm_unshare_hyp() but propagates unshare_pfn_hyp() failures instead of
++ * only WARN_ON-ing them, so the pKVM EL2-coverage teardown can leak (not free) a
++ * buffer whose host->hyp share could not be confirmed torn down.
++ *
++ * RANGE-COMPLETE CONTRACT: every page in [from, to) is attempted even after one
++ * of them fails, and the FIRST error is returned. Bailing out on the first
++ * failure — which this used to do, when the buffer was a single experiment page
++ * — would leave the *remaining* pages still shared and still EL2-mapped, with
++ * their host rb-tree records intact. Refusing to free the block keeps that safe,
++ * but it is not a cleanup: the caller could never bring the range back to a known
++ * state, and a later enable() would collide with the stale records.
++ */
++int kvm_unshare_hyp_checked(void *from, void *to)
++{
++	phys_addr_t start, end, cur;
++	u64 pfn;
++	int ret = 0, err;
++
++	if (is_kernel_in_hyp_mode() || kvm_host_owns_hyp_mappings() || !from)
++		return 0;
++
++	start = ALIGN_DOWN(__pa(from), PAGE_SIZE);
++	end = PAGE_ALIGN(__pa(to));
++	for (cur = start; cur < end; cur += PAGE_SIZE) {
++		pfn = __phys_to_pfn(cur);
++		err = unshare_pfn_hyp(pfn);
++		if (err && !ret)
++			ret = err;	/* remember the first, but keep unwinding */
++	}
++	return ret;
++}
++#endif
++
+ /**
+  * create_hyp_mappings - duplicate a kernel virtual address range in Hyp mode
+  * @from:	The virtual kernel start address of the range
+@@ -1756,8 +1794,25 @@ static int pkvm_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t *fault_ipa,
+ 		goto retry;
+ 	}
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++	/*
++	 * Stage-2 EL2 coverage: arm the per-CPU ring, let EL2 fill it during the
++	 * map below, then drain on BOTH outcomes. Tight wrap around the single
++	 * host->hyp call, inside the mmu_lock window; never changes `ret`.
++	 */
++	{
++		struct pkvm_cov_ctx cov;
++		bool armed = pkvm_cov_begin(&cov);
++
++		ret = pkvm_host_map_guest(pfn, *fault_ipa >> PAGE_SHIFT,
++					  page_size >> PAGE_SHIFT, KVM_PGTABLE_PROT_R);
++		if (armed)
++			pkvm_cov_end(&cov);
++	}
++#else
+ 	ret = pkvm_host_map_guest(pfn, *fault_ipa >> PAGE_SHIFT,
+ 				  page_size >> PAGE_SHIFT, KVM_PGTABLE_PROT_R);
++#endif
+ 	if (ret) {
+ 		if (ret == -EAGAIN)
+ 			ret = 0;
+diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
+new file mode 100644
+index 000000000000..4dac24671477
+--- /dev/null
++++ b/arch/arm64/kvm/pkvm_cov.c
+@@ -0,0 +1,659 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Stage-2 EL2 coverage — host (EL1) side.
++ *
++ * The EL2 SanCov callback (hyp/nvhe/cov.c) records hyp *runtime* PCs into a
++ * host-shared per-CPU ring. This file owns the host end of that ring:
++ *
++ *   - pkvm_cov_runtime_to_link(): convert a runtime hyp PC to its vmlinux
++ *     __kvm_nvhe_ *link* address, so syzkaller/DWARF can symbolize it.
++ *   - pkvm_cov_enable()/disable(): allocate + kvm_share_hyp() the ring page and
++ *     register/unregister it with EL2 on the owner CPU (debugfs-triggered).
++ *   - pkvm_cov_begin()/end(): the pKVM #23 (pkvm_host_map_guest) drain — arm the
++ *     ring, let EL2 fill it during the map, then convert + hand the PCs to
++ *     kcov_add_pcs() in the faulting task's KCOV area.
++ *
++ * MVP scope: ONE page, ONE CPU. Coverage is attributed by `current` (the task
++ * whose KVM_RUN took the #23 fault), so the drain lands in exactly that task's
++ * KCOV area. Because the ring is single-CPU, KVM_RUNs on any other CPU collect
++ * nothing (owner-CPU guard below) — so this mode REQUIRES strict serialization
++ * (procs=1, no Threaded, no Collide) and the executor pinned to the owner CPU.
++ * Per-online-CPU rings (to allow controlled concurrency) are a later step.
++ */
++#include <linux/types.h>
++#include <linux/kcov.h>
++#include <linux/debugfs.h>
++#include <linux/seq_file.h>	/* stats export */
++#include <linux/string.h>	/* memset/memcpy of the stats block */
++#include <linux/bitops.h>	/* fls() for the log2 histogram */
++#include <linux/minmax.h>	/* min_t() */
++#include <linux/kvm_host.h>	/* kvm_debugfs_dir */
++#include <linux/gfp.h>
++#include <linux/mm.h>
++#include <linux/smp.h>
++#include <linux/mutex.h>
++#include <linux/printk.h>
++#include <linux/preempt.h>
++#include <linux/rcupdate.h>
++#include <asm/barrier.h>
++#include <asm/sections.h>	/* __hyp_text_start / __hyp_text_end */
++#include <asm/memory.h>		/* lm_alias */
++#include <asm/kvm_asm.h>	/* __KVM_HOST_SMCCC_FUNC___pkvm_cov_setup */
++#include <asm/kvm_host.h>	/* kvm_call_hyp_nvhe */
++#include <asm/kvm_mmu.h>	/* kern_hyp_va, kvm_share_hyp, kvm_unshare_hyp */
++#include <asm/kvm_pkvm_cov.h>
++
++/*
++ * Convert an EL2 hyp runtime PC to its vmlinux __kvm_nvhe_* link address.
++ *
++ * The nVHE hyp-VA is a *tagged* __kern_hyp_va() transform (NOT hyp_physvirt_offset,
++ * which is the hyp-VA<->phys relation). It is only a constant offset *within* the
++ * contiguous hyp .text, so a single anchor reverses PCs in that range and a range
++ * check is mandatory. The runtime base is kern_hyp_va(lm_alias(__hyp_text_start))
++ * (matching hyp_events.c): lm_alias() is required because __hyp_text_start is a
++ * kernel-image symbol while __kern_hyp_va() expects the linear-map alias of the
++ * same physical page.
++ *
++ * Prerequisite: CONFIG_RANDOMIZE_BASE=n (enforced by Kconfig), so the returned
++ * link address matches the offline vmlinux. Returns 0 for a PC outside the hyp
++ * text (caller drops it).
++ */
++unsigned long pkvm_cov_runtime_to_link(unsigned long pc)
++{
++	unsigned long link_start = (unsigned long)__hyp_text_start;
++	unsigned long hyp_start  = (unsigned long)kern_hyp_va(lm_alias((unsigned long)__hyp_text_start));
++	unsigned long text_size  = (unsigned long)__hyp_text_end - (unsigned long)__hyp_text_start;
++
++	if (pc < hyp_start || pc - hyp_start >= text_size)
++		return 0;
++	return link_start + (pc - hyp_start);
++}
++
++/* ---- multi-page / single-CPU host buffer state ---- */
++
++static DEFINE_MUTEX(pkvm_cov_lock);	/* serializes enable/disable */
++/*
++ * RCU-protected so the lockless #23 readers (pkvm_cov_begin/end) can never race a
++ * concurrent disable() into a use-after-free. begin()/end() run under
++ * kvm->mmu_lock (preemption off on a non-RT kernel = an RCU read-side section);
++ * disable() publishes NULL then synchronize_rcu() before it may free the pages.
++ */
++static struct pkvm_cov_ring __rcu *pkvm_cov_host_ring;	/* host linear-map vaddr, or NULL */
++static int pkvm_cov_owner_cpu = -1;	/* CPU whose EL2 buffer this is */
++static u32 pkvm_cov_nr_pages = PKVM_COV_DEFAULT_PAGES;	/* size for the NEXT enable() */
++/*
++ * Pages we have ATTEMPTED to share with the hyp, not pages successfully shared.
++ * share_pfn_hyp() inserts the host rb-tree record BEFORE the EL2 hypercall and
++ * does not roll it back if that call fails, so a page whose share returned an
++ * error may still be recorded and/or mapped. Cleanup must therefore cover
++ * [0, attempted), not [0, succeeded).
++ */
++static u32 pkvm_cov_attempted_pages;
++
++/*
++ * TEST-ONLY fault injection, so the leak-if-unconfirmed paths can actually be
++ * exercised on hardware instead of only being read. Default 0; debugfs-writable
++ * on a fuzzing kernel (this whole file is CONFIG_PKVM_EL2_COV). Each bit is
++ * consumed once, then cleared, so a single write arms exactly one failure.
++ */
++#define PKVM_COV_FI_TEARDOWN_HYP	(1u << 0)	/* pretend __pkvm_cov_setup(0) failed */
++#define PKVM_COV_FI_UNSHARE		(1u << 1)	/* pretend the unshare was unconfirmed */
++#define PKVM_COV_FI_ENABLE_SETUP	(1u << 2)	/* pretend the EL2 setup hypercall failed */
++static u32 pkvm_cov_fault_inject;
++
++static bool pkvm_cov_fi_take(u32 bit)
++{
++	if (!(pkvm_cov_fault_inject & bit))
++		return false;
++	pkvm_cov_fault_inject &= ~bit;	/* one-shot; caller holds pkvm_cov_lock */
++	return true;
++}
++
++/* ---- Step 1B: cumulative, exportable loss accounting ---------------------
++ *
++ * dmesg cannot answer "how much coverage did we lose": pr_warn_ratelimited both
++ * undercounts (it is rate limited) and, on a board with a serial console, costs
++ * ~100k KCOV entries per line because pl011_console_write busy-polls the UART
++ * inside the very call we are measuring. So the bridge no longer prints per-#23;
++ * it counts, and debugfs exports the totals.
++ *
++ * All updates happen in pkvm_cov_end() under kvm->mmu_lock with preemption off
++ * on the single owner CPU, so they are effectively serialized. The debugfs
++ * reader races them; that is fine for statistics, and READ_ONCE/WRITE_ONCE keeps
++ * the compiler from tearing or refetching.
++ */
++#define PKVM_COV_HIST_BUCKETS 16	/* bucket i == per-#23 hit counts in [2^(i-1), 2^i) */
++
++static struct pkvm_cov_gstats {
++	u64 begin_calls;	/* pkvm_cov_begin() entries with a live ring */
++	u64 skip_not_owner;	/* ... skipped: wrong CPU */
++	u64 skip_no_kcov;	/* ... skipped: task not collecting trace-pc */
++	u64 drains;		/* pkvm_cov_end() calls (== armed #23 windows) */
++	u64 hits;		/* EL2 SanCov callbacks entered while armed */
++	u64 written;		/* EL2 PCs that fit in the ring */
++	u64 dropped_ring;	/* EL2 PCs discarded: ring already full */
++	u64 nested;		/* EL2 callbacks discarded by the recursion guard */
++	u64 overflows;		/* #23 windows that hit the ring cap */
++	u64 link_ok;		/* runtime->link conversions that landed in hyp .text */
++	u64 link_drop;		/* ... and those that did not (dropped) */
++	u64 kcov_requested;	/* link PCs handed to kcov_add_pcs() */
++	u64 kcov_accepted;	/* ... actually stored */
++	u64 kcov_mode_lost;	/* batches rejected: task left trace-pc mid-drain */
++	u32 hits_max;		/* per-#23 raw callback high-water */
++	u32 written_max;	/* per-#23 delivered high-water */
++	u64 leaked_bytes;	/* buffer bytes deliberately not freed (unconfirmed teardown) */
++	u64 hits_hist[PKVM_COV_HIST_BUCKETS];
++} pkvm_cov_gstats;
++
++static void pkvm_cov_stats_reset(void)
++{
++	memset(&pkvm_cov_gstats, 0, sizeof(pkvm_cov_gstats));
++}
++
++/* IPI body: tear down the EL2 buffer on the owner CPU (pfn == 0), capturing the result. */
++struct pkvm_cov_teardown { int ret; };
++static void pkvm_cov_hyp_teardown_ipi(void *arg)
++{
++	struct pkvm_cov_teardown *t = arg;
++
++	t->ret = kvm_call_hyp_nvhe(__pkvm_cov_setup, 0, 0);
++}
++
++/*
++ * Undo the host->hyp share for every page we ATTEMPTED to share, and free the
++ * block only if every one of those unshares was confirmed.
++ *
++ * kvm_unshare_hyp_checked() attempts the whole range and returns the first
++ * error, so one bad page cannot leave later pages shared. If anything is
++ * unconfirmed we leak the ENTIRE order-N block rather than freeing part of it:
++ * the pages are physically contiguous and were handed to the hyp as one range,
++ * so returning any of them to the page allocator while the hyp may still map a
++ * neighbour is exactly the ownership violation we are trying to avoid.
++ */
++static void pkvm_cov_release_pages(struct pkvm_cov_ring *ring, u32 nr_pages,
++				   u32 attempted, const char *what)
++{
++	size_t bytes = (size_t)nr_pages * PAGE_SIZE;
++	int ret = 0;
++
++	if (attempted)
++		ret = kvm_unshare_hyp_checked(ring, (char *)ring + attempted * PAGE_SIZE);
++	if (!ret && pkvm_cov_fi_take(PKVM_COV_FI_UNSHARE)) {
++		ret = -EIO;
++		pr_warn("pkvm_cov: FAULT INJECTION — treating unshare as unconfirmed\n");
++	}
++	if (ret) {
++		pkvm_cov_gstats.leaked_bytes += bytes;
++		pr_warn("pkvm_cov: %s — unshare unconfirmed (%d) over %u/%u pages, LEAKING the whole %zu-byte block (EL2 may still map it)\n",
++			what, ret, attempted, nr_pages, bytes);
++		return;
++	}
++	free_pages((unsigned long)ring, get_order(bytes));
++}
++
++/*
++ * Allocate the shared ring, kvm_share_hyp() it (public API — keeps host page
++ * refcounts correct, unlike a raw __pkvm_host_share_hyp), and register it as this
++ * CPU's EL2 ring. The caller must be pinned to the intended owner CPU; that CPU
++ * is recorded and enforced at drain time.
++ */
++static int pkvm_cov_enable(void)
++{
++	struct pkvm_cov_ring *ring;
++	unsigned long pages;
++	u32 nr_pages, attempted = 0, i;
++	size_t bytes;
++	int cpu, ret;
++
++	mutex_lock(&pkvm_cov_lock);
++	if (pkvm_cov_host_ring) {
++		ret = -EBUSY;
++		goto out;
++	}
++	nr_pages = pkvm_cov_nr_pages;
++	bytes = (size_t)nr_pages * PAGE_SIZE;
++
++	/*
++	 * Physically contiguous low-end pages (not vmalloc): kvm_share_hyp() maps
++	 * into the hyp's fixed-offset region and walks a physical range, and the hyp
++	 * pins that range off a single PFN, so the buffer must be one order-N block.
++	 */
++	pages = __get_free_pages(GFP_KERNEL | __GFP_ZERO, get_order(bytes));
++	if (!pages) {
++		ret = -ENOMEM;
++		goto out;
++	}
++	ring = (struct pkvm_cov_ring *)pages;
++	/*
++	 * Capacity is host-written once, here, before the buffer pointer is
++	 * published. The hyp does not read it (it derives its own bound from the
++	 * nr_pages it validated), so this field only ever tells the host's own
++	 * drain how far pcs[] runs.
++	 */
++	ring->capacity = pkvm_cov_capacity_for(nr_pages);
++
++	/*
++	 * Share one page at a time so `attempted` is exact. share_pfn_hyp() inserts
++	 * the host rb-tree record BEFORE the EL2 hypercall and does not roll it back
++	 * on failure, so the page whose share returned an error counts as attempted
++	 * too — hence the increment before the call, not after it.
++	 */
++	for (i = 0; i < nr_pages; i++) {
++		char *p = (char *)ring + i * PAGE_SIZE;
++
++		attempted = i + 1;
++		ret = kvm_share_hyp(p, p + PAGE_SIZE);
++		if (ret)
++			goto rollback;
++	}
++
++	cpu = get_cpu();	/* pin to this CPU for the setup hypercall */
++	ret = kvm_call_hyp_nvhe(__pkvm_cov_setup, page_to_pfn(virt_to_page(ring)),
++				nr_pages);
++	put_cpu();
++	if (!ret && pkvm_cov_fi_take(PKVM_COV_FI_ENABLE_SETUP)) {
++		ret = -EIO;
++		pr_warn("pkvm_cov: FAULT INJECTION — treating EL2 setup as failed\n");
++		/*
++		 * EL2 really did register the buffer, so undo that before unsharing;
++		 * otherwise the injection would leave a dangling hyp mapping that has
++		 * nothing to do with the path under test.
++		 */
++		{
++			struct pkvm_cov_teardown undo = { .ret = -EIO };
++
++			smp_call_function_single(cpu, pkvm_cov_hyp_teardown_ipi, &undo, 1);
++		}
++	}
++	if (ret)
++		goto rollback;
++
++	pkvm_cov_owner_cpu = cpu;
++	pkvm_cov_attempted_pages = attempted;
++	rcu_assign_pointer(pkvm_cov_host_ring, ring);	/* release: publishes the initialized buffer */
++	pr_info("pkvm_cov: buffer armed on CPU %d (%u pages, %u PC slots)\n",
++		cpu, nr_pages, ring->capacity);
++	ret = 0;
++	goto out;
++
++rollback:
++	/*
++	 * The share OR the EL2 setup failed. Undo every page we attempted, CHECKED
++	 * and range-complete, and only free when all of them are confirmed;
++	 * otherwise leak the whole block — never hand possibly-shared memory back to
++	 * the page allocator (UAF / ownership violation).
++	 */
++	pkvm_cov_release_pages(ring, nr_pages, attempted, "enable rollback");
++out:
++	mutex_unlock(&pkvm_cov_lock);
++	return ret;
++}
++
++/*
++ * Teardown as a full active-drain lifecycle, not just a NULL write:
++ *   1. disarm + publish NULL      -> new begin() bails
++ *   2. synchronize_rcu()          -> wait for in-flight begin()/end() to finish
++ *   3. __pkvm_cov_setup(0) on the owner CPU, CHECKED -> EL2 drops its pointer
++ *   4. only then unshare + free
++ * If step 3 cannot be confirmed (owner CPU offline, IPI failure, hyp error), EL2
++ * may still reference the page: keep it disabled and LEAK the page rather than
++ * free something the hypervisor can still touch.
++ */
++static void pkvm_cov_disable(void)
++{
++	struct pkvm_cov_ring *ring;
++	struct pkvm_cov_teardown td = { .ret = -EIO };
++	u32 attempted;
++	int owner, ipi;
++
++	mutex_lock(&pkvm_cov_lock);
++	ring = rcu_dereference_protected(pkvm_cov_host_ring,
++					 lockdep_is_held(&pkvm_cov_lock));
++	if (!ring)
++		goto out;
++	owner = pkvm_cov_owner_cpu;
++	attempted = pkvm_cov_attempted_pages;
++
++	/* 1. reject new batches. */
++	smp_store_release(&ring->flags, 0);		/* disarm the producer */
++	rcu_assign_pointer(pkvm_cov_host_ring, NULL);	/* new begin() sees NULL */
++	/* 2. wait for readers that already loaded the old pointer (preempt-off). */
++	synchronize_rcu();
++
++	/* 3. unregister EL2's per-CPU pointer on the owner CPU; must be confirmed. */
++	ipi = (owner < 0) ? -ENXIO
++			  : smp_call_function_single(owner, pkvm_cov_hyp_teardown_ipi, &td, 1);
++	if (!ipi && !td.ret && pkvm_cov_fi_take(PKVM_COV_FI_TEARDOWN_HYP)) {
++		td.ret = -EIO;
++		pr_warn("pkvm_cov: FAULT INJECTION — treating EL2 teardown as unconfirmed\n");
++	}
++	if (ipi || td.ret) {
++		pkvm_cov_gstats.leaked_bytes += (size_t)pkvm_cov_nr_pages * PAGE_SIZE;
++		pr_warn("pkvm_cov: teardown unconfirmed (ipi=%d hyp=%d) — LEAKING the whole %u-page block (EL2 may still map it)\n",
++			ipi, td.ret, pkvm_cov_nr_pages);
++		pkvm_cov_owner_cpu = -1;		/* stays disabled; block intentionally leaked */
++		pkvm_cov_attempted_pages = 0;
++		goto out;
++	}
++
++	/*
++	 * 4. Undo the host->hyp share over every attempted page, CHECKED and
++	 * range-complete; free only if all of them are confirmed, else leak the
++	 * whole block.
++	 */
++	pkvm_cov_release_pages(ring, pkvm_cov_nr_pages, attempted, "teardown");
++	pkvm_cov_owner_cpu = -1;
++	pkvm_cov_attempted_pages = 0;
++	/*
++	 * Summarise here rather than per-#23: this runs from the debugfs write,
++	 * long after the measured call, so the console cost cannot contaminate a
++	 * coverage sample. Full detail is in kvm/pkvm_cov/stats.
++	 */
++	pr_info("pkvm_cov: buffer disarmed (drains=%llu el2_hits=%llu written=%llu lost_in_ring=%llu overflow_drains=%llu kcov_acc=%llu/%llu)\n",
++		pkvm_cov_gstats.drains, pkvm_cov_gstats.hits,
++		pkvm_cov_gstats.written,
++		pkvm_cov_gstats.hits > pkvm_cov_gstats.written
++			? pkvm_cov_gstats.hits - pkvm_cov_gstats.written : 0,
++		pkvm_cov_gstats.overflows,
++		pkvm_cov_gstats.kcov_accepted, pkvm_cov_gstats.kcov_requested);
++out:
++	mutex_unlock(&pkvm_cov_lock);
++}
++
++/*
++ * #23 drain, part 1 — called just before pkvm_host_map_guest() with kvm->mmu_lock
++ * held (preemption off, so smp_processor_id() is stable and this is an RCU
++ * read-side section). Arm the ring only when this is the owner CPU AND the
++ * faulting task is collecting KCOV trace-pc; else skip (coverage is optional,
++ * never wrong). Returns the armed ring for pkvm_cov_end(), or NULL. Cheap: no
++ * alloc, no sleep. The returned pointer stays valid until end() because
++ * disable()'s free waits on synchronize_rcu() for this preempt-off section.
++ */
++bool pkvm_cov_begin(struct pkvm_cov_ctx *ctx)
++{
++	/* preempt-off under mmu_lock is the RCU read-side; suppresses the lockdep check. */
++	struct pkvm_cov_ring *ring =
++		rcu_dereference_check(pkvm_cov_host_ring, !preemptible());
++
++	if (!ring)
++		return false;
++	WRITE_ONCE(pkvm_cov_gstats.begin_calls, pkvm_cov_gstats.begin_calls + 1);
++	if (smp_processor_id() != READ_ONCE(pkvm_cov_owner_cpu)) {
++		/* Counted, not printed: a printk here lands inside the measured call. */
++		WRITE_ONCE(pkvm_cov_gstats.skip_not_owner,
++			   pkvm_cov_gstats.skip_not_owner + 1);
++		return false;
++	}
++	if (!kcov_current_trace_pc()) {
++		WRITE_ONCE(pkvm_cov_gstats.skip_no_kcov,
++			   pkvm_cov_gstats.skip_no_kcov + 1);
++		return false;
++	}
++
++	/* Zero the per-#23 producer counters before publishing ENABLED, so every
++	 * increment the hyp makes belongs to this window and this window only. */
++	WRITE_ONCE(ring->count, 0);
++	WRITE_ONCE(ring->hits, 0);
++	WRITE_ONCE(ring->dropped, 0);
++	WRITE_ONCE(ring->nested, 0);
++	/*
++	 * Capacity travels with the buffer pointer: it is reached through `ring`,
++	 * so the address dependency orders it, and end() never has to re-read
++	 * global state that a concurrent disable() may already be changing. Read it
++	 * before arming, so the producer is not yet running when we do.
++	 */
++	ctx->ring = ring;
++	ctx->capacity = ring->capacity;
++
++	smp_store_release(&ring->flags, PKVM_COV_FLAG_ENABLED);
++	return true;
++}
++
++/*
++ * #23 drain, part 2 — called with the ring pkvm_cov_begin() returned, right after
++ * pkvm_host_map_guest() returns (on BOTH the success and error paths), still under
++ * mmu_lock. Disarm, then convert the EL2 runtime PCs to link addresses and append
++ * them to the faulting task's KCOV area. No alloc / no sleep; a bounded loop over
++ * at most the buffer capacity.
++ */
++void pkvm_cov_end(struct pkvm_cov_ctx *ctx)
++{
++	struct pkvm_cov_ring *ring = ctx->ring;
++	const u32 capacity = ctx->capacity;
++	u64 batch[64];
++	u32 i, count, flags, nb = 0;
++	u32 hits, dropped, nested, bucket;
++	u64 link_ok = 0, link_drop = 0, requested = 0, accepted = 0, mode_lost = 0;
++	bool overflow;
++
++	/* Acquire: pairs with the EL2 callback's release-set of OVERFLOW. */
++	flags = smp_load_acquire(&ring->flags);
++	smp_store_release(&ring->flags, 0);	/* disarm the producer */
++	/* Acquire: pair with the EL2 callback's smp_store_release(&count) so every
++	 * pcs[] entry published before `count` is visible here. */
++	count = smp_load_acquire(&ring->count);
++	/*
++	 * count == capacity is the AUTHORITATIVE truncation signal: it is
++	 * release/acquire-ordered, and the producer stops incrementing at the cap and
++	 * sets OVERFLOW. Treat it as overflow even if the (secondary) flag read raced.
++	 */
++	overflow = (count >= capacity) || (flags & PKVM_COV_FLAG_OVERFLOW);
++	if (count > capacity)
++		count = capacity;
++
++	/*
++	 * Producer-side counters, read after the acquire above. `hits` keeps
++	 * counting past the ring cap, so hits - count is exactly what this #23
++	 * window lost upstream -- the number no coverfile can ever show.
++	 */
++	hits    = READ_ONCE(ring->hits);
++	dropped = READ_ONCE(ring->dropped);
++	nested  = READ_ONCE(ring->nested);
++
++	for (i = 0; i < count; i++) {
++		unsigned long link = pkvm_cov_runtime_to_link((unsigned long)ring->pcs[i]);
++		int n;
++
++		if (!link) {
++			link_drop++;
++			continue;
++		}
++		link_ok++;
++		batch[nb++] = link;
++		if (nb == ARRAY_SIZE(batch)) {
++			n = kcov_add_pcs(batch, nb);
++			requested += nb;
++			if (n < 0)
++				mode_lost += nb;
++			else
++				accepted += n;
++			nb = 0;
++		}
++	}
++	if (nb) {
++		int n = kcov_add_pcs(batch, nb);
++
++		requested += nb;
++		if (n < 0)
++			mode_lost += nb;
++		else
++			accepted += n;
++	}
++
++	/* Accumulate. No printk on this path: see the pkvm_cov_gstats comment. */
++	WRITE_ONCE(pkvm_cov_gstats.drains,        pkvm_cov_gstats.drains + 1);
++	WRITE_ONCE(pkvm_cov_gstats.hits,          pkvm_cov_gstats.hits + hits);
++	WRITE_ONCE(pkvm_cov_gstats.written,       pkvm_cov_gstats.written + count);
++	WRITE_ONCE(pkvm_cov_gstats.dropped_ring,  pkvm_cov_gstats.dropped_ring + dropped);
++	WRITE_ONCE(pkvm_cov_gstats.nested,        pkvm_cov_gstats.nested + nested);
++	WRITE_ONCE(pkvm_cov_gstats.link_ok,       pkvm_cov_gstats.link_ok + link_ok);
++	WRITE_ONCE(pkvm_cov_gstats.link_drop,     pkvm_cov_gstats.link_drop + link_drop);
++	WRITE_ONCE(pkvm_cov_gstats.kcov_requested, pkvm_cov_gstats.kcov_requested + requested);
++	WRITE_ONCE(pkvm_cov_gstats.kcov_accepted,  pkvm_cov_gstats.kcov_accepted + accepted);
++	WRITE_ONCE(pkvm_cov_gstats.kcov_mode_lost, pkvm_cov_gstats.kcov_mode_lost + mode_lost);
++	if (overflow)
++		WRITE_ONCE(pkvm_cov_gstats.overflows, pkvm_cov_gstats.overflows + 1);
++	if (hits > READ_ONCE(pkvm_cov_gstats.hits_max))
++		WRITE_ONCE(pkvm_cov_gstats.hits_max, hits);
++	if (count > READ_ONCE(pkvm_cov_gstats.written_max))
++		WRITE_ONCE(pkvm_cov_gstats.written_max, count);
++	/* log2 buckets give the shape of the per-#23 demand without storing samples */
++	bucket = hits ? min_t(u32, PKVM_COV_HIST_BUCKETS - 1, fls(hits)) : 0;
++	WRITE_ONCE(pkvm_cov_gstats.hits_hist[bucket],
++		   pkvm_cov_gstats.hits_hist[bucket] + 1);
++}
++
++/* ---- debugfs control: kvm/pkvm_cov/{enable,owner_cpu} ---- */
++
++static int pkvm_cov_enable_set(void *data, u64 val)
++{
++	if (val)
++		return pkvm_cov_enable();
++	pkvm_cov_disable();
++	return 0;
++}
++DEFINE_DEBUGFS_ATTRIBUTE(pkvm_cov_enable_fops, NULL, pkvm_cov_enable_set, "%llu\n");
++
++static int pkvm_cov_owner_get(void *data, u64 *val)
++{
++	*val = (u64)(s64)READ_ONCE(pkvm_cov_owner_cpu);
++	return 0;
++}
++DEFINE_DEBUGFS_ATTRIBUTE(pkvm_cov_owner_fops, pkvm_cov_owner_get, NULL, "%lld\n");
++
++/*
++ * kvm/pkvm_cov/stats — the Step-1B data table. Cumulative since boot or since
++ * the last write to kvm/pkvm_cov/stats_reset. Every "lost" line below is a
++ * number that cannot be recovered from a coverfile, because it describes PCs
++ * that were discarded before they ever reached the KCOV area.
++ */
++static int pkvm_cov_stats_show(struct seq_file *s, void *unused)
++{
++	struct pkvm_cov_gstats g;
++	u64 lost_ring, lost_kcov;
++	int i;
++
++	/* one snapshot, so the derived numbers below are self-consistent */
++	memcpy(&g, &pkvm_cov_gstats, sizeof(g));
++	lost_ring = g.hits > g.written ? g.hits - g.written : 0;
++	lost_kcov = g.kcov_requested - g.kcov_accepted;
++
++	seq_printf(s, "ring_pages          %u\n", READ_ONCE(pkvm_cov_nr_pages));
++	seq_printf(s, "ring_capacity_pcs   %u\n",
++		   pkvm_cov_capacity_for(READ_ONCE(pkvm_cov_nr_pages)));
++	seq_printf(s, "owner_cpu           %d\n", READ_ONCE(pkvm_cov_owner_cpu));
++	seq_printf(s, "leaked_bytes        %llu\n", g.leaked_bytes);
++	seq_puts(s, "\n# arm/skip\n");
++	seq_printf(s, "begin_calls         %llu\n", g.begin_calls);
++	seq_printf(s, "skip_not_owner      %llu\n", g.skip_not_owner);
++	seq_printf(s, "skip_no_kcov        %llu\n", g.skip_no_kcov);
++	seq_printf(s, "drains              %llu\n", g.drains);
++	seq_puts(s, "\n# EL2 producer (per-#23, summed)\n");
++	seq_printf(s, "el2_hits            %llu\n", g.hits);
++	seq_printf(s, "el2_written         %llu\n", g.written);
++	seq_printf(s, "el2_dropped_ringful %llu\n", g.dropped_ring);
++	seq_printf(s, "el2_nested_dropped  %llu\n", g.nested);
++	seq_printf(s, "el2_overflow_drains %llu\n", g.overflows);
++	seq_printf(s, "el2_hits_max        %u\n", g.hits_max);
++	seq_printf(s, "el2_written_max     %u\n", g.written_max);
++	seq_printf(s, "LOST_IN_RING        %llu\n", lost_ring);
++	seq_puts(s, "\n# runtime->link conversion\n");
++	seq_printf(s, "link_ok             %llu\n", g.link_ok);
++	seq_printf(s, "link_dropped        %llu\n", g.link_drop);
++	seq_puts(s, "\n# task KCOV delivery\n");
++	seq_printf(s, "kcov_requested      %llu\n", g.kcov_requested);
++	seq_printf(s, "kcov_accepted       %llu\n", g.kcov_accepted);
++	seq_printf(s, "kcov_mode_lost      %llu\n", g.kcov_mode_lost);
++	seq_printf(s, "LOST_IN_KCOV_AREA   %llu\n", lost_kcov - g.kcov_mode_lost);
++	seq_puts(s, "\n# per-#23 hit distribution (log2 buckets)\n");
++	for (i = 0; i < PKVM_COV_HIST_BUCKETS; i++) {
++		if (!g.hits_hist[i])
++			continue;
++		if (i == 0)
++			seq_printf(s, "hits_0              %llu\n", g.hits_hist[i]);
++		else
++			seq_printf(s, "hits_%u_%u %llu\n", 1u << (i - 1),
++				   (1u << i) - 1, g.hits_hist[i]);
++	}
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(pkvm_cov_stats);
++
++static int pkvm_cov_stats_reset_set(void *data, u64 val)
++{
++	if (val)
++		pkvm_cov_stats_reset();
++	return 0;
++}
++DEFINE_DEBUGFS_ATTRIBUTE(pkvm_cov_stats_reset_fops, NULL,
++			 pkvm_cov_stats_reset_set, "%llu\n");
++
++/*
++ * kvm/pkvm_cov/nr_pages — size of the buffer the NEXT enable() will allocate.
++ * Parameterised rather than hardcoded so a ring-capacity sweep needs no rebuild.
++ * Rejected while a buffer is live: the size is baked into the share range, the
++ * EL2 pin length and the producer's bound, so it can only change between
++ * lifecycles.
++ */
++static int pkvm_cov_nr_pages_get(void *data, u64 *val)
++{
++	*val = READ_ONCE(pkvm_cov_nr_pages);
++	return 0;
++}
++static int pkvm_cov_nr_pages_set(void *data, u64 val)
++{
++	int ret = 0;
++
++	if (!val || val > PKVM_COV_MAX_PAGES || (val & (val - 1)))
++		return -EINVAL;		/* power of two, within the EL2-enforced bound */
++	mutex_lock(&pkvm_cov_lock);
++	if (pkvm_cov_host_ring)
++		ret = -EBUSY;
++	else
++		pkvm_cov_nr_pages = val;
++	mutex_unlock(&pkvm_cov_lock);
++	return ret;
++}
++DEFINE_DEBUGFS_ATTRIBUTE(pkvm_cov_nr_pages_fops, pkvm_cov_nr_pages_get,
++			 pkvm_cov_nr_pages_set, "%llu\n");
++
++/*
++ * kvm/pkvm_cov/fault_inject — TEST ONLY. Arms a one-shot failure so the
++ * leak-if-unconfirmed branches can be exercised on real hardware instead of only
++ * being reasoned about. Bit 0: EL2 teardown reports failure. Bit 1: the unshare
++ * is treated as unconfirmed. Bit 2: the enable-time EL2 setup reports failure.
++ * Each bit is consumed by the first branch that reads it.
++ */
++static int pkvm_cov_fi_get(void *data, u64 *val)
++{
++	*val = READ_ONCE(pkvm_cov_fault_inject);
++	return 0;
++}
++static int pkvm_cov_fi_set(void *data, u64 val)
++{
++	if (val & ~(u64)(PKVM_COV_FI_TEARDOWN_HYP | PKVM_COV_FI_UNSHARE |
++			 PKVM_COV_FI_ENABLE_SETUP))
++		return -EINVAL;
++	mutex_lock(&pkvm_cov_lock);
++	pkvm_cov_fault_inject = val;
++	mutex_unlock(&pkvm_cov_lock);
++	return 0;
++}
++DEFINE_DEBUGFS_ATTRIBUTE(pkvm_cov_fi_fops, pkvm_cov_fi_get, pkvm_cov_fi_set, "%llu\n");
++
++static int __init pkvm_cov_debugfs_init(void)
++{
++	struct dentry *dir;
++
++	if (!kvm_debugfs_dir || IS_ERR(kvm_debugfs_dir))
++		return 0;
++	dir = debugfs_create_dir("pkvm_cov", kvm_debugfs_dir);
++	debugfs_create_file("enable", 0200, dir, NULL, &pkvm_cov_enable_fops);
++	debugfs_create_file("owner_cpu", 0400, dir, NULL, &pkvm_cov_owner_fops);
++	debugfs_create_file("stats", 0400, dir, NULL, &pkvm_cov_stats_fops);
++	debugfs_create_file("stats_reset", 0200, dir, NULL, &pkvm_cov_stats_reset_fops);
++	debugfs_create_file("nr_pages", 0600, dir, NULL, &pkvm_cov_nr_pages_fops);
++	debugfs_create_file("fault_inject", 0600, dir, NULL, &pkvm_cov_fi_fops);
++	return 0;
++}
++late_initcall(pkvm_cov_debugfs_init);
+diff --git a/include/linux/kcov.h b/include/linux/kcov.h
+index b851ba415e03..c15cd234d7b2 100644
+--- a/include/linux/kcov.h
++++ b/include/linux/kcov.h
+@@ -28,6 +28,21 @@ enum kcov_mode {
+ void kcov_task_init(struct task_struct *t);
+ void kcov_task_exit(struct task_struct *t);
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++/*
++ * Append externally-collected raw PCs (pKVM EL2 coverage) to current's KCOV area.
++ * Returns the number of entries stored (a short count means the area is full), or
++ * -ENODEV if the task is not collecting trace-pc coverage.
++ */
++int kcov_add_pcs(const u64 *pcs, u32 n);
++/*
++ * True iff the current task is collecting KCOV trace-pc coverage right now.
++ * notrace + no side effects: the pKVM #23 hook calls it to decide whether to arm
++ * the EL2 ring, so KVM calls with no coverage consumer skip the SanCov overhead.
++ */
++bool kcov_current_trace_pc(void);
++#endif
++
+ #define kcov_prepare_switch(t)			\
+ do {						\
+ 	(t)->kcov_mode |= KCOV_IN_CTXSW;	\
+diff --git a/kernel/kcov.c b/kernel/kcov.c
+index f9ac2e9e460f..93814ca4af90 100644
+--- a/kernel/kcov.c
++++ b/kernel/kcov.c
+@@ -225,6 +225,57 @@ void notrace __sanitizer_cov_trace_pc(void)
+ }
+ EXPORT_SYMBOL(__sanitizer_cov_trace_pc);
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++/*
++ * Append externally-collected PCs (pKVM EL2 hyp coverage drained around a
++ * hypercall boundary) into the current task's KCOV area.  Uses the same
++ * re-entrancy-safe order as __sanitizer_cov_trace_pc (publish count, barrier,
++ * then the PC).  The caller (the pKVM #23 hook) passes already-converted
++ * __kvm_nvhe_ *link* addresses (runtime hyp-VA -> link done on the drain side via
++ * the __hyp_text anchor), so no canonicalize_ip() here.  Gated by
++ * CONFIG_PKVM_EL2_COV so the symbol only exists for the fuzz kernel.
++ */
++int notrace kcov_add_pcs(const u64 *pcs, u32 n)
++{
++	struct task_struct *t = current;
++	unsigned long *area;
++	unsigned long pos;
++	u32 i;
++
++	/*
++	 * Returns the number of entries actually stored, or -ENODEV if the task is
++	 * no longer collecting trace-pc at all. The caller (the pKVM #23 drain)
++	 * needs to tell "the KCOV area filled up" apart from "the consumer went
++	 * away mid-drain": both silently lose coverage, but only the first is a
++	 * capacity problem. A short return (< n) means the area is full.
++	 */
++	if (!check_kcov_mode(KCOV_MODE_TRACE_PC, t))
++		return -ENODEV;
++	area = t->kcov_area;
++	for (i = 0; i < n; i++) {
++		pos = READ_ONCE(area[0]) + 1;
++		if (pos >= t->kcov_size)
++			break;
++		WRITE_ONCE(area[0], pos);
++		barrier();
++		area[pos] = (unsigned long)pcs[i];
++	}
++	return i;
++}
++EXPORT_SYMBOL(kcov_add_pcs);
++
++/*
++ * Report whether the current task is in trace-pc collection mode, reusing the
++ * exact gate __sanitizer_cov_trace_pc() uses. notrace so it is safe to call from
++ * the pKVM #23 hook without self-instrumentation; it neither records nor mutates.
++ */
++bool notrace kcov_current_trace_pc(void)
++{
++	return check_kcov_mode(KCOV_MODE_TRACE_PC, current);
++}
++EXPORT_SYMBOL(kcov_current_trace_pc);
++#endif /* CONFIG_PKVM_EL2_COV */
++
+ #ifdef CONFIG_KCOV_ENABLE_COMPARISONS
+ static void notrace write_comp_data(u64 type, u64 arg1, u64 arg2, u64 ip)
+ {

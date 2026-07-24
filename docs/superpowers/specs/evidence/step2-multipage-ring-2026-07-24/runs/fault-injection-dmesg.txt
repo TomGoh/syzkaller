@@ -1,0 +1,10 @@
+[  396.513960] pkvm_cov: FAULT INJECTION \xe2\x80\x94 treating EL2 setup as failed
+[  396.535375] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  396.576527] pkvm_cov: FAULT INJECTION \xe2\x80\x94 treating EL2 teardown as unconfirmed
+[  396.584443] pkvm_cov: teardown unconfirmed (ipi=0 hyp=-5) \xe2\x80\x94 LEAKING the whole 4-page block (EL2 may still map it)
+[  396.610710] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  396.668547] pkvm_cov: FAULT INJECTION \xe2\x80\x94 treating unshare as unconfirmed
+[  396.676036] pkvm_cov: teardown \xe2\x80\x94 unshare unconfirmed (-5) over 4/4 pages, LEAKING the whole 16384-byte block (EL2 may still map it)
+[  396.688736] pkvm_cov: buffer disarmed (drains=78 el2_hits=28041 written=28041 lost_in_ring=0 overflow_drains=0 kcov_acc=28041/28041)
+[  396.715488] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  396.760532] pkvm_cov: buffer disarmed (drains=78 el2_hits=28041 written=28041 lost_in_ring=0 overflow_drains=0 kcov_acc=28041/28041)

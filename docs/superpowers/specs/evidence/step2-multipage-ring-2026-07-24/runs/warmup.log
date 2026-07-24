@@ -1,0 +1,3 @@
+[warmup] pages=4 cap=2045 | drains=78 hits=28368 written=28368 LOST_IN_RING=0 ovf=0 hits_max=1032
+        link_drop=0 kcov=28368/28368 LOST_IN_KCOV=0 skip=0/0 leak=0 warn=0
+        coverfile total/uniq/EL2uniq = 258574/6125/133
