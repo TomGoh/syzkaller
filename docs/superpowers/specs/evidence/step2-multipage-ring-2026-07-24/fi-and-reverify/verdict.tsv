@@ -1,0 +1,4 @@
+tag	pages	capacity	drains	el2_hits	el2_written	LOST_IN_RING	overflow	hits_max	nested	link_drop	kcov_req	kcov_acc	LOST_IN_KCOV	skip_own/kcov	leaked	total/uniq/EL2uniq
+r1-p4	4	2045	78	28062	28062	0	0	965	0	0	28062	28062	0	0/0	0	257919/5968/132
+r2-p4	4	2045	78	28184	28184	0	0	1041	0	0	28184	28184	0	0/0	0	257703/5966/132
+r3-p4	4	2045	78	28358	28358	0	0	1043	0	0	28358	28358	0	0/0	0	258144/5971/132

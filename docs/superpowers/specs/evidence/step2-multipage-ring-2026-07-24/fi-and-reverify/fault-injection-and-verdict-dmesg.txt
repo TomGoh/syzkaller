@@ -1,0 +1,2 @@
+[  110.607367] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  117.337325] pkvm_cov: buffer disarmed (drains=78 el2_hits=28358 written=28358 lost_in_ring=0 overflow_drains=0 kcov_acc=28358/28358)

@@ -79,20 +79,24 @@ for (i = 0; i < nr_pages; i++) {
 
 ### 2.4 失败分支：做了真机注入，不是只做静态审计
 
-计划里说「若没有可控 fault injection，最多只能做静态审计」。这里加了一个 **test-only** 的一次性注入开关 `kvm/pkvm_cov/fault_inject`（bit0 EL2 teardown 失败、bit1 unshare 未确认、bit2 enable 期 EL2 setup 失败），所以泄漏路径是**在 N90 上真跑过**的：
+计划里说「若没有可控 fault injection，最多只能做静态审计」。这里加了一个 **test-only** 的一次性注入开关 `kvm/pkvm_cov/fault_inject`（bit0 EL2 teardown 失败、bit1 unshare 未确认、bit2 enable 期 EL2 setup 失败），泄漏路径**在 N90 上真跑过**，且每一步都有断言。
+
+**三个注入不对称，这是刻意的（也是一次 review 修正）。** bit0/bit1 在真实操作**成功之后**伪造失败——安全，因为它们选中的分支只会泄漏，最坏 16 KiB。bit2 选中的分支**会 free**，所以它不能伪造：它给 EL2 一个必须被拒绝的 `nr_pages`（`PKVM_COV_MAX_PAGES + 1`），EL2 在 pin 任何东西、发布 per-CPU 指针**之前**就校验并拒绝，于是 hypercall 什么都没做就失败，回滚正是真正的「shared 但从未注册」路径——checked unshare、页确实该 free、`leaked_bytes` 必须保持 0。
+
+早先的写法是在**成功的** setup 之后伪造失败，再发一个补偿 teardown IPI 并**丢弃它的返回值**：若那次 undo 失败，回滚的 unshare 仍可能被确认、页在 EL2 仍映射时被 free（UAF）；而且无论如何都报 `leaked_bytes == 0`，测试两头都像通过。这是同一 review 链一直在抓的那类 bug，出现在 test-only 代码里也必须修。
+
+**FI 断言测试（`scripts/run-fi.sh`）在这个 build（Build ID `e81d2c18…`）上 25/25 通过：**
 
 ```
-bit2 (enable 期 setup 失败) -> enable 返回错误, owner_cpu=-1, leaked_bytes 保持 0
-                               (回滚里 unshare 已确认 -> 正确地 FREE 而不是泄漏)
-bit0 (teardown 未确认)      -> leaked_bytes 0 -> 16384，buffer 停用
-bit1 (unshare 未确认)       -> leaked_bytes 16384 -> 32768，"over 4/4 pages"
-恢复                        -> 之后一次正常 enable/disable 仍然成功，leaked_bytes 不再增长
-                               0 WARN/BUG splat
+bit2 (setup 被拒)  -> enable rc=1, owner_cpu=-1, leaked_bytes 保持 0  (正确 FREE)
+                      且拒绝后 buffer 立即可再 enable
+bit0 (teardown 未确认) -> leaked_bytes 0 -> 16384, buffer 停用
+bit1 (unshare 未确认)  -> leaked_bytes 16384 -> 32768, "over 4/4 pages"(范围完整)
+恢复                   -> 正常 enable/disable 仍成功, leaked_bytes 不再增长
+全程 0 WARN/BUG splat
 ```
 
-bit2 那一条尤其值得记：它证明回滚**不是无脑泄漏**——只有 unshare 未确认时才泄漏，能确认就正常释放。
-
-测试共故意泄漏 32 KiB（两个 4 页块），已通过重启清除。
+每一项都是对 return value、`owner_cpu`、`leaked_bytes` 差值和事后可用性的显式断言——「没崩」不算通过。测试故意泄漏的 KiB 数由重启清除。
 
 ---
 
@@ -139,19 +143,23 @@ comm -13 union_p1 union_p4  ->  0 行
 | 项 | 值 |
 |---|---|
 | kernel release | `6.6.30+` |
-| Build ID | `8371f4a0cac07905b2e11553e142239c3dfd6c05` |
-| vmlinux sha256 | `bebd01f4225d1c777d73c928c77f8b0ccdac12354c1102815bdadf1a53a7901f` |
-| Image sha256 | `6dea3850bae3d67ec30f5cd04cd0b42cf5509bcd50441b71df42a6cea0fc149b` |
-| System.map sha256 | `2d390d51a34c3ad0470c58205d1b3fbd1d8a84a78d14337e1d0c65ac0982b451` |
+| Build ID | `e81d2c18452a871075163940eeaba2446354ec0d`（含 bit2 修正；容量判决数据来自其前身 `8371f4a0…`，二者 hyp .text 相同、EL2 PC 集合逐字节一致） |
+| vmlinux sha256 | `45c1e553d03a1fae7b41c2cf8da3c9fe82c0f6da576c67208f864cf014785f11` |
+| Image sha256 | `7b31222e9830b911c7f1785cfa1a8245d0a9f6c695191cbe668bbd0111373c8d` |
+| System.map sha256 | `189b49a3418fcbcc020c2194f786b8ba2644eb50592b7683926dfe49f2af4f4d` |
 | .config sha256 | `b1f010f5917a2eab6e7719380a777717443817d366ff34227645586aa9d256cf`（未变） |
-| 规范 patch | `evidence/step2-multipage-ring-2026-07-24/stage2-el2-kcov.patch`（13 文件 / 1269 行，`--whitespace=error` 干净） |
+| 规范 patch | `evidence/step2-multipage-ring-2026-07-24/stage2-el2-kcov.patch`（13 文件 / 1286 行，`--whitespace=error` 干净） |
 | `__hyp_text_start` / `_end` | `0xffff800081d87ed4` / `0xffff800081de7000` |
 
 **每次重链接地址都会整体平移，符号化只能用同一次链接产出的 vmlinux。** 消费侧 `TestPkvmCovSymbolizePipeline` 在这个 build 上仍然通过（EL2 PC → `.rs:line`）。
 
 板上保留了两个回退镜像：`/boot/vmlinuz-6.6.30+.1abuild.bak`（1A 用的 build）与 `.1bbuild.bak`（1B 用的 build）；GRUB 默认项仍是已知可用的 `6.6.30-pkvm-fuzz`。
 
-**操作提醒（更正）：** ESP grubenv 的一次性 `next_entry` 在这块板上并不可靠——本轮连续两次写入 `next_entry` 后重启，机器都启到了默认的 `6.6.30-pkvm-fuzz`；最终是**人工在 GRUB 菜单里选中该项**才启到 `6.6.30+`。所以不要把 `grub-editenv ... set next_entry` 当作可依赖的自动化手段；非默认项就按 deploy skill 原本的设计由人来选。
+**操作提醒（本轮穷举确认的持久结论）：N90 的 Kylin GRUB 会忽略一切非交互式的默认项选择，只认菜单里的人工选择。** 本轮试过四种机制、约七次重启，全部启到默认的 `6.6.30-pkvm-fuzz`（index 0）：
+- `next_entry` 按标题、按数字下标（grubenv，ESP 与 `/boot/grub` 两处都写）；
+- `GRUB_DEFAULT` 按标题、按数字下标（改 `/etc/default/grub` + `update-grub`）。
+
+关键证据：GRUB **确实消费了** `next_entry`（重启后它变空），头部也执行了 `set default="${next_entry}"`，但仍启 index 0——说明 Kylin GRUB 内核对 autoboot 直接忽略 `set default`。因此**没有任何 grubenv / default 手段能用**；`6.6.30+` 只能靠人在 5 秒菜单里手动选中（本轮 FI + 判决 smoke 即由用户手动选中该项后运行）。给板子部署非默认内核时，就按 deploy skill 的设计由人来选，不要浪费重启在自动化上。
 
 ---
 

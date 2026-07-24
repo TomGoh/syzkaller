@@ -516,10 +516,10 @@ index 55c8ae82c3dc..08f5b59d430f 100644
  			ret = 0;
 diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
 new file mode 100644
-index 000000000000..4dac24671477
+index 000000000000..77428a179659
 --- /dev/null
 +++ b/arch/arm64/kvm/pkvm_cov.c
-@@ -0,0 +1,659 @@
+@@ -0,0 +1,676 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Stage-2 EL2 coverage — host (EL1) side.
@@ -617,10 +617,16 @@ index 000000000000..4dac24671477
 + * exercised on hardware instead of only being read. Default 0; debugfs-writable
 + * on a fuzzing kernel (this whole file is CONFIG_PKVM_EL2_COV). Each bit is
 + * consumed once, then cleared, so a single write arms exactly one failure.
++ *
++ * Note the asymmetry, which is deliberate. Bits 0 and 1 fake a failure AFTER the
++ * real operation succeeded; that is safe because the branch they select only
++ * ever LEAKS, so the worst case is 16 KiB wasted. Bit 2 selects a branch that
++ * can FREE, so it must not fake anything: it provokes a real EL2-side rejection
++ * before the hypervisor has registered the buffer.
 + */
 +#define PKVM_COV_FI_TEARDOWN_HYP	(1u << 0)	/* pretend __pkvm_cov_setup(0) failed */
 +#define PKVM_COV_FI_UNSHARE		(1u << 1)	/* pretend the unshare was unconfirmed */
-+#define PKVM_COV_FI_ENABLE_SETUP	(1u << 2)	/* pretend the EL2 setup hypercall failed */
++#define PKVM_COV_FI_ENABLE_SETUP	(1u << 2)	/* make EL2 genuinely REJECT the setup */
 +static u32 pkvm_cov_fault_inject;
 +
 +static bool pkvm_cov_fi_take(u32 bit)
@@ -723,7 +729,7 @@ index 000000000000..4dac24671477
 +{
 +	struct pkvm_cov_ring *ring;
 +	unsigned long pages;
-+	u32 nr_pages, attempted = 0, i;
++	u32 nr_pages, hcall_pages, attempted = 0, i;
 +	size_t bytes;
 +	int cpu, ret;
 +
@@ -769,24 +775,35 @@ index 000000000000..4dac24671477
 +			goto rollback;
 +	}
 +
++	/*
++	 * FI bit 2 provokes a REAL setup failure instead of faking one afterwards:
++	 * hand the hyp an nr_pages it must reject. EL2 validates the host-supplied
++	 * count before it pins anything and before it publishes its per-CPU
++	 * pointer, so the hypercall fails having done nothing at all, and the
++	 * rollback below is exactly the genuine "shared, never registered" path —
++	 * a checked unshare, with no possibility that EL2 still maps the block.
++	 *
++	 * Faking the failure after a SUCCESSFUL setup (what this used to do) was
++	 * unsafe: EL2 had already registered the buffer, and the compensating
++	 * teardown IPI's result was discarded. If that undo had failed, the
++	 * rollback's unshare could still be confirmed and the pages freed while the
++	 * hypervisor still mapped them. Worse, the test would have reported
++	 * leaked_bytes == 0 and looked like a pass either way.
++	 *
++	 * Decided outside the get_cpu() window so the printk is not issued with
++	 * preemption disabled.
++	 */
++	hcall_pages = nr_pages;
++	if (pkvm_cov_fi_take(PKVM_COV_FI_ENABLE_SETUP)) {
++		hcall_pages = PKVM_COV_MAX_PAGES + 1;	/* hyp rejects: > the bound */
++		pr_warn("pkvm_cov: FAULT INJECTION — asking EL2 to set up nr_pages=%u so it rejects the setup\n",
++			hcall_pages);
++	}
++
 +	cpu = get_cpu();	/* pin to this CPU for the setup hypercall */
 +	ret = kvm_call_hyp_nvhe(__pkvm_cov_setup, page_to_pfn(virt_to_page(ring)),
-+				nr_pages);
++				hcall_pages);
 +	put_cpu();
-+	if (!ret && pkvm_cov_fi_take(PKVM_COV_FI_ENABLE_SETUP)) {
-+		ret = -EIO;
-+		pr_warn("pkvm_cov: FAULT INJECTION — treating EL2 setup as failed\n");
-+		/*
-+		 * EL2 really did register the buffer, so undo that before unsharing;
-+		 * otherwise the injection would leave a dangling hyp mapping that has
-+		 * nothing to do with the path under test.
-+		 */
-+		{
-+			struct pkvm_cov_teardown undo = { .ret = -EIO };
-+
-+			smp_call_function_single(cpu, pkvm_cov_hyp_teardown_ipi, &undo, 1);
-+		}
-+	}
 +	if (ret)
 +		goto rollback;
 +

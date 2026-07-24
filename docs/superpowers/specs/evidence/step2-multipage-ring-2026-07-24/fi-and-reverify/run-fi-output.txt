@@ -1,0 +1,57 @@
+=== FI acceptance — 2026-07-24T13:33:06+08:00 ===
+buffer = 4 pages = 16384 bytes; capacity = 2045 PCs
+
+--- 0. baseline: a normal lifecycle works and leaks nothing ---
+    PASS  enable rc (0)
+    PASS  owner_cpu while armed (0)
+    PASS  owner_cpu after disable (-1)
+    PASS  leaked_bytes (0)
+
+--- 1. bit2: EL2 rejects the setup (must FAIL and FREE, never leak) ---
+    PASS  enable failed as designed (rc=1)
+    PASS  owner_cpu (no buffer registered) (-1)
+    PASS  leaked_bytes UNCHANGED (rollback must free) (0)
+    PASS  injection bit consumed (0)
+    PASS  injection logged
+    PASS  buffer still usable after a rejected setup (0)
+    PASS  owner_cpu re-armed (0)
+
+--- 2. bit0: EL2 teardown unconfirmed (must LEAK the whole block) ---
+    PASS  enable rc (0)
+    PASS  owner_cpu after disable (-1)
+    PASS  leaked_bytes += whole block (16384)
+    PASS  teardown-unconfirmed logged
+
+--- 3. bit1: unshare unconfirmed (must LEAK the whole block) ---
+    PASS  enable rc (0)
+    PASS  owner_cpu after disable (-1)
+    PASS  leaked_bytes += whole block (32768)
+    PASS  unshare-unconfirmed logged
+    PASS  unshare attempted the FULL range (4/4)
+
+--- 4. recovery: normal lifecycle still works, nothing further leaks ---
+    PASS  enable rc (0)
+    PASS  owner_cpu (0)
+    PASS  owner_cpu (-1)
+    PASS  leaked_bytes stable (32768)
+
+--- 5. no kernel splats throughout ---
+    PASS  WARN/BUG splats (0)
+
+=== dmesg ===
+[  171.918275] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  171.961253] pkvm_cov: buffer disarmed (drains=0 el2_hits=0 written=0 lost_in_ring=0 overflow_drains=0 kcov_acc=0/0)
+[  171.990970] pkvm_cov: FAULT INJECTION \xe2\x80\x94 asking EL2 to set up nr_pages=17 so it rejects the setup
+[  172.026713] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  172.077267] pkvm_cov: buffer disarmed (drains=0 el2_hits=0 written=0 lost_in_ring=0 overflow_drains=0 kcov_acc=0/0)
+[  172.099163] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  172.133258] pkvm_cov: FAULT INJECTION \xe2\x80\x94 treating EL2 teardown as unconfirmed
+[  172.141187] pkvm_cov: teardown unconfirmed (ipi=0 hyp=-5) \xe2\x80\x94 LEAKING the whole 4-page block (EL2 may still map it)
+[  172.177410] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  172.217262] pkvm_cov: FAULT INJECTION \xe2\x80\x94 treating unshare as unconfirmed
+[  172.224752] pkvm_cov: teardown \xe2\x80\x94 unshare unconfirmed (-5) over 4/4 pages, LEAKING the whole 16384-byte block (EL2 may still map it)
+[  172.237450] pkvm_cov: buffer disarmed (drains=0 el2_hits=0 written=0 lost_in_ring=0 overflow_drains=0 kcov_acc=0/0)
+[  172.277947] pkvm_cov: buffer armed on CPU 0 (4 pages, 2045 PC slots)
+[  172.353281] pkvm_cov: buffer disarmed (drains=0 el2_hits=0 written=0 lost_in_ring=0 overflow_drains=0 kcov_acc=0/0)
+
+=== RESULT: 25 passed, 0 failed ===
