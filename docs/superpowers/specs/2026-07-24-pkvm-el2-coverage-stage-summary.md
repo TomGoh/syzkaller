@@ -56,9 +56,9 @@
 记录：`2026-07-24-pkvm-ftrace-sancov-exclusion-feasibility.md`。
 
 - Step-1 测得 `ftrace.rs`/`trace.rs` 占**运行时**已投递 EL2 PC 的 58.5%。ring 已零截断，所以排除它们的收益是**信息密度**，不是减少截断。
-- **噪声源就是一个 Kconfig：`CONFIG_PROTECTED_NVHE_FTRACE`（上游默认 `n`，fuzz config 里被开成 `=y`）。** 独立 worktree 里只切这一个开关：静态 SanCov 调用点 7311→7167（−144），**完全丢失 instrumentation 的 10 个函数全是 ftrace/trace，无一非 ftrace 函数受损**；`__hyp_ftrace_trace`/`__hyp_ftrace_ret_trace` 移除、`trace_func`/`trace_func_ret` 桩化（正是 Step-1 运行时前 5 名里的 4 个）；闭环不退化（callback 链接、DWARF 逐字相同）。
+- **噪声源就是一个 Kconfig：`CONFIG_PROTECTED_NVHE_FTRACE`（上游默认 `n`，fuzz config 里被开成 `=y`）。** 独立 worktree 里只切这一个开关：静态 SanCov 调用点 7311→7167（−144），**完全丢失 instrumentation 的 10 个函数都与 ftrace 功能相关（但不都在 ftrace/trace 文件——`handle___pkvm_disable_ftrace` 在 `hyp_main.rs`），无一与 ftrace 无关的函数受损**；`__hyp_ftrace_trace`/`__hyp_ftrace_ret_trace` 移除、`trace_func`/`trace_func_ret` 桩化（正是 Step-1 运行时前 5 名里的 4 个）；闭环不退化（callback 链接、DWARF 逐字相同）。
 - **无需** SanCov ignorelist 或 `#[coverage(off)]` 的按模块排除机制（那两条 fallback 用不到）。
-- **建议：从 fuzz `.config` 去掉 `CONFIG_PROTECTED_NVHE_FTRACE`**（回落上游默认 `n`）。这是 config 变更、不改 Stage-2 源码。
+- **建议：从 fuzz `.config` 去掉 `CONFIG_PROTECTED_NVHE_FTRACE`**（回落上游默认 `n`）。这是 config 变更、不改 Stage-2 源码。**代价：ftrace 控制类 HVC 退化为不支持**——对当前目标面可接受；ftrace 本身仍是独立的 EL2 调试能力，将来要 fuzz/调试它应另开配置。
 
 ---
 

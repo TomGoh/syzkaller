@@ -9,7 +9,9 @@ Total static __sanitizer_cov_trace_pc call sites in nvhe_rust.o:
   CONFIG_PROTECTED_NVHE_FTRACE=y : 7311
   CONFIG_PROTECTED_NVHE_FTRACE=n : 7167   (-144)
 
-Functions that lost SanCov instrumentation ENTIRELY (10) — all ftrace/trace:
+Functions that lost SanCov instrumentation ENTIRELY (10) — all ftrace-FEATURE-
+related (NOT all in ftrace.rs/trace.rs: handle___pkvm_disable_ftrace is in
+hyp_main.rs, the dispatch handler for the ftrace-control hypercall):
   nvhe_rust::ftrace::hyp_ftrace_patch::he3f552c3eb865629
   nvhe_rust::ftrace::hyp_ftrace_setup::hfa4e266fbcdc8710
   nvhe_rust::ftrace::__get_disable_ins::h7ed35961ad724811
@@ -21,7 +23,7 @@ Functions that lost SanCov instrumentation ENTIRELY (10) — all ftrace/trace:
   __hyp_ftrace_ret_trace
   __hyp_ftrace_trace
 
-NON-ftrace functions that lost instrumentation: NONE.
+Functions UNRELATED to the ftrace feature that lost instrumentation: NONE.
 Other functions: only minor codegen-driven per-block shuffles (e.g.
 __pkvm_init_finalise, __host_stage2_set_owner_locked) from removing the
 -fpatchable-function-entry hooks; none stripped, all still instrumented.
@@ -35,6 +37,11 @@ Closed loop intact under =n:
   callback __kvm_nvhe___sanitizer_cov_trace_pc links (1 symbol)
   DWARF: __pkvm_init_vm -> pkvm.rs:4014 ; __pkvm_host_share_hyp -> permissions.rs:251
          (identical to =y build)
+
+Cost (stated honestly): with =n the ftrace-control HVCs (__pkvm_enable/disable_
+ftrace, ...) degrade to unsupported. Acceptable for the current target surface;
+ftrace itself remains an independent EL2 timing-debug capability, so fuzzing or
+debugging ftrace itself later needs a SEPARATE config, not this fuzz build.
 
 Fallback mechanisms (only needed if no Kconfig existed) are MOOT:
   no -C llvm-args ignorelist gymnastics, no #[coverage(off)] (SanCov != instrprof).

@@ -39,7 +39,7 @@
 | `=y`（fuzz 现状） | 7311 |
 | `=n`（上游默认） | 7167（**−144**） |
 
-### 3.2 完全丢失 SanCov 的 10 个函数——全部是 ftrace/trace
+### 3.2 完全丢失 SanCov 的 10 个函数——全部与 ftrace 功能相关
 
 ```
 nvhe_rust::ftrace::hyp_ftrace_patch                     32
@@ -54,9 +54,11 @@ nvhe_rust::ftrace::__get_offset_idx_ins                  1
 nvhe_rust::ftrace::__get_disable_ins                     1
 ```
 
-**非 ftrace/trace 函数被完全移除 instrumentation 的：0 个**（criterion 2 满足）。
+这 10 个都属于 **ftrace 功能**，但**并非都在 `ftrace.rs`/`trace.rs` 文件里**：其中 `handle___pkvm_disable_ftrace` 在 `hyp_main.rs:1056`（它是 ftrace 控制 hypercall 的 dispatch handler）。所以准确说法是「与 ftrace 功能相关」，不是「都在 ftrace/trace 文件」——这也是为什么必须按函数、而不是按文件归因。
 
-其余非 ftrace 函数只有由「移除 `-fpatchable-function-entry` 钩子」带来的**微小 codegen 抖动**（如 `__pkvm_init_finalise`、`__host_stage2_set_owner_locked` 的基本块计数小幅增减），没有任何一个被剥掉 instrumentation；净差 −144 全部可归因于 ftrace。
+**与 ftrace 功能无关的函数被完全移除 instrumentation 的：0 个**（criterion 2 满足）。
+
+其余无关函数只有由「移除 `-fpatchable-function-entry` 钩子」带来的**微小 codegen 抖动**（如 `__pkvm_init_finalise`、`__host_stage2_set_owner_locked` 的基本块计数小幅增减），没有任何一个被剥掉 instrumentation；净差 −144 全部可归因于 ftrace 功能。
 
 ### 3.3 与 Step-1 运行时噪声的对应
 
@@ -75,7 +77,7 @@ nvhe_rust::ftrace::__get_disable_ins                     1
 ## 4. 为什么这是正确且安全的做法
 
 - **上游默认就是 `n`。** Kconfig `default n`；是 fuzz config 显式开成 `=y`。关掉它 = 回到上游默认，本质安全。
-- **对 fuzz 目标零损失。** ftrace 是 hyp 的**自追踪调试设施**，与 KCOV/SanCov 冗余；被 fuzz 的是 pKVM 安全逻辑，不是 tracing 基础设施。#23 donation/map 路径不依赖 ftrace（`trace_host_hcall` 等仅在 dispatch 尾部记录事件，桩化后不跳过任何真实工作）。
+- **对当前 fuzz 目标零损失（但这不是说 ftrace 无用）。** 需要区分两件事：ftrace 本身是一项**独立的 EL2 时序调试能力**，不是「冗余」的；但**对当前这套覆盖率反馈而言**，它是高噪声、且可关闭的——被 fuzz 的目标面是 pKVM 安全逻辑（donation/map 等），不是 tracing 基础设施，而 #23 路径不依赖 ftrace（`trace_host_hcall` 等仅在 dispatch 尾部记录事件，桩化后不跳过任何真实工作）。**代价要如实说：关掉后 ftrace 控制类 HVC（`__pkvm_enable/disable_ftrace` 等）会退化为不支持**；对当前目标面可以接受，但**将来若要 fuzz 或调试 ftrace 本身，应另开一个配置**，而不是在这个 fuzz build 上。
 - **不引入脆弱机制。** 不用 clang `-fsanitize-coverage-ignorelist=`（走 `SpecialCaseList`，`-C llvm-args` 基本到不了），也不用 `#[coverage(off)]`（属 `-C instrument-coverage`/instrprof，与 SanCov 是两套机制）。这两条 fallback **无需进入**。
 - **可复现。** 一个 Kconfig 开关，非默认项即上游默认；`git diff` 一行。
 
@@ -88,9 +90,12 @@ nvhe_rust::ftrace::__get_disable_ins                     1
 **建议：从 fuzz `.config` 中去掉 `CONFIG_PROTECTED_NVHE_FTRACE`（让其回落到上游默认 `n`）。** 这是一次 config 变更，不改任何 Stage-2 源码，因此不影响已冻结的 producer/host-glue/consumer 闭环。
 
 **采纳前需要的唯一 board 步骤**（本实验按约定未做）：在 N90 上用同一固定 smoke 跑一次 `=n` 内核，确认：
-1. `el2_hits` / 已投递 EL2 PC 里 ftrace.rs/trace.rs 的占比从 ~58.5% 降到接近 0；
-2. `LOST_IN_RING` 仍为 0、闭环仍产出 Rust `.rs:line`、132 之外新增的 pKVM-逻辑 unique PC（如有）；
-3. 无 WARN/BUG。
+1. 已投递 EL2 PC 里 ftrace.rs/trace.rs 的占比从 ~58.5% 降到接近 0，并**量化真实的运行时降幅**；
+2. 闭环仍产出 Rust `.rs:line`、`LOST_IN_RING=0`、`LOST_IN_KCOV=0`、无 CPU skip；
+3. **目标 pKVM donation/map 路径的覆盖仍在**；
+4. 无 WARN/BUG。
+
+**注意验收标准不再是「132 个完全相同的 PC」**：关掉 ftrace 后 PC 集合本来就应该变（ftrace 的 PC 消失、目标逻辑的 PC 保留），关键是 donation/map 覆盖仍在、信号完整，而不是集合逐字不变。
 
 这次 board 运行可以和后续 3A/3B 的部署合并，不必单独占用一次重启。
 
