@@ -75,16 +75,24 @@
 ## 7. 下一步（colleague 约定的次序）
 
 ```
-[本轮完成] ftrace SanCov 排除 board-free 可行性 —— 结论：用 CONFIG_PROTECTED_NVHE_FTRACE=n，无需按模块排除
+[完成] ftrace SanCov 排除 board-free 可行性 —— 结论：用 CONFIG_PROTECTED_NVHE_FTRACE=n，无需按模块排除
+[完成] 3B 可生成 Host composite 输入面 syz_kvm_run_fw_fault_gen（固定 no_generate smoke 保留为回归）
+[完成] 3A 串行 executor：pkvm_serial（无 Threaded/无 Collide/procs=1）+ isolated pkvm_owner_cpu taskset pin
+[完成] EFI pstore：isolated backend 改为 glob 整个 /sys/fs/pstore（发现/读取/回收 dmesg-efi-*）
+      ↓（三者均已 code + board-free 验证；board 证明批到下面这次部署）
+[下一步] 统一 ftrace-off 新内核部署：关 CONFIG_PROTECTED_NVHE_FTRACE，重新冻结 .config/vmlinux/Build ID/hashes
+         → 先跑 4-page #23 smoke（符号化仍在、LOST_IN_RING=0、LOST_IN_KCOV=0、无 skip、量化 ftrace-off 降幅）
+         → forced-panic 的 EFI-pstore 恢复验证
       ↓
-[并行，均为 campaign 前置] 3A 串行 executor + CPU pin
-                          3B 可生成 Host composite 输入面（保留固定 no_generate smoke 作回归）
-                          EFI pstore ↔ isolated backend
-      ↓（3A/3B 完成前不启动）
 小规模 supervised EL2 manager campaign
       ↓
 逐个为 #21 / #34-35 / #36-38 boundary 建立 arm/drain 归属（绝不全局包裹 kvm_call_hyp_nvhe）
 ```
+
+**三项 campaign 前置的实现要点（board-free 已验证；真机证明批到统一部署）：**
+- **3B（`80d6cf6ba`）：** `syz_kvm_run_fw_fault_gen$arm64`，generateable composite，C helper 保持 protected-VM 生命周期/firmware window/KVM_RUN 边界/fd 清理，只开放 `ipa_size` + `fw_ipa` 两个受控维度（都在 C 内 re-validate）。固定 `no_generate` smoke 不动。验证：make descriptions/TestParsing/arm64 executor 交叉编译/`NoGenerate` 属性均 OK。
+- **3A（`713683cc7`）：** 顶层 `pkvm_serial`（procs==1 校验、`DefaultExecOpts` 不设 `ExecFlagThreaded`、manager `Collide=!pkvm_serial`）+ isolated 的 `pkvm_owner_cpu`（`taskset -c N` 包住 executor，SSH 下比 env 稳，等同 smoke 用的 taskset）。CPU mismatch 由内核 `skip_not_owner`（1B 已加）可观测。未用新 flatrpc flag（本机无 flatc）。
+- **EFI pstore（`edbbfc197`）：** isolated backend 两处硬编码的 `console-ramoops-0` 改为 glob 整个 `/sys/fs/pstore`，对 ramoops 与 efi-pstore 都发现/读取/回收；空目录是干净 no-op。
 
 **明确不做：** 在 3A/3B 完成前启动 EL2 manager campaign；为降噪去改坏已冻结的闭环；把固定 `no_generate` smoke 直接当 fuzz 输入面。
 
