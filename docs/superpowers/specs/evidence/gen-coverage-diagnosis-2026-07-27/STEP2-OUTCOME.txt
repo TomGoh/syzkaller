@@ -1,0 +1,23 @@
+STEP 2 (pin fw_ipa=const 0x7fc00000, ipa_size=const 0) — N90 2026-07-27
+====================================================================
+PRIMARY: feedback loop CLOSED.
+  corpus/coverage trajectory:
+corpus=6 coverage=6631 exec total=1385 (413/min)
+corpus=6 coverage=6631 exec total=1385 (393/min)
+corpus=6 coverage=6631 exec total=1385 (376/min)
+corpus=6 coverage=6631 exec total=1385 (359/min)
+corpus=6 coverage=6631 exec total=1385 (344/min)
+corpus=6 coverage=6631 exec total=1385 (331/min)
+corpus=6 coverage=6631 exec total=1385 (318/min)
+corpus=6 coverage=6631 exec total=1385 (306/min)
+  killing-hanging (fuzzing): 0
+  serial triage execs (threaded=0 cover=1 dedup=1): 367
+  kernel (peak observed): drains=546390 el2_hits=84374111 kcov_acc=84374111/84374111 LOST_IN_RING=0 LOST_IN_KCOV=0 skip_not_owner=0
+
+SECONDARY (new; gates SUSTAINED campaigns, appeared ~1385 execs in; NOT memory, 16GB free):
+      1 2026/07/27 11:20:25 start reproducing 'SYZFAIL: repeatedly failed to execute the program'
+      1 2026/07/27 11:20:25 VM 0: crash: SYZFAIL: repeatedly failed to execute the program
+      1 2026/07/27 11:22:28 repro finished 'SYZFAIL: repeatedly failed to execute the program', repro=false crepro=false desc='' hub=false from_dashboard=false
+     21 proc 2: got output: remote cover enable write trace failed
+     21 remote cover enable write trace failed (errno 17)
+      1 SYZFAIL: repeatedly failed to execute the program
