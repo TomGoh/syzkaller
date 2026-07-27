@@ -151,6 +151,16 @@ func ctorLinux(cfg *config) (reporterImpl, []string, error) {
 		"INIT: PANIC: segmentation violation!",
 		"\\*\\*\\* stack smashing detected \\*\\*\\*: terminated",
 	}
+	// The OpenSSH client (>= 9.x) prints a "post-quantum key exchange" security
+	// banner to stderr on every connection. The isolated VM backend merges ssh
+	// stderr into the console stream, where the banner's leading "WARNING:" is
+	// otherwise matched as a kernel WARNING oops -- a false crash that tears down
+	// the VM and closes the runner's RPC (surfacing as a peer-closed EOF in the
+	// executor). It is client chatter, not kernel output, so ignore it wherever
+	// the reporter scans for crashes. Note: sshd/ssh LogLevel does NOT suppress
+	// this banner, so the filter must live here, not in the ssh invocation.
+	ctx.ignores = append(ctx.ignores,
+		regexp.MustCompile(`WARNING: connection is not using a post-quantum key exchange algorithm`))
 	return ctx, suppressions, nil
 }
 

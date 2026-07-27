@@ -1,0 +1,9 @@
+# OpenSSH post-quantum key-exchange security banner. The ssh CLIENT prints this
+# to stderr on every connection; the isolated VM backend merges ssh stderr into
+# the console stream, where its leading "WARNING:" is otherwise misdetected as a
+# kernel WARNING oops -- which tears down the VM and closes the runner's RPC.
+# It is client chatter, not kernel output: no TITLE => ContainsCrash must be false.
+
+** WARNING: connection is not using a post-quantum key exchange algorithm.
+** This session may be vulnerable to "store now, decrypt later" attacks.
+** The server may need to be upgraded. See https://openssh.com/pq.html

@@ -94,10 +94,12 @@ func sshArgs(debug bool, sshKey, portArg string, port, forwardPort int, systemSS
 		"-o", "ConnectTimeout=10",
 	)
 	if !debug {
-		// Silence ssh client banners (e.g. the OpenSSH "connection is not using a
-		// post-quantum key exchange algorithm" warning) so they do not leak into the
-		// console/dmesg stream and get misread as kernel crash output. When debug is
-		// set, -v below overrides this and restores full verbosity.
+		// Quiet ssh client-side notices so they do not leak into the console/dmesg
+		// stream. Caveat: the OpenSSH "connection is not using a post-quantum key
+		// exchange algorithm" WARNING is printed unconditionally and is NOT silenced
+		// by LogLevel -- it is filtered in the crash detector instead (see the
+		// post-quantum ignore in pkg/report/linux.go's ctorLinux). When debug is set,
+		// -v below overrides this and restores full verbosity.
 		args = append(args, "-o", "LogLevel=ERROR")
 	}
 	if sshKey != "" {
