@@ -1,0 +1,21 @@
+KCOV-remote EEXIST investigation (line 2) — N90 clean-boot 2026-07-27
+====================================================================
+Kernel: 6.6.30-pkvm-fuzz (GRUB default; NO pkvm_cov — fine for generic KCOV-remote leak).
+kprobes: kadd/kaddret/kreset(kcov,handle,ret) + ktexit (syz-filtered). Fresh boot => clean kcov_remote_map.
+
+RESULT (VERIFIED): clean-boot campaign, pinned-safe gen args:
+  exec total=11361, corpus=35, coverage=6766, EEXIST=0, 'repeatedly failed'=0.
+  Leak test (kadd kcov with owner-PID-exited AND no kreset): NONE.
+  Example clean lifecycle: kcov=0xffff0020e69fe780 owner pid=23639 -> kadd(USB+COMMON) success
+    -> ktexit(23639)@910.947526 -> kreset@910.947536 (10us later). Handle removed on owner exit.
+  => Normal operation does NOT leak; task-exit -> kcov_remote_reset works as the source says.
+
+STRONGLY SUPPORTED (A/B, not yet deterministically re-traced):
+  Earlier EEXISTs were from a POLLUTED kcov_remote_map -- handles leaked by ABNORMAL termination
+  (repeated pkill -9/kill -9 of managers during cleanup; compounded by bad-fw_ipa hangs leaving
+  executors briefly un-reapable) accumulated across runs on ONE boot; cleared by reboot.
+  A: this clean-boot run = 0 leaks/11k execs.  B: prior polluted run = immediate EEXIST on inst=2.
+
+NOT done: capturing a single leak's genesis in-trace (normal ops don't produce one; the abnormal-
+  shutdown race needs an executor stuck mid-KVM_RUN at connection-drop, widest under unpinned-fw_ipa
+  hangs on the pkvm_cov kernel -> would need booting 6.6.30+ to reproduce deterministically).

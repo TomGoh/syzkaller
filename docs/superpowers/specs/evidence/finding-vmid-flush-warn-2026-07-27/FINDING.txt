@@ -1,0 +1,13 @@
+FINDING: pKVM EL2 returns non-success for __kvm_flush_vm_context during VMID rollover
+N90, 6.6.30+ (pkvm_cov), 2026-07-27, line-1 stability run, ~13k execs in.
+===============================================================================
+WARN: kvm_host.h:1096 WARN_ON(res.a0 != SMCCC_RET_SUCCESS) in kvm_call_hyp_nvhe,
+  expanded at vmid.c:69 kvm_call_hyp(__kvm_flush_vm_context) inside flush_context().
+TRIGGER PATH: gen composite creates+destroys a protected VM every exec -> VMID space
+  exhausted (~13k execs) -> new_vmid() -> generation rollover -> flush_context() ->
+  host HVC __kvm_flush_vm_context -> EL2 (Rust hyp) returns res.a0 != SMCCC_RET_SUCCESS -> WARN.
+  Fired 1x, PID syz.2.13004, on kvm_arch_vcpu_ioctl_run (KVM_RUN).
+VERIFIED: WARN condition + trigger path (code + dmesg).
+OPEN (EL2-side, the real bug): why the Rust hyp handler for __kvm_flush_vm_context
+  returns non-success under VMID rollover. Likely NOT single-program reproducible
+  (cumulative VMID-exhaustion state), so syzkaller repro may come back false.
