@@ -82,7 +82,7 @@ STEPS
    points at /home/jose/common and would mis-symbolize):
      scp N90:/tmp/pkvm-el2.raw_prog1.1 .
      ./bin/syz-cover \
-       -config=docs/superpowers/specs/evidence/stage2-mvp-2026-07-22/pkvm-stage2-smoke.cfg \
+       -config=notes/pkvm/evidence/stage2-mvp-2026-07-22/pkvm-stage2-smoke.cfg \
        ./pkvm-el2.raw_prog1.1
    (syz-cover symbolizes the hex PCs against kernel_obj's vmlinux; it does NOT re-apply
    PreviousInstructionPC, so the already-adjusted call sites resolve correctly.)

@@ -13,7 +13,7 @@
 # instead: the vCPU fd is closed before the VM (vCPU fds hold a VM ref, so the VM close is the
 # last reference). Both paths reach the same pkvm_destroy_hyp_vm. No guest payload/memory, no
 # SET_FW_IPA. N90 evidence: kretprobe pkvm_create_hyp_vm $retval=0; KCOV on pkvm.c
-# pkvm_init_host_vm. docs/superpowers/specs/evidence/2026-07-21-phaseB-n90-reverification.md
+# pkvm_init_host_vm. notes/pkvm/evidence/2026-07-21-phaseB-n90-reverification.md
 
 r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
 r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)

@@ -32,13 +32,13 @@ preflight() {
 }
 
 archive() {
-  local run="${1:?usage: archive <run-id>}"; local d="$SYZ/docs/superpowers/specs/evidence/campaign-$run"
+  local run="${1:?usage: archive <run-id>}"; local d="$SYZ/notes/pkvm/evidence/campaign-$run"
   mkdir -p "$d"
   curl -s http://127.0.0.1:56741/rawcover > "$d/rawcover.txt" && echo "  [ok] rawcover ($(wc -l < "$d/rawcover.txt") PCs)"
   cp "$SYZ/workdir/corpus.db" "$d/" 2>/dev/null && echo "  [ok] corpus.db"
   cp "$SYZ/workdir/manager-supervised.log" "$d/manager.log" 2>/dev/null && echo "  [ok] manager.log"
   $SSH 'dmesg' > "$d/n90-dmesg.txt" 2>/dev/null && echo "  [ok] N90 dmesg"
-  cp "$SYZ/docs/superpowers/specs/evidence/campaign-2026-07-21/symbolize.sh" "$d/" 2>/dev/null
+  cp "$SYZ/notes/pkvm/evidence/campaign-2026-07-21/symbolize.sh" "$d/" 2>/dev/null
   echo "  next: cp rawcover, then ./symbolize.sh <vmlinux> to recompute coverage attribution."
 }
 
