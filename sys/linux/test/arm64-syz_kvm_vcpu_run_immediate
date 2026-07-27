@@ -1,0 +1,20 @@
+# requires: arch=arm64 -threaded
+
+# Controlled first KVM_RUN over the protected-VM (pKVM) lifecycle (Strategy 1), pvmfw-less.
+# Create a protected VM -> create a protected vCPU -> a SAFE VCPU_INIT (target=GENERIC_V8,
+# features=0, i.e. NO KVM_ARM_VCPU_PMU_V3 — so the run does not fail the PMU check and the
+# arch_timer WARN path is avoided) -> syz_kvm_vcpu_run_immediate: sets kvm_run.immediate_exit=1
+# then KVM_RUN. The first run still executes kvm_arch_vcpu_run_pid_change() -> pkvm_create_hyp_vm()
+# (arm.c:717,757), so the hyp VM is built and its host-side KCOV is collected, but the
+# immediate_exit check (arm.c:1043) returns -EINTR before the pvmfw-less guest-abort busy loop.
+# Then close the vCPU and close the VM last (vCPU fd holds a VM ref) -> pkvm_destroy_hyp_vm().
+# N90 acceptance: run returns -EINTR fast; kretprobe pkvm_create_hyp_vm $retval=0; no arch_timer
+# WARN; explicit close triggers pkvm_destroy_hyp_vm; this run yields bounded, real KCOV.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU_protected(r1, AUTO, 0x0)
+ioctl$KVM_ARM_VCPU_INIT_safe(r2, AUTO, &AUTO)
+syz_kvm_vcpu_run_immediate$arm64(r2)
+close(r2)
+close$kvmvm_protected(r1)

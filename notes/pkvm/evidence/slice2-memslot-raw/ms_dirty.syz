@@ -1,0 +1,4 @@
+r0 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000)='/dev/kvm\x00', 0x2, 0x0)
+r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
+syz_kvm_register_memslot_flags$arm64(r1, 0x1)
+close$kvmvm_protected(r1)

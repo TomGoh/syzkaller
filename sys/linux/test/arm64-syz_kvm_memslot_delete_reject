@@ -1,0 +1,11 @@
+# requires: arch=arm64 -threaded
+
+# pKVM memslot reject B (DELETE after first run), as a composite. syz_kvm_memslot_reject_delete builds
+# a bit-31 protected VM, registers a normal slot, runs a throwaway vCPU (controlled immediate_exit run,
+# sets kvm->arch.pkvm.handle), then DELETEs the slot -- entirely in C, so the fuzzer cannot reorder or
+# inject a wrong VM/state. DELETE with pkvm.handle && pkvm.enabled -> -EPERM (mmu.c:2494-2497). No guest
+# memory is executed; only bit-31 protected VMs are created (never the BUG2 dirty-log-on-normal-VM case).
+# N90 acceptance: the call returns -EPERM (errno 1); no WARN (pgtable.c:639 / arch_timer).
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_memslot_reject_delete$arm64(r0)

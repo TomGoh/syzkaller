@@ -1,0 +1,5 @@
+CREATE_VM(bit31) = 4
+INFO           ret=0 errno=0(ok)  firmware_size=978944
+SET_FW_IPA pre = ret=0 errno=0(ok)
+KVM_RUN(imm)   ret=-1 errno=4(Interrupted system call)
+SET_FW_IPA post= ret=-1 errno=16(Device or resource busy)

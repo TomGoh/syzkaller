@@ -1,0 +1,24 @@
+# requires: arch=arm64 -threaded
+
+# Protected-VM (pKVM) host->hyp lifecycle, pvmfw-less (Strategy 1).
+# Create a protected VM (the helper forces KVM_VM_TYPE_ARM_PROTECTED / bit 31) -> create and
+# KVM_ARM_VCPU_INIT a vCPU -> KVM_RUN. The hyp VM object (pkvm_create_hyp_vm) is built on the
+# vCPU's *first* KVM_RUN (arch/arm64/kvm/arm.c:755-759, kvm_arch_vcpu_run_pid_change), NOT at
+# VCPU_INIT.
+# CAVEAT (verified on N90, -threaded=0): pvmfw-less, KVM_RUN does NOT return promptly -- the vCPU
+# enters at the host-set reset PC and BLOCKS, so the executor's timeout kills the worker at
+# KVM_RUN and the two closes below do NOT execute (completed=4). Teardown (pkvm_destroy_hyp_vm)
+# still fires -- from kernel fd-cleanup when the killed worker's VM fd drops. When the harness
+# DOES reach the closes (e.g. threaded, or KVM_RUN made to exit), teardown comes from them
+# instead: the vCPU fd is closed before the VM (vCPU fds hold a VM ref, so the VM close is the
+# last reference). Both paths reach the same pkvm_destroy_hyp_vm. No guest payload/memory, no
+# SET_FW_IPA. N90 evidence: kretprobe pkvm_create_hyp_vm $retval=0; KCOV on pkvm.c
+# pkvm_init_host_vm. notes/pkvm/evidence/2026-07-21-phaseB-n90-reverification.md
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, AUTO, 0x0)
+ioctl$KVM_ARM_VCPU_INIT(r2, AUTO, &AUTO={0x5, 0x0, ""})
+ioctl$KVM_RUN(r2, AUTO, 0x0)
+close(r2)
+close$kvmvm_protected(r1)

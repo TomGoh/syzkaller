@@ -1,0 +1,177 @@
+--- /home/jose/common/arch/arm64/kvm/Kconfig	2026-07-11 08:52:27.924343773 +0800
++++ arch/arm64/kvm/Kconfig	2026-07-22 14:04:57.665066442 +0800
+@@ -124,6 +124,20 @@
+ 
+ 	  If unsure, say N.
+ 
++config PKVM_EL2_COV
++	bool "pKVM EL2 (Rust hyp) coverage for syzkaller (Stage-2 KCOV)"
++	depends on KVM && X1_RMS && KCOV
++	default n
++	help
++	  Instrument the protected-KVM Rust hypervisor with SanCov trace-pc and
++	  build it with DWARF line info, so EL2 program counters can be drained
++	  around a host->hyp boundary into the fuzzer task's KCOV area and
++	  symbolized to Rust source. This is a fuzzing/debug option only; it grows
++	  the hyp image and adds a per-basic-block callback. It never changes any
++	  existing hypercall id (its own id is guarded and explicitly dispatched).
++
++	  If unsure, say N.
++
+ config XCORE_STATS
+ 	bool "X Core stats support"
+ 	depends on KVM
+--- /home/jose/common/arch/arm64/kvm/hyp/nvhe/Makefile	2026-07-11 08:52:27.926343722 +0800
++++ arch/arm64/kvm/hyp/nvhe/Makefile	2026-07-22 14:05:27.748337345 +0800
+@@ -25,6 +25,7 @@
+ 	 hyp-main.o hyp-smp.o psci-relay.o alloc.o early_alloc.o page_alloc.o \
+ 	 cache.o setup.o mm.o mem_protect.o sys_regs.o pkvm.o stacktrace.o ffa.o \
+ 	 serial.o alloc_mgt.o
++hyp-obj-$(CONFIG_PKVM_EL2_COV) += cov.o
+ hyp-obj-$(CONFIG_XCORE_UNIT_TEST) += xcore_unit_test_hyp.o
+ hyp-obj-y += ../vgic-v3-sr.o ../aarch32.o ../vgic-v2-cpuif-proxy.o ../entry.o \
+ 	 ../fpsimd.o ../hyp-entry.o ../exception.o ../pgtable.o  iommu/iommu.o
+@@ -129,7 +130,7 @@
+ 
+ # 添加Rust构建规则 - 同时创建.o和.nvhe.o文件
+ $(obj)/rust/nvhe_rust.o: $(obj)/rust/src/bindings/bindings_generated.rs FORCE
+-	$(Q)cd $(src) && CONFIG_XCORE_UNIT_TEST=$(CONFIG_XCORE_UNIT_TEST) ./rust/build_rust.sh
++	$(Q)cd $(src) && CONFIG_XCORE_UNIT_TEST=$(CONFIG_XCORE_UNIT_TEST) CONFIG_PKVM_EL2_COV=$(CONFIG_PKVM_EL2_COV) ./rust/build_rust.sh
+ 
+ # 添加.nvhe.o构建规则
+ $(obj)/rust/nvhe_rust.nvhe.o: $(obj)/rust/nvhe_rust.o
+--- /home/jose/common/arch/arm64/kvm/hyp/nvhe/rust/build_rust.sh	2026-07-20 20:05:49.284114160 +0800
++++ arch/arm64/kvm/hyp/nvhe/rust/build_rust.sh	2026-07-22 14:23:18.417894059 +0800
+@@ -45,12 +45,23 @@
+ # # 清理之前的编译
+ # cargo clean
+ 
+-# 确保rust-src组件已安装
+-rustup component add rust-src --toolchain nightly || true
++# 确保rust-src组件已安装 (pin to the same toolchain as RUSTUP_TOOLCHAIN, not floating nightly)
++rustup component add rust-src --toolchain nightly-2025-05-05 || true
+ 
+ # 设置Rust编译选项，禁用GOT/PLT并使用静态链接
+ export RUSTFLAGS="-C relocation-model=static -C code-model=small -C opt-level=3 -C panic=abort -C force-unwind-tables=no -C target-feature=-neon"
+ 
++# Stage-2 EL2 coverage (config-gated): DWARF line tables (for symbolization) + SanCov trace-pc (the EL2
++# coverage producer). Only when CONFIG_PKVM_EL2_COV is set. The __sanitizer_cov_trace_pc callback body is
++# the (uninstrumented) nvhe C file cov.c.
++if [ -n "$CONFIG_PKVM_EL2_COV" ]; then
++    echo "CONFIG_PKVM_EL2_COV enabled: adding -C debuginfo=2 + SanCov trace-pc to the Rust hyp"
++    # --cfg so #[cfg(CONFIG_PKVM_EL2_COV)] dispatch/handlers in the Rust hyp are compiled in
++    # (mirrors the CONFIG_XCORE_UNIT_TEST handling below).
++    export RUSTFLAGS="$RUSTFLAGS --cfg=CONFIG_PKVM_EL2_COV -C debuginfo=2 -C passes=sancov-module -C llvm-args=-sanitizer-coverage-level=3 -C llvm-args=-sanitizer-coverage-trace-pc"
++    export CARGO_PROFILE_RELEASE_DEBUG=2
++fi
++
+ # 检查是否启用了CONFIG_XCORE_UNIT_TEST
+ # 这个环境变量由内核构建系统设置
+ if [ -n "$CONFIG_XCORE_UNIT_TEST" ]; then
+--- /home/jose/common/arch/arm64/include/asm/kvm_asm.h	2026-07-09 10:30:31.949867901 +0800
++++ arch/arm64/include/asm/kvm_asm.h	2026-07-22 14:03:53.142380786 +0800
+@@ -124,6 +124,16 @@
+ __KVM_HOST_SMCCC_FUNC___pkvm_xcore_unit_test_run,
+ __KVM_HOST_SMCCC_FUNC___pkvm_xcore_unit_test_get_results,
+ #endif
++#ifdef CONFIG_PKVM_EL2_COV
++	/*
++	 * EL2 coverage setup (Stage-2 KCOV). Added AFTER the existing entries and
++	 * under its own config gate, so it never shifts any existing hypercall id
++	 * (incl. XCORE_UNIT_TEST). Its own id shifts with the configs before it,
++	 * which is fine because it is dispatched by an explicit id check, not a
++	 * fixed table slot (see hyp_main.rs).
++	 */
++	__KVM_HOST_SMCCC_FUNC___pkvm_cov_setup,
++#endif
+ 
+ 	/*
+ 	 * Start of the dynamically registered hypercalls. Start a bit
+--- /home/jose/common/arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs	2026-07-09 10:30:31.952867837 +0800
++++ arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs	2026-07-22 14:48:38.125886253 +0800
+@@ -1633,6 +1633,20 @@
+         id &= !(ARM_SMCCC_CALL_HINTS as u64);
+         id = id.wrapping_sub(KVM_HOST_SMCCC_ID_0 as u64);
+ 
++        // Stage-2 EL2 coverage setup: explicit dispatch BEFORE the fixed HOST_HCALL table, so it
++        // never occupies a table slot and never shifts any existing hypercall id (incl. unit-test).
++        #[cfg(CONFIG_PKVM_EL2_COV)]
++        if id == crate::bindings::__kvm_host_smccc_func___KVM_HOST_SMCCC_FUNC___pkvm_cov_setup as u64 {
++            let pfn = unsafe { declare_reg::<u64>(self, 1) };
++            let ret = unsafe { pkvm_cov_setup(pfn) };
++            // HVC return ABI (kvm_host.h): a0 = dispatch status (MUST be SUCCESS, else the host's
++            // kvm_call_hyp_nvhe WARN_ONs), a1 = this function's return value (0 or -errno).
++            self.regs.regs[0] = SMCCC_RET_SUCCESS as u64;
++            self.regs.regs[1] = ret as i64 as u64;
++            trace_host_hcall(id, (ret != 0) as u32);
++            return;
++        }
++
+         // 动态 hypercall 分发
+         if handle_host_dynamic_hcall(&mut self.regs as *mut _, id as i32) == HCALL_HANDLED {
+             trace_host_hcall(id, 0);
+@@ -2909,6 +2923,9 @@
+     fn __kvm_hyp_host_forward_smc(host_ctxt: *mut kvm_cpu_context);
+     // vcpu_sev_pffr的包装函数,原函数定义在arch/arm64/include/asm/kvm_host.h中
+     fn xcore_rust_vcpu_sve_pffr(vcpu: *mut kvm_vcpu) -> *mut c_void;
++    // Stage-2 EL2 coverage: pin+register (pfn != 0) or unpin (pfn == 0) this CPU's shared ring. In cov.c.
++    #[cfg(CONFIG_PKVM_EL2_COV)]
++    fn pkvm_cov_setup(pfn: u64) -> core::ffi::c_int;
+ }
+ 
+ ///
+--- /home/jose/common/kernel/kcov.c	2026-07-09 10:24:26.402360270 +0800
++++ kernel/kcov.c	2026-07-22 15:08:02.706058000 +0800
+@@ -225,6 +225,38 @@
+ }
+ EXPORT_SYMBOL(__sanitizer_cov_trace_pc);
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++/*
++ * Append externally-collected PCs (pKVM EL2 hyp coverage drained around a
++ * hypercall boundary) into the current task's KCOV area.  Uses the same
++ * re-entrancy-safe order as __sanitizer_cov_trace_pc (publish count, barrier,
++ * then the PC).  The caller (the pKVM #23 hook) passes already-converted
++ * __kvm_nvhe_ *link* addresses (runtime hyp-VA -> link done on the drain side via
++ * the __hyp_text anchor), so no canonicalize_ip() here.  Gated by
++ * CONFIG_PKVM_EL2_COV so the symbol only exists for the fuzz kernel.
++ */
++void notrace kcov_add_pcs(const u64 *pcs, u32 n)
++{
++	struct task_struct *t = current;
++	unsigned long *area;
++	unsigned long pos;
++	u32 i;
++
++	if (!check_kcov_mode(KCOV_MODE_TRACE_PC, t))
++		return;
++	area = t->kcov_area;
++	for (i = 0; i < n; i++) {
++		pos = READ_ONCE(area[0]) + 1;
++		if (pos >= t->kcov_size)
++			break;
++		WRITE_ONCE(area[0], pos);
++		barrier();
++		area[pos] = (unsigned long)pcs[i];
++	}
++}
++EXPORT_SYMBOL(kcov_add_pcs);
++#endif /* CONFIG_PKVM_EL2_COV */
++
+ #ifdef CONFIG_KCOV_ENABLE_COMPARISONS
+ static void notrace write_comp_data(u64 type, u64 arg1, u64 arg2, u64 ip)
+ {
+--- /home/jose/common/include/linux/kcov.h	2026-07-09 10:24:26.162494528 +0800
++++ include/linux/kcov.h	2026-07-22 14:49:48.826033547 +0800
+@@ -28,6 +28,11 @@
+ void kcov_task_init(struct task_struct *t);
+ void kcov_task_exit(struct task_struct *t);
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++/* Append externally-collected raw PCs (pKVM EL2 coverage) to current's KCOV area. */
++void kcov_add_pcs(const u64 *pcs, u32 n);
++#endif
++
+ #define kcov_prepare_switch(t)			\
+ do {						\
+ 	(t)->kcov_mode |= KCOV_IN_CTXSW;	\

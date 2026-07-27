@@ -1,0 +1,24 @@
+## total unique PCs: 6406
+## coverage by arch/arm64/kvm file:
+    113 arch/arm64/kvm/arch_timer.c
+     84 arch/arm64/kvm/arm.c
+     72 arch/arm64/kvm/mmu.c
+     60 arch/arm64/kvm/sys_regs.c
+     35 arch/arm64/kvm/pkvm.c
+     10 arch/arm64/kvm/debug.c
+      8 arch/arm64/kvm/reset.c
+      5 arch/arm64/kvm/hypercalls.c
+      4 arch/arm64/kvm/vgic/vgic.c
+      4 arch/arm64/kvm/fpsimd.c
+      1 arch/arm64/kvm/vmid.c
+      1 arch/arm64/kvm/hyp/pgtable.c
+## pKVM host-side (EL1) functions covered:
+     11 __pkvm_destroy_hyp_vm
+      6 __pkvm_create_hyp_vm
+      6 __pkvm_create_hyp_vcpu
+      5 __pkvm_create_hyp_vm
+      3 pkvm_init_host_vm
+      2 pkvm_create_hyp_vm
+      2 __pkvm_vcpu_hyp_created
+      1 pkvm_unmap_range
+      1 pkvm_destroy_hyp_vm

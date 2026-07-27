@@ -23,9 +23,9 @@
 
 - [x] 阶段 0 — 目的与要解决的问题 → 笔记：`notes/阶段0-目的与要解决的问题.md`
 - [x] 阶段 1 — 项目结构：全景地图 → 笔记：`notes/阶段1-项目结构全景地图.md`
-- [ ] 阶段 2 — 端到端主线：一个程序的一生 ★脊柱
-- [ ] 阶段 3 — 程序到底是什么：prog + sys
-- [ ] 阶段 4 — 生成与变异：程序怎么来的
+- [x] 阶段 2 — 端到端主线：一个程序的一生 ★脊柱 → 笔记：`notes/阶段2-端到端主线-一个程序的一生.md`
+- [x] 阶段 3 — 程序到底是什么：prog + sys → 笔记：`notes/阶段3-结构化程序-Prog与syzlang.md`
+- [x] 阶段 4 — 生成与变异：程序怎么来的 → 笔记：`notes/阶段4-生成与变异-程序怎么来的.md`
 - [ ] 阶段 5 — 反馈闭环：signal → corpus ★核心
 - [ ] 阶段 6 — 执行器深潜：executor.cc
 - [ ] 阶段 7 — 覆盖率处理与符号化：pkg/cover
@@ -57,7 +57,7 @@
 
 **出师**
 
-- [x] 对着白纸画出 `syz-manager(host)` ↔ `syz-executor(VM 内)` ↔ `短命子进程` 三层，说出各自职责
+- [x] 对着白纸画出 `syz-manager(host)` ↔ `syz-executor(VM 内)` ↔ `瞬态测试子进程` 三层，说出各自职责
 
 **我的笔记**
 
@@ -79,7 +79,7 @@
 
 | 目录 | 职责 |
 |---|---|
-| `prog/` | 程序表示 + 生成/变异（**与 OS 无关的核心**） |
+| `prog/` | 跨 OS 复用的程序表示与生成/变异算法；具体数据受 `prog.Target` 约束 |
 | `sys/` | 系统调用描述（syzlang `.txt`）+ 代码生成（`syz-extract`/`syz-sysgen`） |
 | `executor/` | C++ 执行器（跑在 VM 里） |
 | `pkg/fuzzer/` | 反馈闭环（signal→corpus→变异） |
@@ -100,6 +100,7 @@
 
 **我的笔记**
 
+→ 详见 `notes/阶段1-项目结构全景地图.md`
 
 ---
 
@@ -110,42 +111,59 @@
 **主线**（照着追接力棒，只求"看到传递"，不抠细节）：
 
 ```
-syz-manager (host)
-  Target.Generate ──────────► prog.Prog（syscall 序列）      prog/generation.go:12
-        │ Prog.SerializeForExec（序列化成执行器字节流）      prog/encodingexec.go:69
-        ▼ RPC                                                pkg/rpcserver/{rpcserver,runner}.go
-syz-executor (VM 内)
-  main → receive_execute/reply_execute 循环                 executor/executor.cc:582,646
-        │ fork 短命子进程，逐个 execute_syscall + KCOV 采集
-        ▼ write_signal / write_cover（回传）                 executor/executor.cc:1226,1261
-syz-manager
-  triageProgCall：有没有新 signal？                          pkg/fuzzer/fuzzer.go:231
-        │ 有 → triage → minimize → 入库                      pkg/fuzzer/job.go / pkg/corpus
+syz-manager（Host）
+  genFuzz：从零生成，或从 corpus 选择程序并变异
+        │
         ▼
-  corpus 成为后续变异素材 ───────────► （回到顶部）
+  *prog.Prog → queue.Request（Host 进程内的调度对象）
+        │ rpcserver.Runner.sendRequest
+        │ Prog.SerializeForExec()
+        ▼
+  FlatRPC ExecRequest{Data: copyin/call/copyout 字节流}
+        │ FlatRPC over TCP
+        ▼
+syz-executor（Target）
+  runner → Proc → syz-executor exec / fork server
+        │ fork 瞬态测试子进程
+        ▼
+  execute_one → execute_call → KCOV → CallInfo/ProgInfo
+        │ FlatRPC ExecResult
+        ▼
+syz-manager（Host）
+  queue.Result → processResult → triageProgCall
+        │ 有潜在新 signal
+        ▼
+  重复执行去抖 → minimize 并重执行验证 → Corpus.Save
+        │
+        └──► corpus.db，并成为后续变异素材
 ```
 
 **读什么**（每一棒扫一眼，看到接力即可）
 
-- [ ] `prog/generation.go:12` `Target.Generate` — 程序诞生
-- [ ] `prog/encodingexec.go:69` `Prog.SerializeForExec` — 序列化成执行器能解码的字节流
-- [ ] `pkg/rpcserver/rpcserver.go` + `runner.go` — 发给 executor
-- [ ] `executor/executor.cc:582` `main` → `:646` `receive_execute`/`reply_execute` 循环
-- [ ] `executor/executor.cc:1226` `write_signal` — 采集回传（已精读）
-- [ ] `pkg/fuzzer/fuzzer.go:231` `triageProgCall` — 判断"有没有新 signal"
-- [ ] `pkg/corpus/corpus.go` — 有价值则入库
+- [x] `pkg/fuzzer/fuzzer.go:285` `genFuzz` + `pkg/fuzzer/job.go:53` — 选择从零生成或 corpus 变异
+- [x] `prog/generation.go:12` `Target.Generate` — 从零生成 `Prog`
+- [x] `prog/encodingexec.go:69` `Prog.SerializeForExec` — 降为 executor 能解释的字节流
+- [x] `pkg/rpcserver/runner.go:141`、`:306` — 取请求、封装并发送 `ExecRequest`
+- [x] `executor/executor_runner.h` + `executor/executor.cc:582` — runner、`Proc` 与 `exec` 进程接力
+- [x] `executor/common.h:609` — fork server 为一次请求启动瞬态测试子进程
+- [x] `executor/executor.cc:933`、`:1225`、`:1377` — 解释指令、形成 signal/cover 和调用结果
+- [x] `pkg/rpcserver/runner.go:426` — 把 `ExecResult` 交回原 `queue.Request`
+- [x] `pkg/fuzzer/fuzzer.go:231` `triageProgCall` — 判断是否存在潜在新 signal
+- [x] `pkg/fuzzer/job.go` + `pkg/corpus/corpus.go:130` — 去抖、最小化并保存
+- [x] `syz-manager/manager.go:991` — 把新程序持久化到 `corpus.db`
 
 **动手（无需 VM）**
 
-- [ ] `go test ./pkg/fuzzer/ -run Test -v` 跟着 `fuzzer_test.go` 看闭环在进程内跑
-- [ ] `./bin/syz-prog2c -help`，试着把一个程序翻成 C
+- [x] `go test ./pkg/fuzzer/ -run Test -v`（本环境通过 `TestFuzz` 和 `TestDeflake`，本地 executor 无需 VM）
+- [x] `./bin/syz-prog2c -help`，并把 `sys/linux/test/file` 的四条 syz 调用转换成 C
 
 **出师**
 
-- [ ] 不看代码复述"生成→序列化→RPC→执行→采集→回传→triage→入库"这条链，并说出每一棒在哪个文件
+- [x] 不看代码复述"生成→序列化→RPC→执行→采集→回传→triage→入库"这条链，并说出每一棒在哪个文件
 
 **我的笔记**
 
+→ 详见 `notes/阶段2-端到端主线-一个程序的一生.md`
 
 ---
 
@@ -155,24 +173,25 @@ syz-manager
 
 **读什么**
 
-- [ ] `prog/prog.go`、`prog/types.go` — `Prog`/`Call`/`Arg`/`Type` 数据模型
-- [ ] `prog/target.go` — `Target`（某 OS/arch 的全部 syscall 元信息）
-- [ ] `docs/program_syntax.md`、`docs/syscall_descriptions_syntax.md`
-- [ ] `sys/linux/*.txt` 挑几个读（如 `sys/linux/socket.txt` 片段）
-- [ ] 生成链：`sys/syz-extract`（从内核头提常量）、`sys/syz-sysgen`（把 `.txt` 编成 Go），产物在 `sys/gen/`、`sys/generated/`
+- [x] `prog/prog.go`、`prog/types.go` — `Prog`/`Call`/`Arg`/`Type` 数据模型
+- [x] `prog/target.go` — `Target`（某 OS/arch 的全部 syscall 元信息）
+- [x] `docs/program_syntax.md`、`docs/syscall_descriptions_syntax.md`
+- [x] `sys/linux/*.txt` 挑几个读（本阶段精读 `dev_kvm.txt` 与 `dev_kvm_arm64.txt` 中的资源、`ioctl$` 变体、结构体和长度关系）
+- [x] 生成链：`sys/syz-extract` 生成架构相关 `.const`，`sys/syz-sysgen` 编译 `.txt` 与 `.const`；主要产物是 `sys/gen/*.gob.flate`、`sys/register.go` 和 executor 头文件，`sys/generated/` 是加载支持包
 
-**主线问题**：一次 `open()` 的参数（flags/mode/路径）怎么被建模成可变异结构？**资源（fd）如何在调用间流转**（`resource` 类型）？
+**主线问题**：同一个 `ioctl(2)` 怎样通过 `$` 变体获得不同的 fd、cmd 和结构体规则？KVM 控制 fd、VM fd 与 vCPU fd 怎样建模为 `fd_kvm → fd_kvmvm → fd_kvmcpu` 的资源依赖？`kvm_userspace_memory_region` 中的指针、VMA 和 `len[addr]` 又怎样变成可递归修改的 `Arg` 对象？
 
 **动手**
 
-- [ ] 手写 3–4 行 syz 程序 → `syz-prog2c` 看它变成什么 C → 改一个参数再看差异
+- [x] 手写一条 ARM64 KVM 接口骨架：打开 `/dev/kvm` → 创建 VM → 注册 guest 内存 → 创建并初始化 vCPU → `KVM_RUN`；用 `syz-prog2c -os linux -arch arm64 -strict` 查看 C，再把 `kvm_vcpu_init.feature` 从 `0` 改为 `KVM_ARM_VCPU_PMU_V3_BIT` 对应的 `0x8` 并比较差异
 
 **出师**
 
-- [ ] 读懂一段 `.txt` 描述，解释 `resource`/`ptr`/`flags` 在变异时各意味着什么
+- [x] 读懂一段 `.txt` 描述，解释 `resource`/`ptr`/`flags` 在变异时各意味着什么
 
 **我的笔记**
 
+→ 详见 `notes/阶段3-结构化程序-Prog与syzlang.md`
 
 ---
 
@@ -182,25 +201,27 @@ syz-manager
 
 **读什么**
 
-- [ ] `prog/generation.go:12` `Target.Generate` — 从零生成
-- [ ] `prog/mutation.go:28` `Prog.Mutate` — 各类变异算子（insert/remove/mutate-arg/splice/squash）
-- [ ] `prog/rand.go:48` `newRand` / `randGen` — 随机参数、资源选择
-- [ ] `prog/prio.go` `ChoiceTable` — 哪些 syscall 组合更可能有意义
-- [ ] `prog/minimization.go` — 反向：缩到最小仍保留信号
-- [ ] 重点读 `prog/mutation_test.go`
+- [x] `prog/generation.go:12` `Target.Generate` — 从零生成
+- [x] `prog/mutation.go:28` `Prog.Mutate` — 各类变异算子（insert/remove/mutate-arg/splice/squash）
+- [x] `prog/rand.go:48` `newRand` / `randGen` — 随机参数、资源选择
+- [x] `prog/prio.go` `ChoiceTable` — 哪些 syscall 组合更可能有意义
+- [x] `prog/minimization.go` — 反向：缩到最小仍保留信号
+- [x] 重点读 `prog/mutation_test.go`
 
-**主线问题**：`ChoiceTable` 如何让"open 后跟 read"比"open 后跟随机 syscall"更常被生成？
+**主线问题**：`ChoiceTable` 与资源依赖如何让“创建 VM 后创建 vCPU”比“对任意 fd 发出随机 KVM ioctl”更容易被生成？
 
 **动手**
 
-- [ ] `go test ./prog/ -run TestMutation -v`
-- [ ] 在 `Mutate` 里加日志，看一次变异改了什么
+- [x] 运行相关 `prog` 变异测试（`GOCACHE=/tmp/stage4-gocache go test ./prog -run 'TestMutationFlags|TestChooseCall|TestMutateArgument|TestMutateTable|TestMutateRandom|TestMutateCorpus|TestSizeMutateArg' -v`）
+- [x] 用临时 Go 实验观察一次删除调用和参数变异的结果（未改动生产源码）
 
 **出师**
 
-- [ ] 列出主要变异算子，解释 `ChoiceTable`/优先级为何是"结构感知"的关键
+- [x] 列出主要变异算子，解释 `ChoiceTable`/优先级为何是"结构感知"的关键
 
 **我的笔记**
+
+→ 详见 `notes/阶段4-生成与变异-程序怎么来的.md`
 
 
 ---
@@ -247,7 +268,7 @@ syz-manager
 - [ ] 回传序列化：`write_signal`(1226) / `write_cover`(1261) / `write_comparisons`(1278)
 - [ ] `executor/executor_linux.h`（KCOV 消费，已精读）
 
-**主线问题**：为什么每个程序在 fork 出的短命子进程里跑？**threaded 模式**解决什么问题（阻塞型 syscall）？
+**主线问题**：为什么每个程序在 fork 出的瞬态测试子进程里跑？**threaded 模式**解决什么问题（阻塞型 syscall）？
 
 **动手**
 

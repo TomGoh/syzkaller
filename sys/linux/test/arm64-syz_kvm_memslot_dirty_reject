@@ -1,0 +1,10 @@
+# requires: arch=arm64 -threaded
+
+# pKVM memslot reject A (LOG_DIRTY on a PROTECTED VM), as a composite. syz_kvm_memslot_reject_flags
+# builds a bit-31 protected VM and registers a slot with KVM_MEM_LOG_DIRTY_PAGES (0x1) -- no vCPU, no
+# run. On a protected VM (pkvm.enabled) a dirty/readonly slot is rejected at prepare -> -EPERM
+# (mmu.c:2499-2502), BEFORE commit, so the dirty-log write-protect/TLB-flush WARN (BUG2, which needs a
+# NORMAL VM) is never reached. N90 acceptance: the call returns -EPERM (errno 1); no WARN.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_memslot_reject_flags$arm64(r0, 0x1)

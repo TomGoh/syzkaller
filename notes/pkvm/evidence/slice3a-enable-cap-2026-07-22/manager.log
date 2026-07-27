@@ -1,0 +1,60 @@
+2026/07/22 10:00:43 serving rpc on tcp://46785
+2026/07/22 10:00:43 serving http on http://127.0.0.1:56742
+2026/07/22 10:00:44 skipped 38 seeds
+2026/07/22 10:00:59 machine check:
+transitively disabled the following syscalls (missing resource [creating syscalls]):
+close$binfmt                                : fd_binfmt [openat$binfmt]
+close$fd_v4l2_buffer                        : fd_v4l2_buffer [ioctl$VIDIOC_QUERYBUF_DMABUF]
+close$ibv_device                            : fd_rdma [openat$uverbs0]
+
+BinFmtMisc              : write(/proc/sys/fs/binfmt_misc/register) failed
+Comparisons             : call 0 failed with errno 998
+Coverage                : enabled
+DelayKcovMmap           : enabled
+DevlinkPCI              : PCI device 0000:00:10.0 is not available
+ExtraCoverage           : enabled
+Fault                   : CONFIG_FAULT_INJECTION is not enabled
+KCSAN                   : write(/sys/kernel/debug/kcsan, on) failed
+KcovResetIoctl          : kernel does not support ioctl(KCOV_RESET_TRACE)
+LRWPANEmulation         : netlink_query_family_id failed
+Leak                    : failed to write(kmemleak, "scan=off")
+MemoryDump              : disabled by user
+NetDevices              : enabled
+NetInjection            : enabled
+NicVF                   : PCI device 0000:00:11.0 is not available
+SandboxAndroid          : setcon: could not write entire context. wrote=-1, expected=30 (errno 22: Invalid argument). . process exited with status 67.
+SandboxNamespace        : enabled
+SandboxNone             : enabled
+SandboxSetuid           : enabled
+Swap                    : enabled
+USBEmulation            : failed to chmod /dev/raw-gadget
+VhciInjection           : open /dev/vhci failed.  (errno 2: No such file or directory).
+WifiEmulation           : netlink_query_family_id failed.  (errno 2: No such file or directory).
+syscalls                : 13/8063
+
+2026/07/22 10:00:59 corpus                  : 63 (63 seeds), 0 to be reminimized, 0 to be resmashed
+2026/07/22 10:01:03 candidates=0 corpus=0 coverage=0 exec total=121 (345/min) pending=0 reproducing=0
+2026/07/22 10:01:13 candidates=0 corpus=0 coverage=0 exec total=499 (16/sec) pending=0 reproducing=0
+2026/07/22 10:01:23 candidates=0 corpus=0 coverage=0 exec total=878 (21/sec) pending=0 reproducing=0
+2026/07/22 10:01:31 starting bug reproductions (max 1 VMs, 1 repros)
+2026/07/22 10:01:33 candidates=0 corpus=19 coverage=5850 exec total=1168 (22/sec) pending=0 reproducing=0
+2026/07/22 10:01:43 candidates=0 corpus=35 coverage=6009 exec total=1428 (23/sec) pending=0 reproducing=0
+2026/07/22 10:01:53 candidates=0 corpus=37 coverage=6009 exec total=1690 (23/sec) pending=0 reproducing=0
+2026/07/22 10:02:03 candidates=0 corpus=36 coverage=6113 exec total=1888 (23/sec) pending=0 reproducing=0
+2026/07/22 10:02:13 candidates=0 corpus=50 coverage=6139 exec total=2273 (24/sec) pending=0 reproducing=0
+2026/07/22 10:02:23 candidates=0 corpus=57 coverage=6148 exec total=2492 (24/sec) pending=0 reproducing=0
+2026/07/22 10:02:33 candidates=0 corpus=62 coverage=6151 exec total=2746 (24/sec) pending=0 reproducing=0
+2026/07/22 10:02:43 candidates=0 corpus=67 coverage=6164 exec total=2968 (24/sec) pending=0 reproducing=0
+2026/07/22 10:02:53 candidates=0 corpus=71 coverage=6167 exec total=3182 (24/sec) pending=0 reproducing=0
+2026/07/22 10:03:03 candidates=0 corpus=69 coverage=6191 exec total=3350 (23/sec) pending=0 reproducing=0
+2026/07/22 10:03:13 candidates=0 corpus=72 coverage=6193 exec total=3538 (23/sec) pending=0 reproducing=0
+2026/07/22 10:03:23 candidates=0 corpus=73 coverage=6193 exec total=3623 (22/sec) pending=0 reproducing=0
+2026/07/22 10:03:33 candidates=0 corpus=73 coverage=6193 exec total=3798 (22/sec) pending=0 reproducing=0
+2026/07/22 10:03:43 candidates=0 corpus=73 coverage=6193 exec total=3988 (22/sec) pending=0 reproducing=0
+2026/07/22 10:03:53 candidates=0 corpus=73 coverage=6193 exec total=4178 (21/sec) pending=0 reproducing=0
+2026/07/22 10:04:03 candidates=0 corpus=72 coverage=6198 exec total=4392 (21/sec) pending=0 reproducing=0
+2026/07/22 10:04:13 candidates=0 corpus=72 coverage=6198 exec total=4506 (21/sec) pending=0 reproducing=0
+2026/07/22 10:04:23 candidates=0 corpus=73 coverage=6198 exec total=4768 (21/sec) pending=0 reproducing=0
+2026/07/22 10:04:26 initializing coverage information...
+SIGINT: shutting down...
+2026/07/22 10:04:31 VM 0: running for 3m35.269005959s, restarting

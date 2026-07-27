@@ -1,0 +1,39 @@
+# RAW verification outputs — controlled KVM_RUN, type-safe constrained path (N90, 2026-07-21)
+# Program: pkvm_constrained.syz
+#   openat$kvm -> syz_kvm_setup_protected_vm$arm64 -> ioctl$KVM_CREATE_VCPU_protected
+#   -> ioctl$KVM_ARM_VCPU_INIT_safe(target=GENERIC_V8, feature=0) -> syz_kvm_vcpu_run_immediate$arm64
+#   -> close(vcpu) -> close$kvmvm_protected(vm)
+# Run as root, sudo, -threaded=0 -cover=1. Probes: p:pcreate/r:pcret ret=$retval/p:pdestroy.
+
+===== [1] EXECPROG (-threaded=0 -cover=1) — controlled run return + per-call coverage =====
+#0 [2195ms] -> ioctl$KVM_CREATE_VCPU_protected(0x4, 0xae41, 0x0)
+#0 [2195ms] <- ioctl$KVM_CREATE_VCPU_protected=0x5 cover=1934
+#0 [2195ms] -> ioctl$KVM_ARM_VCPU_INIT_safe(0x5, 0x4020aeae, 0x20000100)
+#0 [2196ms] <- ioctl$KVM_ARM_VCPU_INIT_safe=0x0 cover=4323
+#0 [2196ms] -> syz_kvm_vcpu_run_immediate$arm64(0x5)
+#0 [2196ms] <- syz_kvm_vcpu_run_immediate$arm64=0xffffffffffffffff errno=4 cover=5459
+call #0: signal 736,  coverage 1235    (openat$kvm)
+call #1: signal 2502, coverage 63133   (syz_kvm_setup_protected_vm = KVM_CREATE_VM protected)
+call #2: signal 638,  coverage 1934    (ioctl$KVM_CREATE_VCPU_protected)
+call #3: signal 366,  coverage 4323    (ioctl$KVM_ARM_VCPU_INIT_safe)
+call #4: signal 2425, coverage 5459    (syz_kvm_vcpu_run_immediate — bounded, NOT the 524287 cap)
+call #5: signal 268,  coverage 493     (close vcpu)
+call #6: signal 2175, coverage 42181   (close$kvmvm_protected — pkvm_destroy_hyp_vm path)
+(execprog wall time: 6s)
+
+===== [2,4] KPROBE TRACE =====
+pcreate:  (pkvm_create_hyp_vm+0x0/0x560)
+pcret:    (kvm_arch_vcpu_run_pid_change+0x190/0x200 <- pkvm_create_hyp_vm) ret=0x0
+pdestroy: (pkvm_destroy_hyp_vm+0x0/0x48)
+
+===== [3] DMESG DIFF =====
+CLEAN (no kvm_timer/arch_timer WARNING, no pKVM/hyp fault)
+
+# Symbolized call #4 (the controlled run), from the earlier identical run (imm.cov_prog1.4, 2276 unique PCs):
+#   pkvm_create_hyp_vm -> __pkvm_create_hyp_vm (11) -> __pkvm_create_hyp_vcpu (6) -> __pkvm_vcpu_hyp_created (2)
+#   kvm_arch_vcpu_run_pid_change (13)  kvm_arch_vcpu_ioctl_run (6)
+#   files: arch/arm64/kvm/{pkvm.c 20, mmu.c 18, arm.c 32, arch_timer.c 72, debug.c 8, fpsimd.c 4, vmid.c 1}
+
+VERDICT: all 5 acceptance criteria pass on the type-safe constrained path.
+Type-safe calls confirmed working: KVM_CREATE_VCPU_protected returns fd_kvmcpu_protected (=0x5),
+KVM_ARM_VCPU_INIT_safe (fixed target/feature=0) returns 0, run_immediate returns -EINTR.

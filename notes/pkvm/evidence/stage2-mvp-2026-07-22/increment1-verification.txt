@@ -1,0 +1,6 @@
+=== Increment 1 (producer) verification — isolated tree, 2026-07-22 ===
+instrumented call sites in nvhe_rust.o: 7443
+callback __kvm_nvhe___sanitizer_cov_trace_pc: 1 def in vmlinux
+callback addr2line: /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/cov.c:23
+cov helpers: 2 present
+Rust fn still symbolizes: handle___pkvm_host_map_guest -> /home/jose/common-stage2mvp/arch/arm64/kvm/hyp/nvhe/rust/src/hyp_main.rs:1069

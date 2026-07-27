@@ -1,0 +1,30 @@
+Slice 3 (KVM_ENABLE_CAP config paths) — provenance (2026-07-22)
+
+syzkaller branch/commit : pkvm-lifecycle-fuzzing @ 83b3635687c2e5c00fbe8236edfcae4765ce84ba
+  (slice-3 code b926d28ab; firmware-mechanism correction 83b363568; PKVM_FW_IPA -> crosvm window: THIS commit)
+board                   : N90 = root@10.42.27.17, Kylin V10 aarch64 Phytium gwd3000 (ACPI/UEFI, no DT)
+kernel                  : 6.6.30-pkvm-fuzz, kvm-arm.mode=protected (GRUB default), KASLR off
+vmlinux                 : /home/jose/common/vmlinux
+  sha256   = c3d0c24e5f66afe8212457a46c9ca47b42a0cb251340cdb59b96e3e14f81a3e1
+  build-id = 1e36e2ee9e969132eb64ec0af547f48e67c15734
+executor                : bin/linux_arm64/syz-executor (PKVM_FW_IPA=0x7FC00000), sandbox=none, root
+  sha256   = a106accd03ca63a7a3d6514f6ea54c42c8a8cd8730b465e557b53934889a6855
+enable_syscalls         : 13/8063 (lifecycle + memslot rejects + pvm_info/set_fw_ipa/set_fw_ipa_busy)
+campaign (supervised)   : corpus 0->72, coverage 0->~6.2k, ~4.4k execs, 0 crashes, 0 WARN/BUG
+  all 3 new calls enter the corpus (pvm_info, set_fw_ipa, set_fw_ipa_busy)
+
+pKVM firmware on N90 (see 2026-07-22-slice3a-enable-cap.md):
+  pkvm_firmware_mem is set by the vendor xcore_pkvm_dice_init() (arm.c:2755), NOT the DT path.
+  built-in firmware source : /home/jose/common/firmware/pvmfw.bin (CONFIG_EXTRA_FIRMWARE="pvmfw.bin")
+    file size   = 970992 bytes
+    file sha256 = c368e64b6dfdc6c0870c912f2dc4dc95f6c433251825573f84c0f7074835dad5
+  loaded region size (INFO firmware_size) = 978944 = PAGE_ALIGN(970992 + 4096)  (firmware + 1 DICE page)
+  boot-log region hash (arm.c:2722, over the 978944-byte region incl. DICE cfg + padding, NOT the raw file):
+    SHA-256 = b72048ef2fe5d68ff2f37f93c4dd62a15a0bc17fa61ae80ff1e2d5f615008470
+  (the file hash and the region hash differ by construction: the region adds the DICE config page.)
+
+PKVM_FW_IPA = 0x7FC00000 : crosvm arm64 pvmfw window start (AARCH64_PHYS_MEM_START 0x80000000 - 4 MiB;
+  crosvm aarch64/src/lib.rs:114-119). SET_FW_IPA only records this (pkvm.c:632, no range check); the
+  address is not yet exercised as a guest load address here -- that is Phase 5.
+
+Recompute: ./symbolize.sh <vmlinux matching the sha256 above>

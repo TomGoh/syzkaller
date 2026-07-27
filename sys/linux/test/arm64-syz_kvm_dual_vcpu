@@ -1,0 +1,25 @@
+# requires: arch=arm64 -threaded
+
+# Protected-VM (pKVM) host->hyp lifecycle with TWO vCPUs, constrained safe path (pvmfw-less).
+# Create a protected VM -> create TWO protected vCPUs (ids 0,1) -> safe VCPU_INIT both (feature=0,
+# no PMU_V3) -> controlled first KVM_RUN on ONE vCPU. Because both vCPUs already exist and are
+# initialized, the first-run hyp-VM creation walks all of them:
+#   kvm_arch_vcpu_run_pid_change -> pkvm_create_hyp_vm -> __pkvm_create_hyp_vm ->
+#   kvm_for_each_vcpu(...) __pkvm_create_hyp_vcpu(...)  [runs ONCE PER vCPU]  (arch/arm64/kvm/pkvm.c:415)
+# so __pkvm_create_hyp_vcpu fires x2 here vs x1 for the single-vCPU test -- a real host-side
+# (EL1) coverage increment over the vCPU-iteration + per-vCPU hyp setup. Teardown closes BOTH
+# vCPUs before the VM (vCPU fds hold a VM ref) -> pkvm_destroy_hyp_vm.
+# N90 acceptance: pkvm_create_hyp_vm $retval=0; __pkvm_create_hyp_vcpu hit x2; run returns -EINTR;
+# no arch_timer WARN; explicit closes execute; pkvm_destroy_hyp_vm fires; bounded KCOV, delta>0
+# vs the single-vCPU program.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+r1 = syz_kvm_setup_protected_vm$arm64(r0, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU_protected(r1, AUTO, 0x0)
+r3 = ioctl$KVM_CREATE_VCPU_protected(r1, AUTO, 0x1)
+ioctl$KVM_ARM_VCPU_INIT_safe(r2, AUTO, &AUTO)
+ioctl$KVM_ARM_VCPU_INIT_safe(r3, AUTO, &AUTO)
+syz_kvm_vcpu_run_immediate$arm64(r2)
+close(r3)
+close(r2)
+close$kvmvm_protected(r1)

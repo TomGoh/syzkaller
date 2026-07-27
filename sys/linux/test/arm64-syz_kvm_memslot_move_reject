@@ -1,0 +1,10 @@
+# requires: arch=arm64 -threaded
+
+# pKVM memslot reject B (MOVE after first run), as a composite (the MOVE counterpart to the delete
+# test). syz_kvm_memslot_reject_move builds a bit-31 protected VM, registers a normal slot, runs a
+# throwaway vCPU (sets pkvm.handle), then MOVEs the slot to an adjacent page-aligned GPA -- all in C.
+# MOVE with pkvm.handle && pkvm.enabled -> -EPERM (mmu.c:2494-2497). No guest memory is executed.
+# N90 acceptance: the call returns -EPERM (errno 1); no WARN.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_memslot_reject_move$arm64(r0)

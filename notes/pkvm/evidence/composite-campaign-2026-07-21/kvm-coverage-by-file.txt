@@ -1,0 +1,14 @@
+    218 arch/arm64/kvm/arm.c
+    159 arch/arm64/kvm/mmu.c
+    147 arch/arm64/kvm/arch_timer.c
+    122 arch/arm64/kvm/sys_regs.c
+     72 arch/arm64/kvm/pkvm.c
+     24 arch/arm64/kvm/reset.c
+     20 arch/arm64/kvm/sys_regs.h
+     20 arch/arm64/kvm/fpsimd.c
+     14 arch/arm64/kvm/debug.c
+      8 arch/arm64/kvm/pmu.c
+      7 arch/arm64/kvm/hypercalls.c
+      2 arch/arm64/kvm/trace_arm.h
+      1 arch/arm64/kvm/vmid.c
+      1 arch/arm64/kvm/trace_handle_exit.h

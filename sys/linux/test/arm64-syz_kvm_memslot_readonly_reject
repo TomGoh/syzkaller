@@ -1,0 +1,8 @@
+# requires: arch=arm64 -threaded
+
+# pKVM memslot reject A (KVM_MEM_READONLY on a PROTECTED VM) -- the READONLY counterpart to the dirty
+# test, using the same composite with flags=0x2. On a protected VM the readonly slot is rejected at
+# prepare -> -EPERM (mmu.c:2499-2502), before commit. N90 acceptance: -EPERM (errno 1); no WARN.
+
+r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
+syz_kvm_memslot_reject_flags$arm64(r0, 0x2)

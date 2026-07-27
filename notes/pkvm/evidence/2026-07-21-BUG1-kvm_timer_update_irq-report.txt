@@ -1,0 +1,128 @@
+KVM: debugfs: duplicate directory 24012-15
+KVM: debugfs: duplicate directory 24066-6
+KVM: debugfs: duplicate directory 24079-8
+KVM: debugfs: duplicate directory 24133-4
+------------[ cut here ]------------
+WARNING: CPU: 4 PID: 24186 at arch/arm64/kvm/arch_timer.c:461 kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+Modules linked in: bridge iptable_nat nf_nat stp nf_conntrack llc nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep r8153_ecm cdc_ether usbnet joydev r8152 mii nls_iso8859_1 vfat rtk_btusb btusb btrtl btintel btbcm btmtk bluetooth hid_multitouch ecdh_generic ecc hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce snd_hda_codec_conexant sha3_ce sha512_ce snd_hda_codec_aw882xx sha512_arm64 sha2_ce sha256_arm64 libarc4 snd_hda_aw882xx sha1_ce snd_hda_codec_aw883xx snd_hda_aw883xx rfkill snd_hda_codec_generic snd_soc_hdmi_codec snd_soc_pmdk_dp ledtrig_audio ftg340 i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver snd_hda_codec thermal i2c_hid hid snd_hda_core cppc_cpufreq snd_soc_phytium_i2s_v2 xhci_plat_hcd uvcvideo videobuf2_vmalloc uvc videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 4 PID: 24186 Comm: syz.2.973 Not tainted 6.6.30-pkvm-fuzz #4
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+lr : kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+sp : ffff0020ae78f5a0
+x29: ffff0020ae78f5a0 x28: 0000000000000000 x27: 0000000000000000
+x26: ffff0020d1c65c00 x25: ffff0021f372c958 x24: 0000000000000001
+x23: ffff0021f372c8e8 x22: ffff0020cdfa8000 x21: ffff0020cdfa8000
+x20: ffff0021f372c8e8 x19: 000000000000001e x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000100
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff60043e6e59a7
+x11: 1fffe0043e6e59a6 x10: ffff60043e6e59a6 x9 : ffff8000800af3cc
+x8 : ffff0021f372ad80 x7 : 0000000000000000 x6 : 0000000000001fa8
+x5 : 0000000000000040 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : ffff0021f2e8a880 x0 : 0000000000000000
+Call trace:
+ kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+ kvm_timer_vcpu_reset+0x178/0x348 arch/arm64/kvm/arch_timer.c:970
+ kvm_reset_vcpu+0x260/0x620 arch/arm64/kvm/reset.c:264
+ kvm_vcpu_set_target arch/arm64/kvm/arm.c:1406 [inline]
+ kvm_arch_vcpu_ioctl_vcpu_init arch/arm64/kvm/arm.c:1425 [inline]
+ kvm_arch_vcpu_ioctl+0x880/0xfd8 arch/arm64/kvm/arm.c:1547
+ kvm_vcpu_ioctl+0x72c/0xc98 virt/kvm/kvm_main.c:4317
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:871 [inline]
+ __se_sys_ioctl fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 fs/ioctl.c:857
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 4 PID: 24186 at arch/arm64/kvm/arch_timer.c:461 kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+Modules linked in: bridge iptable_nat nf_nat stp nf_conntrack llc nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep r8153_ecm cdc_ether usbnet joydev r8152 mii nls_iso8859_1 vfat rtk_btusb btusb btrtl btintel btbcm btmtk bluetooth hid_multitouch ecdh_generic ecc hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce snd_hda_codec_conexant sha3_ce sha512_ce snd_hda_codec_aw882xx sha512_arm64 sha2_ce sha256_arm64 libarc4 snd_hda_aw882xx sha1_ce snd_hda_codec_aw883xx snd_hda_aw883xx rfkill snd_hda_codec_generic snd_soc_hdmi_codec snd_soc_pmdk_dp ledtrig_audio ftg340 i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver snd_hda_codec thermal i2c_hid hid snd_hda_core cppc_cpufreq snd_soc_phytium_i2s_v2 xhci_plat_hcd uvcvideo videobuf2_vmalloc uvc videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 4 PID: 24186 Comm: syz.2.973 Tainted: G        W         ------- ----- 6.6.30-pkvm-fuzz #4
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+lr : kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+sp : ffff0020ae78f5a0
+x29: ffff0020ae78f5a0 x28: 0000000000000000 x27: 0000000000000000
+x26: ffff0020d1c65c00 x25: ffff0021f372c9c8 x24: 0000000000000001
+x23: ffff0021f372c8e8 x22: ffff0020cdfa8000 x21: ffff0020cdfa8001
+x20: ffff0021f372c958 x19: 000000000000001b x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000100
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff60043e6e59a7
+x11: 1fffe0043e6e59a6 x10: ffff60043e6e59a6 x9 : ffff8000800af3cc
+x8 : ffff0021f372ad80 x7 : 0000000000000000 x6 : 0000000000001fa8
+x5 : 0000000000000040 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : ffff0021f2e8a880 x0 : 0000000000000000
+Call trace:
+ kvm_timer_update_irq+0x1c8/0x1d8 arch/arm64/kvm/arch_timer.c:461
+ kvm_timer_vcpu_reset+0x178/0x348 arch/arm64/kvm/arch_timer.c:970
+ kvm_reset_vcpu+0x260/0x620 arch/arm64/kvm/reset.c:264
+ kvm_vcpu_set_target arch/arm64/kvm/arm.c:1406 [inline]
+ kvm_arch_vcpu_ioctl_vcpu_init arch/arm64/kvm/arm.c:1425 [inline]
+ kvm_arch_vcpu_ioctl+0x880/0xfd8 arch/arm64/kvm/arm.c:1547
+ kvm_vcpu_ioctl+0x72c/0xc98 virt/kvm/kvm_main.c:4317
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:871 [inline]
+ __se_sys_ioctl fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 fs/ioctl.c:857
+ __invoke_syscall arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+SYZFAIL: failed to recv rpc
+fd=3 want=4 recv=0 n=0 (errno 9: Bad file descriptor)
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+WARNING: CPU: 4 PID: 24186 at arch/arm64/kvm/arch_timer.c:461 kvm_timer_update_irq+0x1c8/0x1d8
+Modules linked in: bridge iptable_nat nf_nat stp nf_conntrack llc nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep r8153_ecm cdc_ether usbnet joydev r8152 mii nls_iso8859_1 vfat rtk_btusb btusb btrtl btintel btbcm btmtk bluetooth hid_multitouch ecdh_generic ecc hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce snd_hda_codec_conexant sha3_ce sha512_ce snd_hda_codec_aw882xx sha512_arm64 sha2_ce sha256_arm64 libarc4 snd_hda_aw882xx sha1_ce snd_hda_codec_aw883xx snd_hda_aw883xx rfkill snd_hda_codec_generic snd_soc_hdmi_codec snd_soc_pmdk_dp ledtrig_audio ftg340 i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver snd_hda_codec thermal i2c_hid hid snd_hda_core cppc_cpufreq snd_soc_phytium_i2s_v2 xhci_plat_hcd uvcvideo videobuf2_vmalloc uvc videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 4 PID: 24186 Comm: syz.2.973 Tainted: G        W         ------- ----- 6.6.30-pkvm-fuzz #4
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_timer_update_irq+0x1c8/0x1d8
+lr : kvm_timer_update_irq+0x1c8/0x1d8
+sp : ffff0020ae78f5a0
+x29: ffff0020ae78f5a0 x28: 0000000000000000 x27: 0000000000000000
+x26: ffff0020d1c65c00 x25: ffff0021f372c9c8 x24: 0000000000000001
+x23: ffff0021f372c8e8 x22: ffff0020cdfa8000 x21: ffff0020cdfa8001
+x20: ffff0021f372c958 x19: 000000000000001b x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000100
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff60043e6e59a7
+x11: 1fffe0043e6e59a6 x10: ffff60043e6e59a6 x9 : ffff8000800af3cc
+x8 : ffff0021f372ad80 x7 : 0000000000000000 x6 : 0000000000001fa8
+x5 : 0000000000000040 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : 0000000000000000 x1 : ffff0021f2e8a880 x0 : 0000000000000000
+Call trace:
+ kvm_timer_update_irq+0x1c8/0x1d8
+ kvm_timer_vcpu_reset+0x178/0x348
+ kvm_reset_vcpu+0x260/0x620
+ kvm_arch_vcpu_ioctl+0x880/0xfd8
+ kvm_vcpu_ioctl+0x72c/0xc98
+ __arm64_sys_ioctl+0x134/0x158
+ invoke_syscall.constprop.0+0x64/0x1a8
+ el0_svc_common.constprop.0+0x138/0x170
+ do_el0_svc+0x38/0x50
+ el0_svc+0x28/0x60
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+

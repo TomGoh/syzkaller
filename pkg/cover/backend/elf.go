@@ -48,7 +48,11 @@ const (
 // ARM64 linker inserts so-called veneers that act as trampolines for functions. We count calls to
 // such veneers as normal calls to __sanitizer_cov_trace_XXX.
 func getTraceCallbackType(name string) int {
-	if name == "__sanitizer_cov_trace_pc" || name == "____sanitizer_cov_trace_pc_veneer" {
+	// __kvm_nvhe___sanitizer_cov_trace_pc: the arm64 pKVM nVHE linker prefixes every hyp symbol with
+	// __kvm_nvhe_, so the EL2 (Rust hyp) coverage callback appears under that name. Treat the bl sites
+	// to it as normal trace-pc coverage points (they live in the __kvm_nvhe_ range of vmlinux .text).
+	if name == "__sanitizer_cov_trace_pc" || name == "____sanitizer_cov_trace_pc_veneer" ||
+		name == "__kvm_nvhe___sanitizer_cov_trace_pc" {
 		return TraceCbPc
 	}
 	if strings.HasPrefix(name, "__sanitizer_cov_trace_") ||
