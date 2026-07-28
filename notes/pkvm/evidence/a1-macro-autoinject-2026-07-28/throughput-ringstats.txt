@@ -1,0 +1,35 @@
+pKVM EL2 coverage — macro auto-injection throughput + ring-integrity evidence
+N90 kernel 6.6.30+ #47 (built 2026-07-28 15:36), Image-only deploy, ring armed CPU0 nr_pages=32
+Config: procs=1, pkvm_serial, remote_cover=false, isolated, pkvm_owner_cpu=0
+Fresh workdir, ~2.5 min run. This measures the "efficient" gate: does wrapping EVERY
+host->hyp HVC (vs 2 per-site windows) cost throughput? Answer: no.
+
+== syz-manager status (fresh workdir, exec/s + coverage + corpus) ==
+15:56:21 corpus=22 coverage=7231 exec total=1980 (14/sec)
+15:56:31 corpus=29 coverage=7477 exec total=2203 (14/sec)
+15:56:41 corpus=34 coverage=7482 exec total=2326 (14/sec)
+15:56:51 corpus=35 coverage=7482 exec total=2411 (14/sec)
+15:57:01 corpus=35 coverage=7482 exec total=2488 (13/sec)
+15:57:11 corpus=35 coverage=7482 exec total=2576 (13/sec)
+  -> 13-14 exec/s, IDENTICAL to the pre-macro (~13 exec/s single-owner-CPU serial) baseline.
+  -> corpus grew 0 -> 35: the fuzzer saves programs driven by the new EL2 signal.
+
+== N90 /sys/kernel/debug/kvm/pkvm_cov/stats (after the run) ==
+begin_calls         2099738      # ~815 HVC wraps/exec over 2576 execs (~128x more than create-wrap's ~2/exec)
+skip_not_owner      0            # no wrong-CPU captures
+skip_no_kcov        9909         # HVCs outside the fuzzer's KCOV window, correctly skipped (self-guard working)
+drains              2089829
+el2_hits            510063748    # 510M EL2 PCs produced
+el2_written         510063748    # ALL written (el2_written == el2_hits)
+el2_overflow_drains 0            # the 32-page ring never overflowed
+el2_hits_max        10202        # busiest single window fit in the ring (cap 16381)
+LOST_IN_RING        0            # nothing truncated  (instrument-limiter discipline satisfied)
+kcov_accepted       510063748    # ALL captured PCs accepted by task KCOV
+LOST_IN_KCOV_AREA   0
+dmesg WARN/BUG      (none)
+
+== verdict ==
+Coverage jump 229 -> 540 EL2 PCs (2.4x) at UNCHANGED throughput and zero loss.
+The per-HVC wrap overhead is negligible: the self-guard fast path is a few loads/compares,
+and drains are bounded (el2_hits_max 10202 < ring cap 16381 => single-page-order ring absorbs
+the busiest lifecycle window). skip_no_kcov confirms out-of-window HVCs are cheap no-ops.

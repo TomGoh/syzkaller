@@ -1,0 +1,38 @@
+== a2 capture: label=macrocov N=5 cpu=0 prog=/root/syzkaller-fuzz/a2/macrocov.prog el2=[0xffff800081d89ed4,0xffff800081de7000) ==
+sh: 1: echo: echo: I/O error
+2026/07/28 15:51:34 parsed 1 programs
+2026/07/28 15:51:34 serving rpc on tcp://37949
+正在设置交换空间版本 1，大小 = 122.1 MiB (127995904  个字节)
+无标签， UUID=4aff88c2-2fac-492a-9533-59c082ff1f0a
+2026/07/28 15:51:38 executed programs: 0
+2026/07/28 15:51:41 call #0: signal 785, coverage 1286
+2026/07/28 15:51:41 call #1: signal 9837, coverage 265748
+2026/07/28 15:51:42 parsed 1 programs
+2026/07/28 15:51:42 serving rpc on tcp://44785
+正在设置交换空间版本 1，大小 = 122.1 MiB (127995904  个字节)
+无标签， UUID=8aeb0a90-ccd3-4c52-80ae-5fe9accb668b
+2026/07/28 15:51:46 executed programs: 0
+2026/07/28 15:51:48 call #0: signal 736, coverage 1235
+2026/07/28 15:51:48 call #1: signal 9755, coverage 266546
+2026/07/28 15:51:50 parsed 1 programs
+2026/07/28 15:51:50 serving rpc on tcp://41403
+正在设置交换空间版本 1，大小 = 122.1 MiB (127995904  个字节)
+无标签， UUID=731c8e45-f9e1-45cd-9dee-c54a47d83b2f
+2026/07/28 15:51:54 executed programs: 0
+2026/07/28 15:51:56 call #0: signal 735, coverage 1234
+2026/07/28 15:51:56 call #1: signal 9748, coverage 265040
+2026/07/28 15:51:58 parsed 1 programs
+2026/07/28 15:51:58 serving rpc on tcp://42469
+正在设置交换空间版本 1，大小 = 122.1 MiB (127995904  个字节)
+无标签， UUID=71dfb297-bdd1-4a6e-a891-d62973dd3d8d
+2026/07/28 15:52:02 executed programs: 0
+2026/07/28 15:52:04 call #0: signal 734, coverage 1233
+2026/07/28 15:52:04 call #1: signal 9691, coverage 266107
+2026/07/28 15:52:05 parsed 1 programs
+2026/07/28 15:52:05 serving rpc on tcp://39159
+正在设置交换空间版本 1，大小 = 122.1 MiB (127995904  个字节)
+无标签， UUID=07cc94aa-a215-409d-9575-0a02e92373ef
+2026/07/28 15:52:09 executed programs: 0
+2026/07/28 15:52:11 call #0: signal 750, coverage 1267
+2026/07/28 15:52:11 call #1: signal 9694, coverage 265783
+== done: /root/syzkaller-fuzz/a2-out/macrocov/macrocov.{1..5}.el2 + macrocov.stats ; pull to host + a2-analyze.sh crunch ==

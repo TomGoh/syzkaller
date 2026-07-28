@@ -36,9 +36,12 @@ The first is a **SILENT failure** — you will not get an error, you will get ze
   `addr2line` to `rust/src/*.rs:line`. Kernel side lives in `common-stage2mvp` **uncommitted**
   (project constraint); the full snapshot is
   `notes/pkvm/evidence/kernel-instrumentation-2026-07-27/stage2-el2-kcov.patch`.
-- **Instrumented boundaries: 2 of ~66 host→hyp HVCs** — `#23 __pkvm_host_map_guest` (mmu.c)
-  and **VM/vCPU create** `#92/#93 __pkvm_init_vm/__pkvm_init_vcpu` (pkvm.c). EL2 source-line
-  coverage: **~133 lines** across ~20 files (was 79 with #23 alone; create added +54).
+- **Instrumented boundaries: ALL host→hyp HVCs, via macro auto-injection** (2026-07-28) —
+  `KVM_PKVM_COV_HVC` is injected once into `kvm_call_hyp_nvhe` (kvm_host.h) and
+  `kvm_call_refill_hyp_nvhe` (kvm_pkvm.h), so every boundary the fuzzer drives is covered with no
+  per-site code; the old per-site wraps (#23 map, VM/vCPU create/teardown) are reverted. EL2
+  source-line coverage from ONE `baseline.prog` input: **298 `.rs` lines** (was 133 with the create
+  wrap, 79 with #23 alone). See `a1-macro-cov-injection.md` + `evidence/a1-macro-autoinject-2026-07-28/`.
 - **Fuzzer input:** the generatable composite `syz_kvm_run_fw_fault_gen$arm64(fd, ipa_size,
   fw_ipa, hp_mode)` (safe args pinned; `hp_mode` mutatable → 2 MiB block donation). Full
   protected-VM lifecycle in C (executor/common_kvm_arm64.h).
@@ -58,6 +61,16 @@ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- -j"$(nproc)" Image
 ```
 Boot the non-default GRUB entry `6.6.30+ pKVM EL2-cov smoke` (`grub-reboot "..."` one-shot;
 default stays the known-good `6.6.30-pkvm-fuzz`, so a bad build never bricks the box).
+Image-only swap on the target: hash-verify then `mv` into `/boot/vmlinuz-6.6.30+` (keep a
+`.bak`), confirm `/lib -> usr/lib` intact. NOTE: on N90 the grubenv `next_entry` does NOT clear
+after boot, so the box **keeps** booting the cov entry — fine for a campaign, but to revert to
+known-good you must select it manually / clear grubenv.
+
+**Rebuilding syzkaller (this checkout is a git worktree):** `syz-manager` runs on the HOST and is
+where `pkg/report` lives, so a reporter change needs a manager rebuild (not a target redeploy):
+`cd syzkaller-pkvm && GGFLAGS=-buildvcs=false make manager` (the worktree needs `-buildvcs=false`,
+passed via `GGFLAGS` so it appends to `GOFLAGS` without clobbering the `-ldflags`). The N90-side
+`syz-executor` is unaffected by reporter changes.
 
 ## Run a (supervised) campaign
 ```
@@ -82,28 +95,34 @@ EL2 files show coverage. Ad-hoc: `curl .../rawcover | aarch64-linux-gnu-addr2lin
   to the owner CPU (~13 exec/s/machine). Scale **horizontally** (batch + syz-hub). Per-online-CPU
   rings would lift this but are a kernel change (successor optimization).
 - **VMID-rollover WARN** every ~13k VM create/destroys: suppressed in the reporter; the EL2-side
-  fix is the kernel owner's.
+  fix is the kernel owner's. **The suppression is a REPORTER change (`pkg/report/linux.go`
+  `ctorLinux` ignore) compiled into `syz-manager` — it does NOT silence the kernel dmesg (the WARN
+  still prints on the box; that's expected). It only stops syzkaller treating the WARN as a crash.
+  CRITICAL: you must REBUILD `syz-manager` after any reporter change — a running binary built
+  before the commit will still crash-detect the WARN, tear down the VM, and stall the campaign at
+  the first rollover (~11-13k execs). Verify the fix is in the binary:
+  `strings bin/syz-manager | grep 'arch/arm64/kvm/vmid'` (want ≥1).**
 - **Create-path coverage has run-to-run variance** (allocator state); the deflake-stable subset
   is saved, the union accumulates over the campaign. `LOST_IN_RING=0` confirms it's real, not
   truncation.
 
 ## The "entire codebase" gap
-Coverage = reachability. **host→hyp** surface (create/teardown/share/map/relax-perms/PSCI/IOMMU
-… ~66 HVCs) is reached by **a1** (instrument more boundaries — each = a new EL2 region; the
-proven, mechanical lever). **guest→hyp** surface (a compromised guest's HVCs/traps) is reached
-only by **B** (an in-guest fuzzer agent + a transport that survives protected-VM memory
-isolation — a multi-week build, design-only for now). At handoff: 2/66 host→hyp boundaries
-instrumented; continue a1 incrementally; B is the separate frontier.
+Coverage = reachability. The **host→hyp** surface (create/teardown/share/map/relax-perms/PSCI/IOMMU
+… the HVCs through `kvm_call_hyp_nvhe`/`kvm_call_refill_hyp_nvhe`) is now **fully instrumented in
+one shot** by the macro auto-injection (a1, done 2026-07-28) — coverage there is bounded only by
+which HVCs the fuzzer's inputs actually drive, not by how many sites are wrapped. The **guest→hyp**
+surface (a compromised guest's HVCs/traps into EL2) is reached only by **B** — an in-guest fuzzer
+agent + a transport that survives protected-VM memory isolation (a multi-week build, design-only
+for now). At handoff: **host→hyp fully covered; B is the separate, remaining frontier.**
 
-## The boundary-instrumentation method (repeatable, per new boundary)
-1. **Audit** the host call site: which locks held, preempt on/off, stable owner CPU, sleepable?,
-   same task as the KCOV collector (KVM_RUN/pseudo-syscall thread)? — board-free code read.
-2. **Wrap** only the atomic HVC with `#ifdef CONFIG_PKVM_EL2_COV { cov; armed=pkvm_cov_begin(&cov);
-   <the kvm_call_...hvc>; if(armed) pkvm_cov_end(&cov); }` — never a sleeping region, never a
-   global wrap.
-3. Incremental `make Image` → Image-only deploy → reboot.
-4. **Verify:** new EL2 `.rs` lines appear + attributable, **`LOST_IN_RING=0`**, `skip_not_owner=0`,
-   no new WARN/hang. (See scripts/pkvm/a2/ for the capture + set-algebra harness.)
+## Host→hyp coverage is automatic (macro auto-injection) — no per-boundary work
+As of 2026-07-28, coverage is injected once into the HVC primitive macros
+(`KVM_PKVM_COV_HVC` in `kvm_call_hyp_nvhe` + `kvm_call_refill_hyp_nvhe`), so **you do not
+hand-instrument boundaries anymore**. See `a1-macro-cov-injection.md` for the design + safety
+reasoning. To reach *more* host→hyp code, drive **new inputs** that exercise more HVCs (module ops,
+IOMMU, PSCI, relax-perms, …) — the coverage follows automatically. Verify any rebuild the usual way:
+new `.rs` lines attributable, **`LOST_IN_RING=0`**, `skip_not_owner=0`, no WARN/hang, exec/s healthy
+(see `scripts/pkvm/a2/` for the capture + set-algebra harness).
 
 ## Methodology rules (hold these)
 1. **The instrument is the limiter, not the DUT** (proven 3×: drains metric, tmpfs-chroot toggle,
@@ -113,8 +132,11 @@ instrumented; continue a1 incrementally; B is the separate frontier.
    `/root` files never reach the fault code.
 3. **Code reading is a hypothesis; hardware gives the answer** — retract mechanistic predictions
    that the run refutes.
-4. **Per-boundary audit, never a global `kvm_call_hyp_nvhe` wrap** — each boundary has its own
-   lock/CPU/RCU/sleepability context.
+4. **The safe global wrap IS the design (macro auto-injection)** — supersedes the old
+   "never global-wrap" rule. Safety comes from wrapping only the atomic HVC (refill's sleeping
+   topup stays outside the window) + `pkvm_cov_begin`'s self-guards (owner-CPU + KCOV), NOT from a
+   per-site allowlist. Operator caveat: disarm the ring only when the campaign is idle. See
+   `a1-macro-cov-injection.md`.
 
 ## Committed work (branch pkvm-lifecycle-fuzzing; kernel stays uncommitted in common-stage2mvp)
 `94a29c2a6` PQ-banner · `942bf6622` gen-args pin · `aca4da48c` a2 hp_mode · `81d7d4cc2` MAX_PAGES

@@ -74,6 +74,53 @@ index 6e2f9a0dd794..ba9795533903 100644
  #endif
  
  	/*
+diff --git a/arch/arm64/include/asm/kvm_host.h b/arch/arm64/include/asm/kvm_host.h
+index e9983ad0521e..499f70232f7a 100644
+--- a/arch/arm64/include/asm/kvm_host.h
++++ b/arch/arm64/include/asm/kvm_host.h
+@@ -1087,12 +1087,40 @@ void kvm_arm_resume_guest(struct kvm *kvm);
+ 		res;							\
+ 	})
+ 
++/*
++ * pKVM EL2 coverage auto-injection. Wrapping the one host->hyp HVC primitive
++ * captures EL2 (Rust hyp) coverage for EVERY boundary that funnels through
++ * kvm_call_hyp_nvhe() / kvm_call_hyp() / kvm_call_hyp_ret() (nVHE path) and
++ * kvm_call_refill_hyp_nvhe() -- no per-call-site edit. pkvm_cov_begin() self-
++ * guards (ring armed + owner CPU + KCOV active), so only the fuzzer task's HVCs
++ * on the owner CPU arm the ring; every other HVC is a cheap no-op. The wrap is
++ * atomic (one HVC, no sleep between begin/end) so it never holds the ring across
++ * a sleep. Host-only + config-gated; hyp builds and !CONFIG_PKVM_EL2_COV get the
++ * bare arm_smccc_1_1_hvc().
++ */
++#ifndef KVM_PKVM_COV_HVC
++#if defined(CONFIG_PKVM_EL2_COV) && !defined(__KVM_NVHE_HYPERVISOR__)
++#include <asm/kvm_pkvm_cov.h>
++#define KVM_PKVM_COV_HVC(_res, f, ...)					\
++	do {								\
++		struct pkvm_cov_ctx __cov;				\
++		bool __cov_on = pkvm_cov_begin(&__cov);			\
++		arm_smccc_1_1_hvc(KVM_HOST_SMCCC_FUNC(f),		\
++				  ##__VA_ARGS__, &(_res));		\
++		if (__cov_on)						\
++			pkvm_cov_end(&__cov);				\
++	} while (0)
++#else
++#define KVM_PKVM_COV_HVC(_res, f, ...)					\
++	arm_smccc_1_1_hvc(KVM_HOST_SMCCC_FUNC(f), ##__VA_ARGS__, &(_res))
++#endif
++#endif /* KVM_PKVM_COV_HVC */
++
+ #define kvm_call_hyp_nvhe(f, ...)					\
+ 	({								\
+ 		struct arm_smccc_res res;				\
+ 									\
+-		arm_smccc_1_1_hvc(KVM_HOST_SMCCC_FUNC(f),		\
+-				  ##__VA_ARGS__, &res);			\
++		KVM_PKVM_COV_HVC(res, f, ##__VA_ARGS__);			\
+ 		WARN_ON(res.a0 != SMCCC_RET_SUCCESS);			\
+ 									\
+ 		res.a1;							\
 diff --git a/arch/arm64/include/asm/kvm_mmu.h b/arch/arm64/include/asm/kvm_mmu.h
 index 170a7193f24f..2bfa13254640 100644
 --- a/arch/arm64/include/asm/kvm_mmu.h
@@ -89,6 +136,55 @@ index 170a7193f24f..2bfa13254640 100644
  int create_hyp_mappings(void *from, void *to, enum kvm_pgtable_prot prot);
  int __create_hyp_mappings(unsigned long start, unsigned long size,
  			  unsigned long phys, enum kvm_pgtable_prot prot);
+diff --git a/arch/arm64/include/asm/kvm_pkvm.h b/arch/arm64/include/asm/kvm_pkvm.h
+index ab088ba79788..121e1e824739 100644
+--- a/arch/arm64/include/asm/kvm_pkvm.h
++++ b/arch/arm64/include/asm/kvm_pkvm.h
+@@ -652,14 +652,42 @@ static inline size_t pkvm_host_fp_state_size(void)
+ 
+ int __pkvm_topup_hyp_alloc(unsigned long nr_pages);
+ 
++/*
++ * pKVM EL2 coverage auto-injection. Wrapping the one host->hyp HVC primitive
++ * captures EL2 (Rust hyp) coverage for EVERY boundary that funnels through
++ * kvm_call_hyp_nvhe() / kvm_call_hyp() / kvm_call_hyp_ret() (nVHE path) and
++ * kvm_call_refill_hyp_nvhe() -- no per-call-site edit. pkvm_cov_begin() self-
++ * guards (ring armed + owner CPU + KCOV active), so only the fuzzer task's HVCs
++ * on the owner CPU arm the ring; every other HVC is a cheap no-op. The wrap is
++ * atomic (one HVC, no sleep between begin/end) so it never holds the ring across
++ * a sleep. Host-only + config-gated; hyp builds and !CONFIG_PKVM_EL2_COV get the
++ * bare arm_smccc_1_1_hvc().
++ */
++#ifndef KVM_PKVM_COV_HVC
++#if defined(CONFIG_PKVM_EL2_COV) && !defined(__KVM_NVHE_HYPERVISOR__)
++#include <asm/kvm_pkvm_cov.h>
++#define KVM_PKVM_COV_HVC(_res, f, ...)					\
++	do {								\
++		struct pkvm_cov_ctx __cov;				\
++		bool __cov_on = pkvm_cov_begin(&__cov);			\
++		arm_smccc_1_1_hvc(KVM_HOST_SMCCC_FUNC(f),		\
++				  ##__VA_ARGS__, &(_res));		\
++		if (__cov_on)						\
++			pkvm_cov_end(&__cov);				\
++	} while (0)
++#else
++#define KVM_PKVM_COV_HVC(_res, f, ...)					\
++	arm_smccc_1_1_hvc(KVM_HOST_SMCCC_FUNC(f), ##__VA_ARGS__, &(_res))
++#endif
++#endif /* KVM_PKVM_COV_HVC */
++
+ #define kvm_call_refill_hyp_nvhe(f, ...)				\
+ ({									\
+ 	struct arm_smccc_res res;					\
+ 	int __ret;							\
+ 	do {								\
+ 		__ret = -1; 						\
+-		arm_smccc_1_1_hvc(KVM_HOST_SMCCC_FUNC(f),		\
+-				  ##__VA_ARGS__, &res);			\
++		KVM_PKVM_COV_HVC(res, f, ##__VA_ARGS__);			\
+ 		if (WARN_ON(res.a0 != SMCCC_RET_SUCCESS))		\
+ 			break;						\
+ 									\
 diff --git a/arch/arm64/include/asm/kvm_pkvm_cov.h b/arch/arm64/include/asm/kvm_pkvm_cov.h
 new file mode 100644
 index 000000000000..3484c2cc2c1e
@@ -493,7 +589,7 @@ index be4049fac6c3..52c4ceea1b64 100644
  
  ///
 diff --git a/arch/arm64/kvm/mmu.c b/arch/arm64/kvm/mmu.c
-index 55c8ae82c3dc..08f5b59d430f 100644
+index 55c8ae82c3dc..c9bb65904989 100644
 --- a/arch/arm64/kvm/mmu.c
 +++ b/arch/arm64/kvm/mmu.c
 @@ -21,6 +21,9 @@
@@ -548,34 +644,8 @@ index 55c8ae82c3dc..08f5b59d430f 100644
  /**
   * create_hyp_mappings - duplicate a kernel virtual address range in Hyp mode
   * @from:	The virtual kernel start address of the range
-@@ -1756,8 +1794,25 @@ static int pkvm_mem_abort(struct kvm_vcpu *vcpu, phys_addr_t *fault_ipa,
- 		goto retry;
- 	}
- 
-+#ifdef CONFIG_PKVM_EL2_COV
-+	/*
-+	 * Stage-2 EL2 coverage: arm the per-CPU ring, let EL2 fill it during the
-+	 * map below, then drain on BOTH outcomes. Tight wrap around the single
-+	 * host->hyp call, inside the mmu_lock window; never changes `ret`.
-+	 */
-+	{
-+		struct pkvm_cov_ctx cov;
-+		bool armed = pkvm_cov_begin(&cov);
-+
-+		ret = pkvm_host_map_guest(pfn, *fault_ipa >> PAGE_SHIFT,
-+					  page_size >> PAGE_SHIFT, KVM_PGTABLE_PROT_R);
-+		if (armed)
-+			pkvm_cov_end(&cov);
-+	}
-+#else
- 	ret = pkvm_host_map_guest(pfn, *fault_ipa >> PAGE_SHIFT,
- 				  page_size >> PAGE_SHIFT, KVM_PGTABLE_PROT_R);
-+#endif
- 	if (ret) {
- 		if (ret == -EAGAIN)
- 			ret = 0;
 diff --git a/arch/arm64/kvm/pkvm.c b/arch/arm64/kvm/pkvm.c
-index c6b0066c2e56..f29981d3304b 100644
+index c6b0066c2e56..a32222560d52 100644
 --- a/arch/arm64/kvm/pkvm.c
 +++ b/arch/arm64/kvm/pkvm.c
 @@ -22,6 +22,9 @@
@@ -588,56 +658,6 @@ index c6b0066c2e56..f29981d3304b 100644
  #include <asm/kvm_pkvm_module.h>
  #include <asm/patching.h>
  #include <asm/setup.h>
-@@ -226,8 +229,20 @@ static int __pkvm_create_hyp_vcpu(struct kvm *host_kvm, struct kvm_vcpu *host_vc
- 		goto err_free_reqs;
- 	host_vcpu->arch.hyp_reqs = hyp_reqs;
- 
-+#ifdef CONFIG_PKVM_EL2_COV
-+	/* a1: capture the EL2 __pkvm_init_vcpu handler's coverage (see __pkvm_init_vm). */
-+	{
-+		struct pkvm_cov_ctx cov;
-+		bool armed = pkvm_cov_begin(&cov);
-+
-+		ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vcpu, handle, host_vcpu);
-+		if (armed)
-+			pkvm_cov_end(&cov);
-+	}
-+#else
- 	ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vcpu,
- 				       handle, host_vcpu);
-+#endif
- 	if (!ret)
- 		return 0;
- 
-@@ -402,7 +417,28 @@ static int __pkvm_create_hyp_vm(struct kvm *host_kvm)
- 	init_hyp_stage2_memcache(&host_kvm->arch.pkvm.stage2_teardown_mc);
- 
- 	/* Donate the VM memory to hyp and let hyp initialize it. */
-+#ifdef CONFIG_PKVM_EL2_COV
-+	/*
-+	 * a1: capture the EL2 __pkvm_init_vm handler's coverage. Same tight
-+	 * begin/drain as the #23 map site (mmu.c). This site is preemptible (under
-+	 * config_lock), not mmu_lock-atomic, but PROVE_LOCKING and DEBUG_ATOMIC_SLEEP
-+	 * are off and pkvm_cov_disable() is operator-only (never concurrent with a
-+	 * create during a campaign), so holding the ring across the refill macro's
-+	 * rare -ENOMEM topup is safe in practice. Runs on the KVM_RUN vCPU thread
-+	 * (KCOV active) so coverage attributes to the fuzzer task.
-+	 * Operator caveat: disarm the ring only when the campaign is idle.
-+	 */
-+	{
-+		struct pkvm_cov_ctx cov;
-+		bool armed = pkvm_cov_begin(&cov);
-+
-+		ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vm, host_kvm, pgd);
-+		if (armed)
-+			pkvm_cov_end(&cov);
-+	}
-+#else
- 	ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vm, host_kvm, pgd);
-+#endif
- 	if (ret < 0)
- 		goto free_pgd;
- 
 diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
 new file mode 100644
 index 000000000000..4694af6eba70
