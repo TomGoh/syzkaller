@@ -1,0 +1,19 @@
+# pKVM EL2 VMID-rollover WARN. The hyp returns a non-success SMCCC status for
+# __kvm_flush_vm_context on VMID-generation rollover (~every 13k VM create/destroys),
+# tripping the host WARN_ON in kvm_call_hyp_nvhe at arch/arm64/kvm/vmid.c. It is a
+# KNOWN, non-fatal, cumulative-state finding handed to the kernel owner; a long fuzzing
+# run would otherwise re-flag it as a crash every few minutes and churn the target.
+# Ignored in ctorLinux: no TITLE => ContainsCrash must be false.
+
+[ 1026.120461] ------------[ cut here ]------------
+[ 1026.125777] WARNING: CPU: 0 PID: 30899 at arch/arm64/kvm/vmid.c:69 kvm_arm_vmid_update+0x724/0x778
+[ 1026.231658] CPU: 0 PID: 30899 Comm: syz.2.13004 Not tainted 6.6.30+ #41
+[ 1026.249743] pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[ 1026.257397] pc : kvm_arm_vmid_update+0x724/0x778
+[ 1026.262710] lr : kvm_arm_vmid_update+0x724/0x778
+[ 1026.350366] Call trace:
+[ 1026.353499]  kvm_arm_vmid_update+0x724/0x778
+[ 1026.358464]  kvm_arch_vcpu_ioctl_run+0x118/0xc80
+[ 1026.363777]  kvm_vcpu_ioctl+0x2d0/0xc98
+[ 1026.368307]  __arm64_sys_ioctl+0x134/0x158
+[ 1026.372837] ---[ end trace 0000000000000000 ]---

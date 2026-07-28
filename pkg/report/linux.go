@@ -161,6 +161,17 @@ func ctorLinux(cfg *config) (reporterImpl, []string, error) {
 	// this banner, so the filter must live here, not in the ssh invocation.
 	ctx.ignores = append(ctx.ignores,
 		regexp.MustCompile(`WARNING: connection is not using a post-quantum key exchange algorithm`))
+	// The pKVM EL2 hypervisor returns a non-success SMCCC status for
+	// __kvm_flush_vm_context during VMID-generation rollover (~every 13k VM
+	// create/destroys), tripping the host WARN_ON in kvm_call_hyp_nvhe at
+	// arch/arm64/kvm/vmid.c. It is a KNOWN, non-fatal, cumulative-state finding
+	// handed to the kernel owner; on a long fuzzing run the fuzzer would otherwise
+	// re-flag it as a crash every few minutes and needlessly churn the target.
+	// Ignore it here so the campaign keeps running; the EL2-side fix is tracked
+	// separately. Scoped to the vmid.c WARN so other kvm_arm_vmid_update bugs
+	// still surface.
+	ctx.ignores = append(ctx.ignores,
+		regexp.MustCompile(`WARNING:.* at arch/arm64/kvm/vmid\.c:\d+ kvm_arm_vmid_update`))
 	return ctx, suppressions, nil
 }
 
