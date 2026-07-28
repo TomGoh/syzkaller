@@ -1,0 +1,88 @@
+vmlinux=/home/jose/common-stage2mvp/vmlinux
+EL2 range [0xffff800081d89ed4,0xffff800081de7000)  total PCs=7692  EL2 PCs=532  handler-syms=63
+
+=== FIRED (14) — handlers the corpus already drives ===
+  #21 __pkvm_host_share_hyp             host<->hyp share          pcs=4
+  #22 __pkvm_host_unshare_hyp           host<->hyp share          pcs=4
+  #23 __pkvm_host_map_guest             guest map/donate/reclaim  pcs=5
+  #30 __kvm_vcpu_run                    vcpu run/state            pcs=6
+  #31 __kvm_timer_set_cntvoff           vcpu run/state            pcs=1
+  #32 __vgic_v3_save_vmcr_aprs          vgic                      pcs=3
+  #33 __vgic_v3_restore_vmcr_aprs       vgic                      pcs=3
+  #34 __pkvm_init_vm                    vm/vcpu lifecycle         pcs=2
+  #35 __pkvm_init_vcpu                  vm/vcpu lifecycle         pcs=2
+  #36 __pkvm_start_teardown_vm          vm/vcpu lifecycle         pcs=1
+  #37 __pkvm_finalize_teardown_vm       vm/vcpu lifecycle         pcs=1
+  #38 __pkvm_reclaim_dying_guest_page   guest map/donate/reclaim  pcs=1
+  #39 __pkvm_vcpu_load                  vcpu run/state            pcs=7
+  #40 __pkvm_vcpu_put                   vcpu run/state            pcs=4
+
+=== NEVER FIRED (49) — the coverage gap (reliable signal) ===
+  #1  __kvm_get_mdcr_el2                init/finalize
+  #2  __pkvm_init                       init/finalize
+  #3  __pkvm_create_private_mapping     init/finalize
+  #4  __pkvm_cpu_set_vector             init/finalize
+  #5  __kvm_enable_ssbs                 init/finalize
+  #6  __vgic_v3_init_lrs                vgic
+  #7  __vgic_v3_get_gic_config          vgic
+  #8  __kvm_flush_vm_context            tlb/vmid/cache
+  #9  __kvm_tlb_flush_vmid_ipa          tlb/vmid/cache
+  #10 __kvm_tlb_flush_vmid_ipa_nsh      tlb/vmid/cache
+  #11 __kvm_tlb_flush_vmid              tlb/vmid/cache
+  #12 __kvm_tlb_flush_vmid_range        tlb/vmid/cache
+  #13 __kvm_flush_cpu_context           tlb/vmid/cache
+  #14 __pkvm_alloc_module_va            module-load
+  #15 __pkvm_map_module_page            module-load
+  #16 __pkvm_unmap_module_page          module-load
+  #17 __pkvm_init_module                module-load
+  #18 __pkvm_register_hcall             module-load
+  #19 __pkvm_iommu_init                 iommu
+  #20 __pkvm_prot_finalize              init/finalize
+  #24 __pkvm_host_unmap_guest           guest map/donate/reclaim
+  #25 __pkvm_relax_perms                permissions/dirty
+  #26 __pkvm_wrprotect                  permissions/dirty
+  #27 __pkvm_dirty_log                  permissions/dirty
+  #28 __pkvm_tlb_flush_vmid             tlb/vmid/cache
+  #29 __kvm_adjust_pc                   vcpu run/state
+  #41 __pkvm_vcpu_sync_state            vcpu run/state
+  #42 __pkvm_update_clock_tracing       tracing/ftrace/events
+  #43 __pkvm_load_tracing               tracing/ftrace/events
+  #44 __pkvm_teardown_tracing           tracing/ftrace/events
+  #45 __pkvm_enable_tracing             tracing/ftrace/events
+  #46 __pkvm_reset_tracing              tracing/ftrace/events
+  #47 __pkvm_swap_reader_tracing        tracing/ftrace/events
+  #48 __pkvm_enable_event               tracing/ftrace/events
+  #49 __pkvm_selftest_event             tracing/ftrace/events
+  #50 __pkvm_sync_ftrace                tracing/ftrace/events
+  #52 __pkvm_hyp_alloc_mgt_refill       hyp-alloc-mgt
+  #53 __pkvm_hyp_alloc_mgt_reclaimable  hyp-alloc-mgt
+  #54 __pkvm_hyp_alloc_mgt_reclaim      hyp-alloc-mgt
+  #55 __pkvm_host_iommu_alloc_domain    iommu
+  #56 __pkvm_host_iommu_free_domain     iommu
+  #57 __pkvm_host_iommu_attach_dev      iommu
+  #58 __pkvm_host_iommu_detach_dev      iommu
+  #59 __pkvm_host_iommu_map_pages       iommu
+  #60 __pkvm_host_iommu_unmap_pages     iommu
+  #61 __pkvm_host_iommu_iova_to_phys    iommu
+  #62 __pkvm_host_hvc_pd                misc
+  #63 __pkvm_stage2_snapshot            snapshot
+  #64 xcore_stats_entry                 xcore
+
+=== SYMBOL NOT FOUND (2) — inlined/renamed; inconclusive ===
+  #51 __pkvm_disable_ftrace             tracing/ftrace/events
+  #65 xcore_unit_test_entry             xcore
+
+=== never-fired count by area (input-expansion targets) ===
+   9  tracing/ftrace/events
+   8  iommu
+   7  tlb/vmid/cache
+   6  init/finalize
+   5  module-load
+   3  permissions/dirty
+   3  hyp-alloc-mgt
+   2  vgic
+   2  vcpu run/state
+   1  guest map/donate/reclaim
+   1  misc
+   1  snapshot
+   1  xcore
