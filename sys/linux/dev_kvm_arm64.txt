@@ -120,7 +120,11 @@ syz_kvm_run_fw_fault$arm64(fd fd_kvm) (no_generate)
 # observed on N90 (2026-07-27) used a non-0x7fc fw_ipa; none used 0x7fc00000. ipa_size is pinned to 0 as
 # well to keep this a clean closed-loop test -- removing it as a confound, NOT because ipa_size is itself
 # proven to hang. Re-expand a NON-hanging host-state dimension later to discover new EL2 paths.
-syz_kvm_run_fw_fault_gen$arm64(fd fd_kvm, ipa_size const[0], fw_ipa const[0x7fc00000])
+# a2 candidate #1: hp_mode (0/1) selects a 2 MiB THP-backed firmware window so the #23 fault MAY block-map
+# (512-page donation, exercising the multi-page state/copy loops). Both values are non-hanging. hp_mode
+# reaches the chrooted executor as a syscall ARG (env vars / /root files do not survive the tmpfs chroot);
+# whether the block actually forms is verified out-of-band by the pkvm_cov `drains` count dropping.
+syz_kvm_run_fw_fault_gen$arm64(fd fd_kvm, ipa_size const[0], fw_ipa const[0x7fc00000], hp_mode int8[0:1])
 
 kvm_num_irqs = 32, 64, 128, 256, 512
 

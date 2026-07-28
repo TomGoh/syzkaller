@@ -8,4 +8,4 @@
 # real coverage acceptance is the same as the fixed smoke and batches into the ftrace-off deploy.
 
 r0 = openat$kvm(0xffffffffffffff9c, &AUTO='/dev/kvm\x00', 0x2, 0x0)
-syz_kvm_run_fw_fault_gen$arm64(r0, 0x0, 0x7fc00000)
+syz_kvm_run_fw_fault_gen$arm64(r0, 0x0, 0x7fc00000, 0x0)

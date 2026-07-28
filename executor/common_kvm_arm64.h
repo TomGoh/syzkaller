@@ -569,16 +569,38 @@ static long syz_kvm_set_fw_ipa_busy(volatile long a0)
 // success. a0 = fd_kvm is caller-owned and is NEVER closed here; the helper frees only what it created.
 #define PKVM_FW_WINDOW 0x400000UL // 4 MiB, [PKVM_FW_IPA, 0x80000000)
 
-// 4 MiB RW backing for the firmware window (allocated once, reused, never freed -- bounded).
-static uint64 pkvm_fw_backing(void)
+#define PKVM_PMD_SIZE 0x200000UL // 2 MiB THP / stage-2 PMD block on arm64 4K-page
+// 4 MiB RW backing for the firmware window (allocated once per mode, reused, never freed).
+// hugepage != 0 (driven by the gen composite's hp_mode arg -- the ONLY toggle channel that
+// survives the executor's tmpfs chroot; env vars and /root files do NOT reach the fault code):
+// a 2 MiB-aligned, pre-faulted THP region so the guest fault at the 2 MiB-aligned window base
+// MAY promote to a stage-2 PMD BLOCK map in pkvm_host_map_guest (multi-page state loop + pvmfw
+// multi-page copy + size-clamp + block stage2_map). Whether it actually promotes is NOT assumed
+// -- it is verified downstream by the pkvm_cov `drains` count dropping from the 4 KiB baseline
+// (read from /sys outside the chroot). hugepage == 0 = the original 4 KiB path.
+static uint64 pkvm_fw_backing(int hugepage)
 {
-	static void* backing = NULL;
-	if (!backing) {
-		backing = mmap(NULL, PKVM_FW_WINDOW, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
-		if (backing == MAP_FAILED)
-			backing = NULL;
+	static void* b4k = NULL;
+	static void* bhp = NULL;
+	if (hugepage) {
+		if (!bhp) {
+			void* raw = mmap(NULL, PKVM_FW_WINDOW + PKVM_PMD_SIZE, PROT_READ | PROT_WRITE,
+					 MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+			if (raw != MAP_FAILED) {
+				uintptr_t a = ((uintptr_t)raw + PKVM_PMD_SIZE - 1) & ~(PKVM_PMD_SIZE - 1);
+				madvise((void*)a, PKVM_FW_WINDOW, MADV_HUGEPAGE);
+				memset((void*)a, 0, PKVM_FW_WINDOW); // fault in -> 2 MiB THP(s)
+				bhp = (void*)a;
+			}
+		}
+		return (uint64)(uintptr_t)bhp;
 	}
-	return (uint64)(uintptr_t)backing;
+	if (!b4k) {
+		b4k = mmap(NULL, PKVM_FW_WINDOW, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
+		if (b4k == MAP_FAILED)
+			b4k = NULL;
+	}
+	return (uint64)(uintptr_t)b4k;
 }
 
 static long syz_kvm_run_fw_fault(volatile long a0)
@@ -601,7 +623,7 @@ static long syz_kvm_run_fw_fault(volatile long a0)
 		goto out;
 	}
 
-	b = pkvm_fw_backing();
+	b = pkvm_fw_backing(0); // fixed smoke: always the 4 KiB backing
 	if (!b) {
 		err = ENOMEM;
 		goto out;
@@ -704,7 +726,7 @@ out:
 //                   below 0x80000000. The memslot still covers the FULL window, so any valid fw_ipa is
 //                   backed; SET_FW_IPA records it and the guest faults there -> #23 donation.
 // a0 = fd_kvm is caller-owned and is NEVER closed here. Success is STRICTLY ret == 0 && KVM_EXIT_MMIO.
-static long syz_kvm_run_fw_fault_gen(volatile long a0, volatile long a1, volatile long a2)
+static long syz_kvm_run_fw_fault_gen(volatile long a0, volatile long a1, volatile long a2, volatile long a3)
 {
 	int vm = -1, vcpu = -1, msz = 0;
 	volatile struct kvm_run* run = NULL;
@@ -723,7 +745,7 @@ static long syz_kvm_run_fw_fault_gen(volatile long a0, volatile long a1, volatil
 		goto out;
 	}
 
-	b = pkvm_fw_backing();
+	b = pkvm_fw_backing((int)((uint64)a3 & 1)); // a3 = hp_mode: bit0 selects the 2 MiB THP backing
 	if (!b) {
 		err = ENOMEM;
 		goto out;
