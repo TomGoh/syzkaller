@@ -11,15 +11,21 @@ successor's operating guide. Read the "Day-1 must-do" box first.
 These are documented, NOT yet implemented (deliberately deferred — see rationale at end).
 The first is a **SILENT failure** — you will not get an error, you will get zero coverage.
 
-1. **AUTOMATE RING ARMING (silent failure — do this first).**
-   EL2 coverage is only captured while the per-CPU ring is armed:
-   `taskset -c <owner_cpu> sh -c 'echo 1 > /sys/kernel/debug/kvm/pkvm_cov/enable'`.
-   This is a manual debugfs write that **resets to disarmed on every reboot** and also
-   resets `nr_pages` to the default (4). A weeks-long campaign reboots the target on
-   crashes; after the first reboot the ring is disarmed and **EL2 coverage silently goes
-   to zero — no error, `/cover` just stops growing on the `.rs` side.** Fix: a target-side
-   systemd unit (or a manager `vm` hook) that, on boot, sets `nr_pages=32` and arms the
-   ring on the owner CPU. Until this exists, only run **supervised** (arm by hand, watch).
+1. **RING ARMING — AUTOMATED (2026-07-28; was the #1 silent failure).**
+   EL2 coverage is only captured while the per-CPU ring is armed, and it resets to
+   disarmed (`nr_pages`→4) on every reboot — so after the first crash-reboot, EL2 coverage
+   would silently go to zero (no error, `/cover` just stops growing on the `.rs` side).
+   Fixed by a target-side systemd unit that re-arms on boot:
+   `scripts/pkvm/target/pkvm-cov-arm.{sh,service}`, installed on N90 as
+   `/usr/local/sbin/pkvm-cov-arm.sh` + `/etc/systemd/system/pkvm-cov-arm.service` and
+   `systemctl enable`d. It sets `nr_pages=32` and arms on the owner CPU (default 0; override
+   via the unit's `PKVM_COV_OWNER_CPU` / `PKVM_COV_PAGES`). It is **idempotent + campaign-safe**
+   (skips if already armed; never disarms a live ring, so it's safe to run any time).
+   Install on a new board: `install -m755 pkvm-cov-arm.sh /usr/local/sbin/ && install -m644
+   pkvm-cov-arm.service /etc/systemd/system/ && systemctl daemon-reload && systemctl enable
+   pkvm-cov-arm.service`. **Confirm on the first real reboot** that `owner_cpu`/`ring_pages`
+   come up armed (the idempotent-skip path is hardware-tested; the fresh-boot arm path is
+   logic-verified, to be confirmed on the next reboot).
 2. **CRASH RECOVERY.** `efi-pstore` is dead on N90 (firmware can't `SetVariable`), so a
    panic loses its log and the manager can't auto-recover. Add **netconsole or serial**
    capture + manager auto-reboot-and-continue, or the first real crash ends the run.

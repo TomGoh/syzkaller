@@ -1,0 +1,20 @@
+[Unit]
+Description=Arm the pKVM EL2-coverage ring on the owner CPU (boot)
+Documentation=file:///root/syzkaller-fuzz/notes/pkvm/OPERATOR-RUNBOOK.md
+# debugfs is mounted by sysinit; the script itself waits for the pkvm_cov node.
+After=sysinit.target local-fs.target
+Wants=sysinit.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Owner CPU / page count overridable: systemctl edit, or set these env vars.
+Environment=PKVM_COV_OWNER_CPU=0
+Environment=PKVM_COV_PAGES=32
+ExecStart=/usr/local/sbin/pkvm-cov-arm.sh
+# If pkvm_cov is very late, retry a few times.
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
