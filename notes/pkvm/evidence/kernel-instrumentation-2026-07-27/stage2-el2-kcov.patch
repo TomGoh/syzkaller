@@ -91,10 +91,10 @@ index 170a7193f24f..2bfa13254640 100644
  			  unsigned long phys, enum kvm_pgtable_prot prot);
 diff --git a/arch/arm64/include/asm/kvm_pkvm_cov.h b/arch/arm64/include/asm/kvm_pkvm_cov.h
 new file mode 100644
-index 000000000000..6b80e4b45287
+index 000000000000..3484c2cc2c1e
 --- /dev/null
 +++ b/arch/arm64/include/asm/kvm_pkvm_cov.h
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,105 @@
 +/* SPDX-License-Identifier: GPL-2.0 */
 +/*
 + * Stage-2 EL2 coverage — shared ring layout between the pKVM hyp (producer) and
@@ -126,8 +126,13 @@ index 000000000000..6b80e4b45287
 + * __pkvm_cov_setup() validates nr_pages against these before pinning anything:
 + * an unbounded value would mean an unbounded pin range and loop at EL2.
 + * Must be a power of two so the host can back it with a single order-N allocation.
++ *
++ * Raised 16->32 (a2): the 2 MiB block-donation window generates ~9800 EL2 hits,
++ * overflowing a 16-page ring (cap 8189) and truncating the __do_donate tail. 32
++ * pages (cap 16381) covers a full window; still bounded + power-of-two (one
++ * order-5 allocation), so the untrusted-host invariant is unchanged.
 + */
-+#define PKVM_COV_MAX_PAGES	16
++#define PKVM_COV_MAX_PAGES	32
 +#define PKVM_COV_DEFAULT_PAGES	4
 +
 +#define PKVM_COV_HDR_BYTES	24
