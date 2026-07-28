@@ -1,0 +1,3 @@
+run=1 rc=0 el2_pcs=223 drains=80 owner_cpu=-1 LOST_IN_RING=0 LOST_IN_KCOV=0 skip_not_owner=0 dmesg_warn=0
+run=2 rc=0 el2_pcs=208 drains=80 owner_cpu=-1 LOST_IN_RING=0 LOST_IN_KCOV=0 skip_not_owner=0 dmesg_warn=0
+run=3 rc=0 el2_pcs=208 drains=80 owner_cpu=-1 LOST_IN_RING=0 LOST_IN_KCOV=0 skip_not_owner=0 dmesg_warn=0

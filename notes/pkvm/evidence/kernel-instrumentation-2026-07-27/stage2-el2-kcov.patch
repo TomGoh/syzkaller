@@ -574,6 +574,70 @@ index 55c8ae82c3dc..08f5b59d430f 100644
  	if (ret) {
  		if (ret == -EAGAIN)
  			ret = 0;
+diff --git a/arch/arm64/kvm/pkvm.c b/arch/arm64/kvm/pkvm.c
+index c6b0066c2e56..f29981d3304b 100644
+--- a/arch/arm64/kvm/pkvm.c
++++ b/arch/arm64/kvm/pkvm.c
+@@ -22,6 +22,9 @@
+ #include <asm/kvm_hyp.h>
+ #include <asm/kvm_mmu.h>
+ #include <asm/kvm_pkvm.h>
++#ifdef CONFIG_PKVM_EL2_COV
++#include <asm/kvm_pkvm_cov.h>	/* a1: arm/drain the EL2 coverage ring around create HVCs */
++#endif
+ #include <asm/kvm_pkvm_module.h>
+ #include <asm/patching.h>
+ #include <asm/setup.h>
+@@ -226,8 +229,20 @@ static int __pkvm_create_hyp_vcpu(struct kvm *host_kvm, struct kvm_vcpu *host_vc
+ 		goto err_free_reqs;
+ 	host_vcpu->arch.hyp_reqs = hyp_reqs;
+ 
++#ifdef CONFIG_PKVM_EL2_COV
++	/* a1: capture the EL2 __pkvm_init_vcpu handler's coverage (see __pkvm_init_vm). */
++	{
++		struct pkvm_cov_ctx cov;
++		bool armed = pkvm_cov_begin(&cov);
++
++		ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vcpu, handle, host_vcpu);
++		if (armed)
++			pkvm_cov_end(&cov);
++	}
++#else
+ 	ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vcpu,
+ 				       handle, host_vcpu);
++#endif
+ 	if (!ret)
+ 		return 0;
+ 
+@@ -402,7 +417,28 @@ static int __pkvm_create_hyp_vm(struct kvm *host_kvm)
+ 	init_hyp_stage2_memcache(&host_kvm->arch.pkvm.stage2_teardown_mc);
+ 
+ 	/* Donate the VM memory to hyp and let hyp initialize it. */
++#ifdef CONFIG_PKVM_EL2_COV
++	/*
++	 * a1: capture the EL2 __pkvm_init_vm handler's coverage. Same tight
++	 * begin/drain as the #23 map site (mmu.c). This site is preemptible (under
++	 * config_lock), not mmu_lock-atomic, but PROVE_LOCKING and DEBUG_ATOMIC_SLEEP
++	 * are off and pkvm_cov_disable() is operator-only (never concurrent with a
++	 * create during a campaign), so holding the ring across the refill macro's
++	 * rare -ENOMEM topup is safe in practice. Runs on the KVM_RUN vCPU thread
++	 * (KCOV active) so coverage attributes to the fuzzer task.
++	 * Operator caveat: disarm the ring only when the campaign is idle.
++	 */
++	{
++		struct pkvm_cov_ctx cov;
++		bool armed = pkvm_cov_begin(&cov);
++
++		ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vm, host_kvm, pgd);
++		if (armed)
++			pkvm_cov_end(&cov);
++	}
++#else
+ 	ret = kvm_call_refill_hyp_nvhe(__pkvm_init_vm, host_kvm, pgd);
++#endif
+ 	if (ret < 0)
+ 		goto free_pgd;
+ 
 diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
 new file mode 100644
 index 000000000000..4694af6eba70
