@@ -1,0 +1,18 @@
+[Unit]
+# Continuous kernel-log record for the pKVM fuzzing campaign.
+# The campaign runs with config-level `ignores` so syzkaller saves no crash
+# reports for WARNs, and the console archive only appends on reconnect. This
+# keeps a complete real-time record that also survives the machine hanging and
+# being power-cycled (see finding-pkvm-unmap-selfdeadlock-2026-07-29).
+Description=pKVM fuzzing kernel-log recorder
+After=sysinit.target local-fs.target
+Wants=sysinit.target
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c 'exec dmesg --follow >> /root/syzkaller-fuzz/warn-history.log'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
