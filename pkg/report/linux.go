@@ -172,6 +172,16 @@ func ctorLinux(cfg *config) (reporterImpl, []string, error) {
 	// still surface.
 	ctx.ignores = append(ctx.ignores,
 		regexp.MustCompile(`WARNING:.* at arch/arm64/kvm/vmid\.c:\d+ kvm_arm_vmid_update`))
+	// Same class, different path: the EL2 __kvm_tlb_flush_vmid handler returns a
+	// non-success SMCCC status, tripping WARN_ON in kvm_call_hyp at
+	// arch/arm64/kvm/hyp/pgtable.c:639 (kvm_tlb_flush_vmid_range). Found + banked
+	// (notes/pkvm/evidence/finding-tlb-flush-vmid-warn-2026-07-29) when the generic
+	// KVM target was enabled; the broadened Stage A/B campaign re-triggers it every
+	// few seconds, and treating it as a crash tears the VM down each time, crippling
+	// throughput. Ignore it (post-banking) so the campaign runs; scoped to this WARN
+	// so other pgtable.c bugs still surface. EL2-side fix tracked separately.
+	ctx.ignores = append(ctx.ignores,
+		regexp.MustCompile(`WARNING:.* at arch/arm64/kvm/hyp/pgtable\.c:\d+ kvm_tlb_flush_vmid_range`))
 	return ctx, suppressions, nil
 }
 
