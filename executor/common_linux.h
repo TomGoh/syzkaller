@@ -5576,7 +5576,15 @@ static void setup_sysctl()
 	    {"/proc/sys/vm/oom_dump_tasks", "0"},
 	    // Executor hits lots of SIGSEGVs, no point in logging them.
 	    {"/proc/sys/debug/exception-trace", "0"},
-	    {"/proc/sys/kernel/printk", "7 4 1 3"},
+	    // pKVM/isolated fork: console loglevel 1 instead of 7. The N90 target boots
+	    // with `console=ttyAMA0,115200`, and printk to serial is synchronous -- each
+	    // WARN (~3KB with the "Modules linked in:" line) costs ~0.26s of blocked CPU.
+	    // Crash detection on the isolated backend reads /dev/kmsg (`dmesg -w`), not the
+	    // console, so lowering this does not hide anything from syzkaller. NOTE: this
+	    // would be WRONG upstream -- qemu/gvisor backends parse the serial console.
+	    // Trade-off: a hard hang leaves no serial post-mortem (efi-pstore is already
+	    // dead on this board); the continuous /dev/kmsg follower is the record instead.
+	    {"/proc/sys/kernel/printk", "1 4 1 3"},
 	    // Faster gc (1 second) is intended to make tests more repeatable.
 	    {"/proc/sys/kernel/keys/gc_delay", "1"},
 	    // We always want to prefer killing the allocating test process rather than somebody else
