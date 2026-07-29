@@ -94,7 +94,87 @@ The second `KVM_ARM_VCPU_INIT` is the trigger: `arm.c:1437` gates `stage2_unmap_
 
 **This sequence is derived from reading the code and has not been executed.** Confirming it means deliberately hanging the board again.
 
-## Reproduction status: syzkaller did NOT produce a reproducer
+## UPDATE 2026-07-29 16:19 — trigger CONFIRMED on hardware by a standalone reproducer
+
+The derived trigger in §"Trigger" is no longer derived. A minimal C reproducer
+(`repro-deadlock.c` / `repro-deadlock.aarch64` in this directory) was run on D3000
+(Phytium D3000, kernel `6.6.30-pkvmcov`, an unpatched sibling of N90, FWB absent):
+
+```
+first KVM_RUN returned -1 (errno 4)      <- EINTR: page faulted in and PINNED, cnt > 0
+[hangs at the second KVM_ARM_VCPU_INIT]
+```
+
+D3000 has `hung_task_panic=1` (N90 does not), so instead of a silent hang the
+watchdog panicked with a full serial backtrace — a cleaner artifact than N90's.
+The blocked task's stack is byte-identical to the fuzzer-found one (the compiler
+inlined `pkvm_unmap_range` into `__unmap_stage2_range`):
+
+```
+task:repro-deadlock  state:D
+ rwsem_down_write_slowpath
+ down_write
+ account_locked_vm+0x50/0x138
+ __unmap_stage2_range.isra.0+0x22c/0x3b0
+ stage2_unmap_vm+0x26c/0x420
+ kvm_arch_vcpu_ioctl+0x8bc/0xfd8
+ kvm_vcpu_ioctl
+ __arm64_sys_ioctl
+...
+ Kernel panic - not syncing: hung_task: blocked tasks
+```
+
+So the trigger — a second `KVM_ARM_VCPU_INIT` on a vCPU that has already run,
+with `cnt > 0` and `!ARM64_HAS_STAGE2_FWB` — is now **empirically confirmed**,
+not derived. Full serial capture in `serial-panic-d3000.txt`.
+
+### Reproduced a THIRD time, on a DIFFERENT kernel build (cross-build)
+
+The same reproducer was run on oct-pc (10.42.27.25), an unrelated lab board
+running **`6.6.30+ #176`, Tainted `G OE`** (out-of-tree modules) — a different
+build number and config from N90 (`#47`) and D3000 (`#49`). It hung at the
+byte-identical path (`serial-hang-octpc.txt`); reproducer stdout showed both
+milestones before wedging:
+
+```
+first KVM_RUN returned -1 (errno 4) -- pages should now be pinned
+second KVM_ARM_VCPU_INIT -- hangs here on an affected kernel...   [never returns]
+```
+
+oct-pc has no `hung_task_panic`, so it warns and the tasks stay wedged in D state
+(needs a power cycle) rather than panicking.
+
+**Three machines, at least two distinct kernel builds, identical deadlock.** The
+defect is in the base pKVM code, not an artifact of the instrumented tree or any
+one build/config.
+
+### An open question this raised (NOT resolved)
+
+The panic snapshot also showed a *fuzzer* task, `syz.1.6553`, self-deadlocked at
+the identical `stage2_unmap_vm -> account_locked_vm` path — while the running
+manager had `ioctl$KVM_ARM_VCPU_INIT{,_safe}` **removed** from `enable_syscalls`
+(the mitigation below). If the fuzzer reached this without the raw init syscall,
+the mitigation is incomplete. Evidence weighed:
+
+- **Against** an independent fuzzer route: there was exactly ONE D3000 crash, at
+  16:19:26 — the moment the reproducer wedged the board — so the panic is
+  attributable to the reproducer, not the fuzzer. And **N90 ran the identical
+  62-syscall config for 1h20m (15:07-16:25) with zero deadlock-path crashes.**
+- **For** an independent route: `syz.1.6553` is in D state on its own mm's
+  mmap_lock, which is a genuine self-deadlock in that process, not a co-victim of
+  the reproducer (each process self-deadlocks on its own mm).
+- **Code reading, inconclusive:** `syz_kvm_add_vcpu$arm64` calls `KVM_ARM_VCPU_INIT`
+  exactly once and creates a *new* vCPU each call, so no single composite performs
+  a second init on a run vCPU. No route was found.
+
+**Conclusion:** unresolved. Either a rare composite route exists that was not
+found by reading, or `syz.1.6553` deadlocked via a path unrelated to a second
+init. The key implication holds regardless: **the syscall-removal mitigation is a
+band-aid; the kernel patch (see UPSTREAM-AND-FIX.md) is the actual fix.** Verifying
+whether the fuzzer has an independent route is future work — run D3000 fuzzing
+under the fixed kernel and confirm the path never recurs.
+
+## Original reproduction status (before the standalone reproducer): syzkaller did NOT produce a reproducer
 
 The crash directory contains `description`, `log0`, `machineInfo0`, `report0`, `title-stat` — **no `repro0` / `repro.prog` / `repro.cprog`**, and the manager reported `reproducing=0` throughout.
 

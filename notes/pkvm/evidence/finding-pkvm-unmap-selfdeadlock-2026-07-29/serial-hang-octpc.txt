@@ -1,0 +1,69 @@
+oct-pc (10.42.27.25) serial — pkvm_unmap_range self-deadlock
+Kernel 6.6.30+ #176, Tainted G OE (out-of-tree modules), aarch64, kvm-arm.mode=protected, FWB absent.
+Triggered by repro-deadlock.aarch64 run under sudo.
+
+THIRD independent confirmation, on a DIFFERENT kernel build:
+  - N90     6.6.30+ #47        (fuzzer-found, 3x)
+  - D3000   6.6.30-pkvmcov #49 (reproducer; hung_task_panic=1 -> PANIC)
+  - oct-pc  6.6.30+ #176 OE    (reproducer; no hung_task_panic -> silent hang, warns only)
+
+Different build number (#176 vs #47/#49) and different taint (OE = out-of-tree
+modules) => the deadlock is in the base pKVM code, NOT specific to our tree.
+
+Reproducer stdout (both milestones printed, then hung at the second init):
+  first KVM_RUN returned -1 (errno 4) -- pages should now be pinned
+  second KVM_ARM_VCPU_INIT -- hangs here on an affected kernel...
+  [never returns; PASS never printed]
+
+Two repro-deadlock instances appear in the log (pid 63574 ppid 25030, and pid
+64097 ppid 64092) -- the reproducer was invoked more than once; both self-
+deadlocked identically. oct-pc has no hung_task_panic, so it only warns and the
+tasks stay wedged in D state (needs a power cycle).
+
+===== verbatim serial capture =====
+
+[27792.271174] INFO: task repro-deadlock:63574 blocked for more than 362 seconds.
+[27792.279084]       Tainted: G           OE     ------- ----- 6.6.30+ #176
+[27792.286470] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[27792.294996] task:repro-deadlock  state:D stack:0     pid:63574 ppid:25030  flags:0x00000205
+[27792.295000] Call trace:
+[27792.295001]  __switch_to+0xd0/0x150
+[27792.295008]  __schedule+0x348/0x13c8
+[27792.295010]  schedule+0x54/0xe8
+[27792.295013]  schedule_preempt_disabled+0x14/0x28
+[27792.295015]  rwsem_down_write_slowpath+0x3ec/0x760
+[27792.295019]  down_write+0x7c/0x90
+[27792.295022]  account_locked_vm+0x58/0xf0
+[27792.295027]  __unmap_stage2_range.isra.0+0x158/0x260
+[27792.295031]  stage2_unmap_vm+0x118/0x228
+[27792.295033]  kvm_arch_vcpu_ioctl+0x490/0x7f0
+[27792.295040]  kvm_vcpu_ioctl+0x448/0x808
+[27792.295043]  __arm64_sys_ioctl+0xa8/0xf0
+[27792.295045]  invoke_syscall+0x4c/0x120
+[27792.295050]  el0_svc_common.constprop.0+0xc4/0xf0
+[27792.295053]  do_el0_svc+0x24/0x38
+[27792.295056]  el0_svc+0x30/0xc0
+[27792.295059]  el0t_64_sync_handler+0x134/0x150
+[27792.295062]  el0t_64_sync+0x14c/0x150
+
+[27792.295065] INFO: task repro-deadlock:64097 blocked for more than 362 seconds.
+[27792.302988]       Tainted: G           OE     ------- ----- 6.6.30+ #176
+[27792.318901] task:repro-deadlock  state:D stack:0     pid:64097 ppid:64092  flags:0x00000204
+[27792.318905] Call trace:
+[27792.318907]  __schedule+0x348/0x13c8
+[27792.318910]  schedule+0x54/0xe8
+[27792.318912]  schedule_preempt_disabled+0x14/0x28
+[27792.318914]  rwsem_down_write_slowpath+0x3ec/0x760
+[27792.318917]  down_write+0x7c/0x90
+[27792.318920]  account_locked_vm+0x58/0xf0
+[27792.318922]  __unmap_stage2_range.isra.0+0x158/0x260
+[27792.318925]  stage2_unmap_vm+0x118/0x228
+[27792.318927]  kvm_arch_vcpu_ioctl+0x490/0x7f0
+[27792.318929]  kvm_vcpu_ioctl+0x448/0x808
+[27792.318931]  __arm64_sys_ioctl+0xa8/0xf0
+[27792.318933]  invoke_syscall+0x4c/0x120
+[27792.318936]  el0_svc_common.constprop.0+0xc4/0xf0
+[27792.318939]  do_el0_svc+0x24/0x38
+[27792.318941]  el0_svc+0x30/0xc0
+[27792.318944]  el0t_64_sync_handler+0x134/0x150
+[27792.318947]  el0t_64_sync+0x14c/0x150

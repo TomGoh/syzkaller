@@ -1,0 +1,88 @@
+D3000 serial console (ttyAMA1,115200) — pkvm_unmap_range self-deadlock panic
+Kernel 6.6.30-pkvmcov #49, Great Wall D80F3 / Phytium D3000, 2026-07-29.
+Triggered by repro-deadlock.aarch64 (a standalone C reproducer) run under sudo.
+D3000 has hung_task_panic=1, so the hung-task watchdog panicked after 122s
+instead of hanging silently. Reproducer stdout: "first KVM_RUN returned -1
+(errno 4)" printed, then the second KVM_ARM_VCPU_INIT hung and never returned.
+
+Two independent tasks were caught self-deadlocked at the same path:
+  - repro-deadlock:47712  (the reproducer)
+  - syz.1.6553:47775      (a live fuzzer task; see FINDING.md "open question")
+Plus two fuzzer WARNs at kvm_tlb_flush_vmid_range (the separate TLB-flush bug).
+
+===== verbatim serial capture =====
+
+[ 2309.735390] WARNING: CPU: 0 PID: 48612 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[ 2309.735767] CPU: 0 PID: 48612 Comm: syz.2.6749 Tainted: G        W         ------- ----- 6.6.30-pkvmcov #49
+[ 2309.735790] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[ 2309.735802] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[ 2309.736009] Call trace:
+[ 2309.736013]  kvm_tlb_flush_vmid_range+0x210/0x248
+[ 2309.736029]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[ 2309.736047]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[ 2309.736063]  kvm_arch_commit_memory_region+0x45c/0x510
+[ 2309.736081]  kvm_set_memslot+0x278/0x8c8
+[ 2309.736095]  __kvm_set_memory_region+0x5d4/0x6e0
+[ 2309.736109]  kvm_vm_ioctl+0x814/0x2430
+[ 2309.736125]  __arm64_sys_ioctl+0x134/0x158
+[ 2309.736247] ---[ end trace 0000000000000000 ]---
+
+[ 2309.904385] WARNING: CPU: 0 PID: 48613 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[ 2309.904773] CPU: 0 PID: 48613 Comm: syz.2.6750 Tainted: G        W         ------- ----- 6.6.30-pkvmcov #49
+[ 2309.905257] ---[ end trace 0000000000000000 ]---
+
+[ 2318.005075][   T67] INFO: task repro-deadlock:47712 blocked for more than 122 seconds.
+[ 2318.013004][   T67]       Tainted: G        W         ------- ----- 6.6.30-pkvmcov #49
+[ 2318.029463][   T67] task:repro-deadlock  state:D stack:0     pid:47712 ppid:47711  flags:0x00000204
+[ 2318.041381][   T67] Call trace:
+[ 2318.047370][   T67]  __switch_to+0x150/0x228
+[ 2318.053101][   T67]  __schedule+0x1080/0x1e10
+[ 2318.060317][   T67]  schedule+0x78/0x128
+[ 2318.067088][   T67]  schedule_preempt_disabled+0x14/0x28
+[ 2318.075248][   T67]  rwsem_down_write_slowpath+0x534/0xb58
+[ 2318.083583][   T67]  down_write+0x148/0x160
+[ 2318.090615][   T67]  account_locked_vm+0x50/0x138
+[ 2318.098169][   T67]  __unmap_stage2_range.isra.0+0x22c/0x3b0
+[ 2318.106677][   T67]  stage2_unmap_vm+0x26c/0x420
+[ 2318.114144][   T67]  kvm_arch_vcpu_ioctl+0x8bc/0xfd8
+[ 2318.121960][   T67]  kvm_vcpu_ioctl+0x72c/0xc98
+[ 2318.129338][   T67]  __arm64_sys_ioctl+0x134/0x158
+[ 2318.136977][   T67]  invoke_syscall.constprop.0+0x64/0x1a8
+[ 2318.145312][   T67]  el0_svc_common.constprop.0+0x138/0x170
+[ 2318.153733][   T67]  do_el0_svc+0x38/0x50
+[ 2318.160593][   T67]  el0_svc+0x28/0x60
+[ 2318.167196][   T67]  el0t_64_sync_handler+0x118/0x128
+[ 2318.175095][   T67]  el0t_64_sync+0x14c/0x150
+
+[ 2318.182306][   T67] INFO: task syz.1.6553:47775 blocked for more than 123 seconds.
+[ 2318.214854][   T67] task:syz.1.6553      state:D stack:0     pid:47775 ppid:46716  flags:0x00000201
+[ 2318.226752][   T67] Call trace:
+[ 2318.232737][   T67]  __switch_to+0x150/0x228
+[ 2318.239857][   T67]  __schedule+0x1080/0x1e10
+[ 2318.247063][   T67]  schedule+0x78/0x128
+[ 2318.253835][   T67]  schedule_preempt_disabled+0x14/0x28
+[ 2318.262004][   T67]  rwsem_down_write_slowpath+0x534/0xb58
+[ 2318.270335][   T67]  down_write+0x148/0x160
+[ 2318.277364][   T67]  account_locked_vm+0x50/0x138
+[ 2318.284917][   T67]  __unmap_stage2_range.isra.0+0x22c/0x3b0
+[ 2318.293424][   T67]  stage2_unmap_vm+0x26c/0x420
+[ 2318.300891][   T67]  kvm_arch_vcpu_ioctl+0x8bc/0xfd8
+[ 2318.308704][   T67]  kvm_vcpu_ioctl+0x72c/0xc98
+[ 2318.316084][   T67]  __arm64_sys_ioctl+0x134/0x158
+[ 2318.323724][   T67]  invoke_syscall.constprop.0+0x64/0x1a8
+[ 2318.332060][   T67]  el0_svc_common.constprop.0+0x138/0x170
+[ 2318.340480][   T67]  do_el0_svc+0x38/0x50
+[ 2318.347339][   T67]  el0_svc+0x28/0x60
+[ 2318.353937][   T67]  el0t_64_sync_handler+0x118/0x128
+[ 2318.361837][   T67]  el0t_64_sync+0x14c/0x150
+
+[ 2318.369056][   T67] Kernel panic - not syncing: hung_task: blocked tasks
+[ 2318.378588][   T67] CPU: 1 PID: 67 Comm: khungtaskd Tainted: G        W         ------- ----- 6.6.30-pkvmcov #49
+[ 2318.512175][   T67] Call trace:
+[ 2318.515308][   T67]  dump_backtrace+0xe8/0x1c0
+[ 2318.532117][   T67]  panic+0x4d4/0x4f8
+[ 2318.535867][   T67]  watchdog+0x4d4/0x7f8
+[ 2318.539875][   T67]  kthread+0x170/0x180
+[ 2318.543795][   T67]  ret_from_fork+0x10/0x20
+[ 2318.548063][   T67] SMP: stopping secondary CPUs
+[ 2318.567026][   T67] ---[ end Kernel panic - not syncing: hung_task: blocked tasks ]---
