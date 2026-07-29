@@ -1,0 +1,8 @@
+r0 = openat(0xffffffffffffff9c, &AUTO='/sys/kernel/tracing/hypervisor/buffer_size_kb\x00', 0x1, 0x0)
+write(r0, &AUTO='64\x00', 0x2)
+r1 = openat(0xffffffffffffff9c, &AUTO='/sys/kernel/tracing/hypervisor/tracing_on\x00', 0x1, 0x0)
+write(r1, &AUTO='1\x00', 0x1)
+r2 = openat(0xffffffffffffff9c, &AUTO='/sys/kernel/tracing/hypervisor/selftest_event\x00', 0x1, 0x0)
+write(r2, &AUTO='1\x00', 0x1)
+r3 = openat(0xffffffffffffff9c, &AUTO='/sys/kernel/tracing/hypervisor/trace_pipe\x00', 0x0, 0x0)
+write(r1, &AUTO='0\x00', 0x1)

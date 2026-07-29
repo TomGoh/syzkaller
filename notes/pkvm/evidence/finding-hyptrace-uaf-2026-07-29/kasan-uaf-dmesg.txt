@@ -1,0 +1,88 @@
+[ 2864.352526] BUG: KASAN: slab-use-after-free in rb_allocate_cpu_buffer+0x2bc/0x7d0
+[ 2864.360801] Read of size 4 at addr ffff0020d4ed0184 by task sh/128417
+
+[ 2864.370286] CPU: 0 PID: 128417 Comm: sh Tainted: G        W         ------- ----- 6.6.30+ #47
+[ 2864.379590] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 2864.390453] Call trace:
+[ 2864.393672]  dump_backtrace+0xe8/0x1c0
+[ 2864.398203]  show_stack+0x24/0x38
+[ 2864.402298]  dump_stack_lvl+0x50/0x68
+[ 2864.406743]  print_report+0xf8/0x5d0
+[ 2864.411102]  kasan_report+0x88/0xc0
+[ 2864.415374]  __asan_load4+0x70/0x90
+[ 2864.419646]  rb_allocate_cpu_buffer+0x2bc/0x7d0
+[ 2864.424961]  trace_rb_cpu_prepare+0x130/0x260
+[ 2864.430097]  cpuhp_invoke_callback+0x100/0x8f0
+[ 2864.435323]  cpuhp_issue_call+0x2c4/0x370
+[ 2864.440113]  __cpuhp_state_add_instance_cpuslocked+0xf4/0x200
+[ 2864.446640]  __cpuhp_state_add_instance+0x90/0x158
+[ 2864.452213]  alloc_buffer+0x3dc/0x530
+[ 2864.456659]  __ring_buffer_alloc+0x34/0x40
+[ 2864.461540]  hyp_trace_buffer_load.constprop.0+0x598/0x690
+[ 2864.467810]  hyp_trace_start+0x1a4/0x268
+[ 2864.472516]  hyp_tracing_on+0xb4/0x1e8
+[ 2864.477047]  vfs_write+0x1b0/0x490
+[ 2864.481229]  ksys_write+0xec/0x1c0
+[ 2864.485410]  __arm64_sys_write+0x50/0x68
+[ 2864.490113]  invoke_syscall.constprop.0+0x64/0x1a8
+[ 2864.495691]  el0_svc_common.constprop.0+0x138/0x170
+[ 2864.501354]  do_el0_svc+0x38/0x50
+[ 2864.505453]  el0_svc+0x28/0x60
+[ 2864.509291]  el0t_64_sync_handler+0x118/0x128
+[ 2864.514433]  el0t_64_sync+0x14c/0x150
+
+[ 2864.521140] Allocated by task 2178:
+[ 2864.525404]  kasan_save_stack+0x3c/0x60
+[ 2864.530024]  kasan_set_track+0x28/0x38
+[ 2864.534554]  kasan_save_alloc_info+0x20/0x30
+[ 2864.539608]  __kasan_slab_alloc+0x70/0x88
+[ 2864.544400]  kmem_cache_alloc+0x144/0x328
+[ 2864.549191]  getname_flags.part.0+0x48/0x298
+[ 2864.554243]  getname+0x58/0xa0
+[ 2864.558079]  do_sys_openat2+0xfc/0x198
+[ 2864.562606]  __arm64_sys_openat+0x118/0x190
+[ 2864.567568]  invoke_syscall.constprop.0+0x64/0x1a8
+[ 2864.573145]  el0_svc_common.constprop.0+0x138/0x170
+[ 2864.578808]  do_el0_svc+0x38/0x50
+[ 2864.582907]  el0_svc+0x28/0x60
+[ 2864.586745]  el0t_64_sync_handler+0x118/0x128
+[ 2864.591887]  el0t_64_sync+0x14c/0x150
+
+[ 2864.598591] Freed by task 2178:
+[ 2864.602508]  kasan_save_stack+0x3c/0x60
+[ 2864.607126]  kasan_set_track+0x28/0x38
+[ 2864.611658]  kasan_save_free_info+0x34/0x70
+[ 2864.616625]  __kasan_slab_free+0xdc/0x140
+[ 2864.621417]  kmem_cache_free+0x148/0x390
+[ 2864.626121]  putname+0x110/0x138
+[ 2864.630128]  audit_reset_context+0x194/0x4a8
+[ 2864.635179]  __audit_syscall_exit+0x70/0x178
+[ 2864.640229]  syscall_trace_exit+0x35c/0x390
+[ 2864.645192]  el0_svc_common.constprop.0+0xa8/0x170
+[ 2864.650768]  do_el0_svc+0x38/0x50
+[ 2864.654867]  el0_svc+0x28/0x60
+[ 2864.658704]  el0t_64_sync_handler+0x118/0x128
+[ 2864.663845]  el0t_64_sync+0x14c/0x150
+
+[ 2864.670550] The buggy address belongs to the object at ffff0020d4ed0000
+                which belongs to the cache names_cache of size 4096
+[ 2864.684712] The buggy address is located 388 bytes inside of
+                freed 4096-byte region [ffff0020d4ed0000, ffff0020d4ed1000)
+
+[ 2864.700887] The buggy address belongs to the physical page:
+[ 2864.707233] page:00000000a2270ba5 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x2154ed0
+[ 2864.717492] head:00000000a2270ba5 order:3 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+[ 2864.726360] flags: 0x17fff8000000840(slab|head|node=0|zone=2|lastcpupid=0xffff)
+[ 2864.734450] page_type: 0xffffffff()
+[ 2864.738718] raw: 017fff8000000840 ffff00208039fcc0 dead000000000100 dead000000000122
+[ 2864.747240] raw: 0000000000000000 0000000000070007 00000001ffffffff 0000000000000000
+[ 2864.755758] page dumped because: kasan: bad access detected
+
+[ 2864.764368] Memory state around the buggy address:
+[ 2864.769934]  ffff0020d4ed0080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[ 2864.777932]  ffff0020d4ed0100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[ 2864.785929] >ffff0020d4ed0180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[ 2864.793925]                    ^
+[ 2864.797928]  ffff0020d4ed0200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[ 2864.805925]  ffff0020d4ed0280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+[ 2864.813921] ==================================================================
