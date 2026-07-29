@@ -1,0 +1,51 @@
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+INFO: task syz.0.2880:15362 blocked for more than 122 seconds.
+      Tainted: G        W         ------- ----- 6.6.30+ #47
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+task:syz.0.2880      state:D stack:0     pid:15362 ppid:14235  flags:0x00000201
+Call trace:
+ __switch_to+0x150/0x228 home/jose/common/arch/arm64/kernel/process.c:567
+ context_switch kernel/sched/core.c:5516 [inline]
+ __schedule+0x1080/0x1e10 kernel/sched/core.c:6844
+ schedule+0x78/0x128 kernel/sched/core.c:6918
+ schedule_preempt_disabled+0x14/0x28 kernel/sched/core.c:6977
+ rwsem_down_write_slowpath+0x534/0xb58 home/jose/common/kernel/locking/rwsem.c:1242
+ __down_write_common home/jose/common/kernel/locking/rwsem.c:1386 [inline]
+ __down_write home/jose/common/kernel/locking/rwsem.c:1395 [inline]
+ down_write+0x148/0x160 home/jose/common/kernel/locking/rwsem.c:1656
+ mmap_write_lock home/jose/common/include/linux/mmap_lock.h:108 [inline]
+ account_locked_vm home/jose/common/mm/util.c:540 [inline]
+ account_locked_vm+0x50/0x138 home/jose/common/mm/util.c:533
+ pkvm_unmap_range arch/arm64/kvm/mmu.c:342 [inline]
+ ___unmap_stage2_range arch/arm64/kvm/mmu.c:390 [inline]
+ stage2_apply_range arch/arm64/kvm/mmu.c:81 [inline]
+ __unmap_stage2_range.isra.0+0x22c/0x3b0 arch/arm64/kvm/mmu.c:410
+ unmap_stage2_range arch/arm64/kvm/mmu.c:416 [inline]
+ stage2_unmap_memslot arch/arm64/kvm/mmu.c:1137 [inline]
+ stage2_unmap_vm+0x26c/0x420 arch/arm64/kvm/mmu.c:1162
+ kvm_arch_vcpu_ioctl_vcpu_init arch/arm64/kvm/arm.c:1440 [inline]
+ kvm_arch_vcpu_ioctl+0x8bc/0xfd8 arch/arm64/kvm/arm.c:1547
+ kvm_vcpu_ioctl+0x72c/0xc98 virt/kvm/kvm_main.c:4317
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+

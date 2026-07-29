@@ -115,11 +115,29 @@ This bug was **unreachable by the campaign as it existed that morning**. Until 2
 
 Widening `enable_syscalls` to expose the ordinary ARM64 KVM interface — including `ioctl$KVM_ARM_VCPU_INIT` as a first-class, independently-orderable call — made the sequence generatable. The deadlock appeared within roughly two hours of that change.
 
+## Recurrence: three times in one afternoon, at an accelerating rate
+
+The crash directory accumulated three reports with **byte-identical call traces**:
+
+| report | time | taint | interval since campaign start |
+|---|---|---|---|
+| `report0` | 13:29:19 | `G B W` | ~2 hours |
+| `report1` | ~13:55 | `G B W` | **26 minutes** |
+| `report2` | 14:36:46 | `G W` (no `B` — post-reboot) | **~10 minutes** |
+
+The differing taint on `report2` (no `BAD_PAGE`) confirms it is a genuinely new occurrence in a freshly-booted kernel, not a stale report re-read from a persistent buffer.
+
+**The interval collapses because the corpus learns the trigger.** The programs that reach the deadlock produce new coverage, so syzkaller correctly saves them as valuable inputs. On every subsequent start they are replayed during candidate triage — so the time-to-death shrinks from "however long it takes to discover" toward "immediately". This is the fuzzer working exactly as designed; the pathology is the combination with a target that cannot be automatically recycled.
+
 ## Operational impact on the campaign
 
 - The hung-task watchdog **warns but does not panic** (`panic_on_warn=0` on this target), so the machine does not reboot itself.
-- The `isolated` backend cannot power-cycle a physical board, so syzkaller could only retry the connection. **Manual intervention was required.**
-- With `ioctl$KVM_ARM_VCPU_INIT` enabled, an unattended campaign should be expected to re-wedge periodically until the kernel is fixed. That is the trade-off to weigh against the coverage that call unlocks.
+- The `isolated` backend cannot power-cycle a physical board, so syzkaller can only retry the connection. **Manual intervention is required every time.**
+- At ~10 minutes per restart, the campaign **cannot run unattended at all**. On a normal VM target this bug would cost one second per occurrence (crash, recycle, continue) and would be a pure win; on a physical board with `target_reboot: false` the saved reproducer becomes a self-inflicted denial of service against the campaign.
+
+**Mitigation applied 2026-07-29 14:49:** `ioctl$KVM_ARM_VCPU_INIT` and `ioctl$KVM_ARM_VCPU_INIT_safe` were removed from `enable_syscalls` in `maxcov.cfg`. The bug is fully banked, so re-hitting it adds nothing, and the coverage cost is narrow: only the *second*-init path is lost. `syz_kvm_setup_syzos_vm$arm64` / `syz_kvm_add_vcpu$arm64` perform vCPU initialisation internally in C, so guest execution and all downstream EL2 coverage are unaffected.
+
+Note that syzkaller's resource model does not encode "a vCPU must be initialised before `KVM_RUN`" — that is a semantic, not a type-level, dependency — so removing the call disabled nothing transitively. Generic-path vCPUs simply fail `KVM_RUN` with `-EINVAL`.
 
 ## Suggested fix (for the kernel owner)
 
