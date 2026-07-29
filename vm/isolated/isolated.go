@@ -332,7 +332,12 @@ func (inst *instance) Run(ctx context.Context, command string) (
 	// re-matched as a fresh crash on every VM reconnect -> crash-loop. Clearing
 	// first means syzkaller records each new report once, then keeps fuzzing.
 	// Scoped to the isolated backend; OpenRemoteConsole (adb, etc.) is unchanged.
-	dmesg, err := vmimpl.OpenConsoleByCmd("ssh", append(args, "dmesg -C; dmesg -w"))
+	// Archive the buffer before clearing so nothing is lost: with broad `ignores`
+	// the manager stops saving reports for WARNs, and clearing would otherwise
+	// discard them entirely. dmesg-history.log keeps a complete record on the
+	// target for post-hoc mining after the campaign.
+	dmesg, err := vmimpl.OpenConsoleByCmd("ssh", append(args,
+		"dmesg >> "+inst.cfg.TargetDir+"/dmesg-history.log; dmesg -C; dmesg -w"))
 	if err != nil {
 		return nil, nil, err
 	}
