@@ -36,11 +36,32 @@ DOES reach EL2 handlers — the UAF sits *between* the load and the enable, not 
 - **The UAF is INTERMITTENT.** That same clean enable did NOT re-fire it (`KASAN_delta=0`; the enable
   fully succeeded — all 3 HVCs). It's a recycled-slab UAF whose trigger depends on allocation timing,
   not every enable.
-- **Generic-vs-pKVM: still OPEN (check inconclusive).** `mkdir /sys/kernel/tracing/instances/probe0`
-  (plain ftrace, no hyp) did NOT reproduce — but because the UAF didn't re-fire even on the tracing
-  enable, a single negative can't distinguish "not generic" from "didn't hit the timing." Leave the
-  attribution open for the kernel owner; the faulting frames are still generic `ring_buffer.c`.
+- **Generic-vs-pKVM: answered by provenance (see next section), not the instance test.** The
+  `mkdir /sys/kernel/tracing/instances/probe0` probe didn't reproduce, but the intermittency makes
+  that inconclusive on its own. The git history settles it.
 - Executor context on N90 = **root** (tracefs is root-only — fine); events group = **`hypervisor`**.
+
+## Upstream provenance — an ACK-backport bug, not a mainline-generic one (all verified in-tree)
+The faulting function (`rb_allocate_cpu_buffer`) is generic, but it is only *reached* this way via a
+code path that mainline has since rewritten. Confirmed against `common-stage2mvp`:
+- **This tree carries the early `writer` API, not the upstream `remote` rewrite.** `struct
+  ring_buffer_writer` is present (include/linux/ring_buffer.h + kernel/trace/ring_buffer.c);
+  `ring_buffer_reader()` is a macro (ring_buffer.h:336) that calls `__ring_buffer_alloc(0,
+  RB_FL_OVERWRITE, &key, writer)` — size 0, hyp-owned pages. `grep -c 'buffer->remote|ring_buffer_remote'`
+  = **0**. Upstream renamed `writer→remote` and gave `alloc_buffer` a dedicated `else if (remote)` branch
+  (computes per-CPU pages from the remote descriptor) in the merged "Tracefs support for pKVM" series
+  (RFC→v7, ~6.13+). This 6.6.30 ACK backport predates that rewrite.
+- **The "obvious" cpuhp guard was already tried and reverted upstream.** Present in-tree:
+  `912da2c384d5` ("Do not have boot mapped buffers hook to CPU hotplug") → `580bb355bcae` (Revert). The
+  revert rationale (Rostedt): the cpuhp theory was a *red herring*; the real fix was refcounting,
+  `2cf9733891a4` ("Fix refcount setting of boot mapped buffers") — also in-tree. So re-applying a cpuhp
+  guard would re-introduce a known-wrong patch.
+- **Conclusion:** a real bug in this ACK/pKVM-tracefs backport (early `writer` path), **not reproducible
+  against mainline** (mainline replaced the path). Fix options for the kernel owner: (a) rebase onto the
+  merged ring-buffer *remotes* series (the upstream answer); (b) a local guard ONLY after root-causing,
+  given 580bb355bcae. Do NOT report it upstream as a generic-ftrace UAF.
+- Refs: LKML 912da2c384d5 revert thread; LWN "Tracefs support for pKVM" (Articles/1020290); the v7
+  ring-buffer-remotes series.
 
 ## Retraction
 The first draft of this file said the path "UAFs before reaching the EL2 tracing handlers" and framed it
