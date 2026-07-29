@@ -326,7 +326,13 @@ func (inst *instance) Run(ctx context.Context, command string) (
 	<-chan vmimpl.Chunk, <-chan error, error) {
 	args := append(vmimpl.SSHArgs(inst.debug, inst.Key, inst.Port, inst.cfg.SystemSSHCfg),
 		inst.User+"@"+inst.Addr)
-	dmesg, err := vmimpl.OpenRemoteConsole("ssh", args...)
+	// Clear the kernel ring buffer before following it. The default `dmesg -w`
+	// replays the entire existing buffer on every reconnect, so a persistent
+	// WARN/KASAN report from an earlier run (or a re-detected known bug) is
+	// re-matched as a fresh crash on every VM reconnect -> crash-loop. Clearing
+	// first means syzkaller records each new report once, then keeps fuzzing.
+	// Scoped to the isolated backend; OpenRemoteConsole (adb, etc.) is unchanged.
+	dmesg, err := vmimpl.OpenConsoleByCmd("ssh", append(args, "dmesg -C; dmesg -w"))
 	if err != nil {
 		return nil, nil, err
 	}

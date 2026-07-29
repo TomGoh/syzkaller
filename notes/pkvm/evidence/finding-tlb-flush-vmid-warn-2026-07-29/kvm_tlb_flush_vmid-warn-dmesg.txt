@@ -1,0 +1,23 @@
+[ 6459.059481] WARNING: CPU: 0 PID: 142475 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[ 6459.070455] Modules linked in: iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core bridge stp llc st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat joydev rtk_btusb btusb btrtl btintel btbcm btmtk bluetooth r8153_ecm ecdh_generic ecc cdc_ether usbnet r8152 mii hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 sha1_ce snd_hda_codec_conexant snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx libarc4 i2c_hid_acpi uvcvideo snd_hda_codec_generic i2c_hid cppc_cpufreq ledtrig_audio videobuf2_vmalloc hid uvc ftg340 thermal snd_hda_phytium videobuf2_memops snd_soc_pmdk_dp snd_hda_codec ftv310_vpu_driver rfkill videobuf2_v4l2 snd_soc_phytium_i2s_v2 snd_hda_core xhci_plat_hcd videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[ 6459.070805]  drm_display_helper drm_kms_helper drm serio_raw
+[ 6459.166844] CPU: 0 PID: 142475 Comm: syz.2.155 Tainted: G    B   W         ------- ----- 6.6.30+ #47
+[ 6459.176758] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 6459.187621] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[ 6459.195362] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[ 6459.201198] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[ 6459.207031] sp : ffff0022ea31f6b0
+[ 6459.211120] x29: ffff0022ea31f710 x28: 0000000008000fff x27: 0000000040000000
+[ 6459.219042] x26: 0000000008001000 x25: ffff0022e9054000 x24: ffff0020f4b2e800
+[ 6459.226963] x23: 0000000008000000 x22: ffff0022e9054a20 x21: ffffffffffffffff
+[ 6459.234884] x20: 0000000000001000 x19: 1fffe0045d463ed6 x18: 0000000000000000
+[ 6459.242805] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffd54c9ca0
+[ 6459.250725] x14: 0000000000000000 x13: 0000000000000000 x12: ffff60044788c001
+[ 6459.258646] x11: 1fffe0044788c000 x10: ffff60044788c000 x9 : ffff8000800cd3a4
+[ 6459.266567] x8 : 00009ffbb8774000 x7 : ffff00223c460003 x6 : ffff0020cb812880
+[ 6459.274488] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[ 6459.282408] x2 : ffff80008e404000 x1 : 0000000000080000 x0 : 0000000000000611
+[ 6459.290329] Call trace:
+[ 6459.293550]  kvm_tlb_flush_vmid_range+0x210/0x248
+[ 6459.299036]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[ 6459.305047]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
