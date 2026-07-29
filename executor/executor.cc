@@ -72,7 +72,13 @@ const int kOutPipeFd = kMaxFd - 2; // remapped from stdout
 const int kCoverFd = kOutPipeFd - kMaxThreads;
 const int kExtraCoverFd = kCoverFd - 1;
 const int kMaxArgs = 9;
-const int kCoverSize = 512 << 10;
+// pKVM EL2 coverage floods the per-exec KCOV area: the hyp ring delivers every
+// EL2 basic-block PC for every host->hyp HVC in the program, so a broadened KVM
+// program overruns the stock 512K entries and unique PCs at the tail of the exec
+// are dropped (measured on N90: kcov_requested 707M vs kcov_accepted 103M, i.e.
+// ~85% discarded, with kcov_mode_lost=0 so it is pure area overflow). 4M entries
+// = 32MB per exec, negligible against the target's 24GB.
+const int kCoverSize = 4 << 20;
 const int kFailStatus = 67;
 
 // Two approaches of dealing with kcov memory.
