@@ -46,8 +46,24 @@ close$kvmvm_protected(fd fd_kvmvm_protected)
 # safe-init / controlled-run keep the fuzzer on a safe path: the safe VCPU_INIT fixes
 # target=GENERIC_V8 and feature=0 (NO KVM_ARM_VCPU_PMU_V3), so it cannot trip the arch_timer WARN (a
 # generic arm64-KVM issue tracked separately); and the controlled run only accepts this type.
-# Campaign enables exactly these; it does NOT enable the generic ioctl$KVM_ARM_VCPU_INIT /
-# ioctl$KVM_RUN (which would allow PMU_V3 / the guest-abort busy loop).
+# These were the whole story for the early narrow campaigns. Two things changed since:
+#
+# (1) ioctl$KVM_RUN is now enabled in maxcov.cfg. The guest-abort busy loop it was excluded for is
+#     bounded by the executor's per-exec timeout, and the generated-program hang that once zeroed
+#     coverage was a bad fw_ipa, fixed by pinning the generated value — not by dropping KVM_RUN.
+#
+# (2) The generic ioctl$KVM_ARM_VCPU_INIT is needed, and _safe cannot replace it. The pKVM unmap
+#     path (stage2_unmap_vm -> ... -> pkvm_unmap_range) is reached only by an ORDINARY VM on a pKVM
+#     host: __unmap_stage2_range() (mmu.c:444) returns early when kvm->arch.pkvm.enabled, so a
+#     *protected* VM never gets there. Since ioctl$KVM_ARM_VCPU_INIT_safe is typed on
+#     fd_kvmcpu_protected, it lands in exactly that early-return case and contributes no unmap
+#     coverage. The generic descriptor on fd_kvmcpu is the one that matches the shape of the
+#     deadlock reproducer (which opens its VM with KVM_CREATE_VM type 0).
+#
+# The cost of the generic descriptor is its fuzzable feature bitmap, which can request PMU_V3 and
+# trip the arch_timer WARN. That is tolerable only while campaign policy is "ignores": ["WARNING:"].
+# It also requires the pkvm_unmap_range deadlock fix on the board — without it, a second VCPU_INIT
+# on a vCPU that has already run wedges the machine.
 resource fd_kvmcpu_protected[fd_kvmcpu]
 
 ioctl$KVM_CREATE_VCPU_protected(fd fd_kvmvm_protected, cmd const[KVM_CREATE_VCPU], id intptr[0:2]) fd_kvmcpu_protected

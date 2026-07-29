@@ -279,7 +279,7 @@ Safe *here* because this backend detects crashes by reading `/dev/kmsg`, not the
 
 ## 8. What was found
 
-Four real defects, all banked with evidence under `notes/pkvm/evidence/`.
+Five real defects, all banked with evidence under `notes/pkvm/evidence/`.
 
 **1. VMID-rollover warning.** The hypervisor returns a non-success status for `__kvm_flush_vm_context` when the VM-identifier generation counter rolls over (roughly every 13,000 VM creations). Found at ~13k executions by the original narrow campaign — proof that even a one-boundary, fixed-input fuzzer can find genuine host↔hypervisor bugs.
 
@@ -291,7 +291,11 @@ The finding also documents a trap. The obvious fix — skip the CPU-hotplug regi
 
 **4. Timer-interrupt warning.** `WARN_ON` on a failed virtual-interrupt injection. A *different* class: no hypercall is involved, and the hypervisor is not implicated — this is generic ARM64 KVM, reachable now only because the widened input surface drives interrupt-controller configuration the old composite never touched. It is a user-space-reachable warning, which is a robustness concern in its own right. No earlier precedent; genuinely new.
 
-Note the discipline that produced the differences between these four: for each one, *read the complete function*, *check whether it has been seen before*, and *check what upstream already did about it*. Two of the four changed character entirely under that treatment.
+**5. `pkvm_unmap_range()` self-deadlock — fixed and submitted.** The heaviest of the five and the only one carried all the way to a patch. `pkvm_unmap_range()` un-accounts pages with `account_locked_vm()`, which takes `mmap_lock` for write, while its caller `stage2_unmap_vm()` already holds that same `mmap_lock` for read — an unconditional rwsem self-deadlock, not a race. Any process with `/dev/kvm` access wedges the machine via a second `KVM_ARM_VCPU_INIT` on a vCPU that has already run, on any CPU lacking `ARM64_HAS_STAGE2_FWB`. Confirmed on three machines across two builds with a standalone reproducer; fixed by deferring the decrement through a per-VM atomic settled after the locks drop.
+
+Three commits went to the Kylin futlab Gerrit (`2030/bug930`): two upstream `ANDROID:` cherry-picks that had to precede it, then our `KYLIN:` fix. Full record — commit hashes, Change-Ids, compile/checkpatch verification, the upstream-search trap, and what remains open — in `evidence/finding-pkvm-unmap-selfdeadlock-2026-07-29/SUBMISSION.md`. The migration process itself is now a reusable skill at `~/.claude/skills/kylin-futlab-patch-migration/`.
+
+Note the discipline that produced the differences between these five: for each one, *read the complete function*, *check whether it has been seen before*, and *check what upstream already did about it*. Two of the first four changed character entirely under that treatment, and the fifth would have been hand-rolled from scratch had the upstream search stopped at branches — the two prerequisite fixes exist only on a *tag* in this repo.
 
 ---
 
@@ -344,7 +348,9 @@ These remain uncommitted in the kernel tree by design; a patch snapshot is archi
 
 ### 9.3 Campaign configuration
 
-`workdir-macrocov-thru/maxcov.cfg` — 63 enabled system calls, `"ignores": ["WARNING:"]`, single process, CPU-pinned, no target reboot.
+`workdir-macrocov-thru/maxcov.cfg` — **61** enabled system calls, `"ignores": ["WARNING:"]`, single process, CPU-pinned, no target reboot.
+
+One dependency in that list is not obvious and cost a silent loss of two descriptions: `ioctl$KVM_IRQFD` and `ioctl$KVM_IOEVENTFD` both take an eventfd, so with `eventfd2` absent syzkaller *transitively disables* them — logging "missing resource" rather than failing — and the campaign quietly fuzzes 59 calls while the config claims 61. Enabling a description whose argument is produced by another syscall means enabling that syscall too; check the manager's startup log for `transitively disabled` after any `enable_syscalls` edit.
 
 ---
 
@@ -368,9 +374,28 @@ These remain uncommitted in the kernel tree by design; a patch snapshot is archi
 
 **Working and measured:** end-to-end EL2 coverage from a Rust hypervisor into syzkaller, with every loss counter at zero; ~46 hypercall boundaries instrumented by a single macro; a deterministic measurement harness; a hypercall census that converts "which parts are untested?" from an argument into a number.
 
-**Coverage:** 7,863 (plateau, narrow input set) → **11,299** and climbing, corpus 56 → 208, zero crashes, zero instrument loss.
+**Coverage:** 7,863 (plateau, narrow input set) → **13,611**, corpus 56 → 524, zero instrument loss. Final measured point of the 2026-07-29 N90 run (`workdir-macrocov-thru/maxcov9.log`, 17:35:29): `corpus=524 coverage=13611 exec total=25241`. The intermediate 11,299 figure quoted in earlier drafts was a mid-run reading, not the settling point.
 
-**Found:** four defects, each with evidence, provenance, and — where applicable — upstream history.
+**How that run ended — and an unresolved question.** Execution stopped dead at 17:35:29: `exec total` stayed at exactly 25241 and coverage at 13611 for the next eight minutes while the manager kept polling, then `VM 1: running for 13m8s, restarting` and `boot error: repair failed: SSH failed`. A frozen exec counter means the *target* stopped executing, not that the fuzzer ran out of work. N90 runs the **unfixed** kernel, so the deadlock recurring is the obvious candidate — but this is a **hypothesis, not a conclusion**: no console capture was taken for this particular freeze, and SSH-layer failures have produced a similar manager-side signature before (§7). Confirming it needs the serial log from the freeze window, not the manager log. What the record does support is the weaker, still useful claim that a wedged target is indistinguishable from a finished one in the manager's stats line — the tell is `exec total` frozen while the timestamp advances.
+
+**Found:** five defects, each with evidence, provenance, and — where applicable — upstream history. One of them (the `pkvm_unmap_range()` self-deadlock) was carried through to a fix submitted to the futlab Gerrit.
+
+**Unblocked by the deadlock fix: `ioctl$KVM_ARM_VCPU_INIT` goes back in.** Diffing the campaign configs settles what the deadlock actually cost. `stageAB.cfg` enabled 12 calls; the final `maxcov.cfg` enables 61 — and across that expansion exactly **one** call was *removed*: `ioctl$KVM_ARM_VCPU_INIT`. It had to go because a second `KVM_ARM_VCPU_INIT` on a vCPU that has already run is precisely the deadlock trigger, so leaving it enabled wedged the board.
+
+That makes it the highest-value single re-enable available, because it is the sole entry to `stage2_unmap_vm()` → `unmap_stage2_range()` → `pkvm_unmap_range()` — an entire unmap path that currently has *zero* coverage, on both the host and EL2 sides. Restoring it requires the fixed kernel on the board: D3000 already runs `6.6.30-pkvmfix` and its config (`workdir-d3000-overnight/d3000.cfg`, 62 calls) has it re-enabled; N90 still runs the unfixed `6.6.30+ #47` and must be rebuilt before it can take it back.
+
+**It has to be the generic descriptor — `ioctl$KVM_ARM_VCPU_INIT_safe` cannot reach this path.** The obvious-looking substitution is wrong, and the code says so plainly. `__unmap_stage2_range()` (`mmu.c:444`, pristine upstream code, not ours) opens with:
+
+```c
+if (is_protected_kvm_enabled() && kvm->arch.pkvm.enabled)
+        return;
+```
+
+A *protected* VM therefore returns before `___unmap_stage2_range()` is ever called, so `pkvm_unmap_range()` is unreachable from it. The path is reached by an **ordinary** VM on a pKVM host — `is_protected_kvm_enabled()` true, `kvm->arch.pkvm.enabled` false (it is set only at `pkvm.c:467`, on protected-VM creation). `ioctl$KVM_ARM_VCPU_INIT_safe` is typed on `fd_kvmcpu_protected`, i.e. a vCPU of a protected VM, so it lands squarely in the early-return case and contributes nothing here.
+
+This is confirmed empirically, not just by reading: the reproducer that wedged three machines opens its VM with `ioctl(kvm, KVM_CREATE_VM, 0)` — type 0, ordinary, no bit 31 (`evidence/.../repro-deadlock.c:60`). The generic `ioctl$KVM_ARM_VCPU_INIT` on `fd_kvmcpu` is the descriptor that matches that shape.
+
+The cost of using the generic one is its fuzzable feature bitmap, which can request `PMU_V3` — the documented route to the arch-timer `WARN` of finding (4), still unfixed and a different defect from the deadlock. That is tolerable only because `"ignores": ["WARNING:"]` keeps a warning from tearing down the VM; if warnings are ever promoted back to crashes, this re-enable needs revisiting, and `_safe` is *not* the fallback.
 
 **Known unfinished, stated plainly:**
 

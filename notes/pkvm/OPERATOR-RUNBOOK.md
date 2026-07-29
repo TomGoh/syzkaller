@@ -89,6 +89,42 @@ bin/syz-manager -config=<board>.cfg
 ```
 Reference config: `/home/jose/syzkaller/workdir-a2confirm/pkvm-a2confirm.cfg`.
 
+### Multi-board / overnight runs — one manager per board
+
+`scripts/pkvm/tools/overnight-run.sh {status|start|stop} [n90|d3000|all]` wraps the below.
+It refuses to start a board whose EL2 ring is not armed, and stops with `SIGINT` (not `KILL`)
+so `corpus.db` is flushed.
+
+| board | ip | config | `kernel_obj` | http |
+|---|---|---|---|---|
+| N90 | `10.42.27.17` | `workdir-macrocov-thru/maxcov.cfg` | `/home/jose/common-stage2mvp` | 56750 |
+| D3000 | `10.42.27.18` | `workdir-d3000-overnight/d3000.cfg` | `/home/jose/ksrc-pkvmfix` | 56751 |
+
+**Do not fold two boards into one manager's `vm.targets` while their kernels differ.**
+syz-manager holds a single `kernel_obj` and symbolizes every PC it receives against that one
+`vmlinux`. N90 runs `6.6.30+` (instrumented, *without* the unmap deadlock fix); D3000 runs
+`6.6.30-pkvmfix` (instrumented *and* fixed). Sharing a manager would symbolize half the coverage
+against the wrong binary — silently, with no error anywhere. Merge the campaigns only once both
+boards boot the same `vmlinux`.
+
+**Verify `kernel_obj` by build string, never by mtime.** A restore from `.n90-build-backup/`
+rewrites mtimes without changing content, so a "newer" local `vmlinux` may be exactly the running
+kernel — and a stale one may look current. Compare what is actually embedded:
+
+```
+strings -a <kernel_obj>/vmlinux | grep -m2 '^Linux version'   # e.g. 6.6.30+ #47 Tue Jul 28 15:36:00
+ssh root@<board> 'uname -a'                                    # must match release, build #, and date
+```
+
+Both configs above were verified this way on 2026-07-29: N90 ↔ `#47 Jul 28 15:36:00`,
+D3000 ↔ `#51 Jul 29 16:10:53`.
+
+**A wedged target looks identical to a healthy idle one** in the manager's stats line. The tell is
+`exec total` frozen while the timestamp keeps advancing — coverage and corpus freeze too, so
+neither distinguishes the cases. If `exec total` has not moved for several minutes, get the serial
+console before restarting; the manager log alone cannot tell a target deadlock from an SSH failure
+(both end in `boot error: repair failed: SSH failed`).
+
 ## Read coverage — the built-in dashboard
 syzkaller's manager serves `http://127.0.0.1:<http-port>/cover` (file tree, per-file %,
 line-level highlight, `/coverfile`, `/rawcover`). Open it and confirm the `rust/src/*.rs`
