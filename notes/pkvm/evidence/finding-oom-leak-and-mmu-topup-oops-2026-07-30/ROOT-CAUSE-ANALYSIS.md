@@ -1,5 +1,20 @@
 # Root-cause analysis — the `__kvm_mmu_topup_memory_cache` Oops and the OOM
 
+> **SUPERSEDED — read `ROOT-CAUSE-CONFIRMED.md` for the conclusion.**
+>
+> This file is the working analysis. It reached the union type-confusion answer,
+> but `ROOT-CAUSE-CONFIRMED.md` proves it quantitatively from the register dumps
+> and goes further on several points. Where the two differ, that file wins.
+>
+> Note it says this document was "kept unmodified for the record"; that is no
+> longer accurate — it was revised independently at roughly the same time, which
+> is why both now carry the union finding. The convergence was arrived at
+> separately and is corroboration, not duplication.
+>
+> Its most important correction to what is written below: the TLB-flush WARNs are
+> a **sibling symptom, not the head of the chain**. Both the WARN storm and the
+> Oops are reached only through dirty logging, which is why they co-occur.
+
 Worked from `report0`, `report1`, `log0`, the serial capture, and the archived
 `vmlinux`. Split into **PROVEN** (disassembly / full code read / captured output)
 and **HYPOTHESIS** (mechanism inferred, not yet confirmed), per the project rule
@@ -37,24 +52,84 @@ Therefore **`vcpu->arch.mmu_page_cache.kmem_cache == 3`** (and `2` in the other
 run). The `if (mc->kmem_cache)` test passes because 3 is non-zero, and the
 garbage pointer goes straight to the allocator.
 
-## PROVEN 2 — arm64 never writes that field, so this is memory corruption
+## PROVEN 2 — it is NOT corruption. It is union type confusion.
 
-Full grep + read of every `mmu_page_cache` reference in `arch/arm64/kvm/`:
+> **Correction.** An earlier revision of this document concluded that
+> `struct kvm_vcpu` was "being overwritten by something else" and proposed that
+> the guest was writing host memory through stale stage-2 TLB entries. **That was
+> wrong.** It came from grepping `arch/arm64/kvm/*.c` for writers and finding
+> none, without reading the declaration of the field itself. Reading it settles
+> the question immediately, and the real answer needs no corruption at all.
 
+`mmu_page_cache` is declared inside an **anonymous union**
+(`arch/arm64/include/asm/kvm_host.h:679`):
+
+```c
+union {
+        /* Cache some mmu pages needed inside spinlock regions */
+        struct kvm_mmu_memory_cache mmu_page_cache;
+        /* Pages to be donated to pkvm/EL2 if it runs out */
+        struct kvm_hyp_memcache stage2_mc;
+};
 ```
-mmu.c:1952   struct kvm_mmu_memory_cache *memcache = &vcpu->arch.mmu_page_cache;
-arm.c:474    vcpu->arch.mmu_page_cache.gfp_zero = __GFP_ZERO;
-arm.c:514    kvm_mmu_free_memory_cache(&vcpu->arch.mmu_page_cache);
+
+The two members alias exactly at the faulting offset:
+
+| offset | `struct kvm_mmu_memory_cache` | `struct kvm_hyp_memcache` |
+|---|---|---|
+| +0 | `gfp_t gfp_zero` | `phys_addr_t head` |
+| +4 | `gfp_t gfp_custom` | ″ |
+| **+8** | **`struct kmem_cache *kmem_cache`** | **`unsigned long nr_pages`** |
+| +16 | `int capacity` | `unsigned long flags` |
+| +20 | `int nobjs` | ″ |
+| +24 | `void **objects` | — |
+
+So `mc->kmem_cache == 3` **is** `stage2_mc.nr_pages == 3` — a count of pages
+queued for donation to EL2. `report1`'s `2` is likewise two pages.
+
+This explains every observation without invoking corruption: the values are small
+integers because they are page counts; they differ between runs because the count
+differs; and **KASAN is silent because nothing illegal happened** — both writes
+are legitimate accesses to their own union member.
+
+## PROVEN 3 — one vCPU reaches both union members on a pKVM host
+
+`kvm_handle_guest_abort()` (`mmu.c:2322`) dispatches on fault *type*, not on VM
+type:
+
+```c
+if (is_protected_kvm_enabled() && fault_status != ESR_ELx_FSC_PERM)
+        ret = pkvm_mem_abort(vcpu, &fault_ipa, memslot, hva, NULL);
+else
+        ret = user_mem_abort(vcpu, fault_ipa, memslot, hva, fault_status);
 ```
 
-arm64 sets **only** `gfp_zero`. `kmem_cache` is never assigned anywhere in the
-arm64 tree, so it must remain `NULL` for the vCPU's entire lifetime and
-`mmu_memory_cache_alloc_obj()` must always take the `__get_free_page()` branch.
+On a pKVM host, for the *same* vCPU:
 
-A value of 2 or 3 is not a logic error in KVM. It is **`struct kvm_vcpu` being
-overwritten by something else.**
+- a **non-permission** fault takes `pkvm_mem_abort()`. EL2 answers with a memory
+  request, and `handle_hyp_req_mem()` (`handle_exit.c:345`) runs
+  `topup_hyp_memcache(&vcpu->arch.stage2_mc, ...)`, writing `nr_pages` at +8.
+- a **permission** fault falls through to `user_mem_abort()`, which calls
+  `kvm_mmu_topup_memory_cache(&vcpu->arch.mmu_page_cache, ...)` and reads +8 as
+  `kmem_cache`.
 
-## PROVEN 3 — the second Oops is a consequence of the first, not a separate bug
+`mmu_memory_cache_alloc_obj()` then tests `if (mc->kmem_cache)`, sees a non-zero
+page count, and hands it to `kmem_cache_alloc()` as a `struct kmem_cache *`.
+
+The union is only sound if a vCPU uses exactly one member for its whole life.
+That invariant holds for a *protected* VM (always `pkvm_mem_abort`) and for a
+*non-pKVM host* (always `user_mem_abort`). It is violated by an **ordinary VM on
+a pKVM host**, which is precisely what the reproducer creates —
+`ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)`, type 0, no bit 31.
+
+Note `user_mem_abort()` only reaches the topup when
+`fault_status != ESR_ELx_FSC_PERM || (logging_active && write_fault)`. Since the
+`else` branch is taken only for permission faults, the surviving trigger is
+`logging_active && write_fault` — dirty logging on the memslot plus a write
+permission fault. Confirming that the reproducer satisfies that (via
+`syz_kvm_setup_cpu$arm64`'s memslot setup) is the one step not yet done.
+
+## PROVEN 4 — the second Oops is a consequence of the first, not a separate bug
 
 ```
 kernel BUG at arch/arm64/kvm/fpsimd.c:54!   ->  BUG_ON(!current->mm)
@@ -86,7 +161,7 @@ Note this is nonetheless a genuine latent bug in its own right: **any** task tha
 dies with a loaded vCPU can hit that `BUG_ON`. It just needs a first crash to get
 there, so it is a severity amplifier rather than an independent finding.
 
-## PROVEN 4 — 39 TLB-flush failures immediately precede the corruption
+## PROVEN 5 — 39 TLB-flush failures also occurred in the same window
 
 `log0` contains exactly two distinct WARN sites before the Oops:
 
@@ -98,60 +173,27 @@ there, so it is a severity amplifier rather than an independent finding.
 `pgtable.c:639` is `kvm_call_hyp(__kvm_tlb_flush_vmid, mmu);` (read directly).
 The WARN is `WARN_ON(res.a0 != SMCCC_RET_SUCCESS)` in `kvm_call_hyp_nvhe`
 (`kvm_host.h:1131`) — i.e. **EL2 reported that the TLB invalidation did not
-succeed**, 39 times, in the seconds before host memory was found corrupted.
+succeed**, 39 times, in the same window as the Oops.
 
 ---
 
-## HYPOTHESIS — stale stage-2 TLB entries let the guest write host memory
+## RETRACTED — "stale stage-2 TLB entries let the guest write host memory"
 
-Not confirmed. Stated because it is the only mechanism found that explains every
-observation at once, and because it is cheaply testable.
+An earlier revision proposed this as the leading hypothesis, resting largely on
+KASAN's silence. **It is withdrawn.** PROVEN 2/3 explain the Oops completely with
+no corruption, and they explain KASAN's silence better: KASAN said nothing
+because nothing illegal happened.
 
-If `__kvm_tlb_flush_vmid` genuinely fails to invalidate, the guest keeps a valid
-TLB entry for an IPA whose stage-2 mapping the host has since torn down and whose
-backing page the host has reused for its own allocations. Guest writes then land
-in whatever the host put there — including slab objects such as `struct kvm_vcpu`.
+The TLB-flush WARNs (PROVEN 5) are real and remain an open defect in their own
+right — finding (3) — but their proximity to this Oops was **coincidence**. The
+fuzzer produces them continuously: N90 logged 1,328 over 14 hours with no
+corruption at all. Treating "39 of them immediately preceded the crash" as
+evidence of causation was a post-hoc error, and N90 was already the counter-example
+sitting in the same dataset.
 
-What it explains that other candidates do not:
-
-| observation | fits? |
-|---|---|
-| corrupted field holds a *small integer* (2, 3) | yes — guest-written data, not a wild kernel pointer |
-| value differs between runs (3 vs 2) | yes — non-deterministic, depends on what the guest wrote |
-| **KASAN is enabled (`CONFIG_KASAN=y`) yet silent** | yes — KASAN instruments compiler-generated CPU accesses; it cannot see writes the *guest* performs through a stale stage-2 mapping. A software UAF would have been reported. |
-| the read of `mc->kmem_cache` did not itself fault | yes — the vCPU allocation is live; only its *contents* are wrong |
-| 39 TLB failures immediately prior | yes — direct precondition |
-| D3000's 23.9 GB unaccounted (`FINDING.md` §2) | plausibly — pages never truly released from stage-2 are never returned to the host |
-| N90 healthy with 1,328 TLB warnings | consistent — corruption depends on *which* reused page the guest writes, so it is probabilistic, not a function of warning count |
-
-### Candidates considered and ruled out
-
-- **Stale objects / struct layout mismatch after our `kvm_host.h` edit.** Ruled
-  out: `kvm_host.h` mtime `07-29 16:03`; `mmu.o` `16:15`; `arm.o`, `fpsimd.o`,
-  `kvm_main.o`, `vmlinux` all `18:12`. Every object postdates the header.
-- **Stale Rust EL2 bindings desynced from the changed C header.** Ruled out:
-  `bindings_generated.rs` is bindgen-generated at build time (`include!(concat!(
-  env!("OUT_DIR"), "/bindings_generated.rs"))`) and was regenerated at `18:12`.
-- **Our KCOV HVC wrapper corrupting state.** Weak. `KVM_PKVM_COV_HVC`
-  (`kvm_host.h:1112`) passes `&__cov` and writes the HVC result straight into
-  `_res`; `kcov_add_pcs()` (`kcov.c:238`) is bounds-checked against
-  `t->kcov_size`. Not excluded, but nothing in the code read supports it.
-
-### Experiments that would settle it
-
-1. **Read the EL2 `__kvm_tlb_flush_vmid` handler** and determine why it returns
-   non-success. That is the head of the chain and is unexamined so far.
-2. **Correlate**: instrument the WARN to log VMID + IPA range, and check whether
-   corrupted addresses fall in ranges that recently failed invalidation.
-3. **Discriminate cheaply**: run the campaign with `KVM_ARM_VCPU_INIT` still
-   enabled on a kernel where the TLB path is forced down the
-   `system_supports_tlb_range() == false` branch. If corruption stops while the
-   fuzzing surface is unchanged, the link is real.
-4. If EL2 is genuinely failing to invalidate, this is a **security-relevant**
-   guest→host memory-corruption primitive, not merely a stability bug, and
-   should be treated accordingly.
-
----
+Keeping this retraction visible because the discarded theory was the more
+alarming one — it would have implied a guest→host memory-corruption primitive.
+It does not exist. Nothing here is evidence of a guest escaping stage-2.
 
 ## The OOM, re-examined
 
@@ -165,13 +207,24 @@ mapped : 8.6 GB      anon : 125 MB      file : 1 MB
 
 `Mapped` counts pages present in userspace page tables. With anon and file both
 negligible, 8.6 GB of *mapped* pages means page-table mappings persist for pages
-that are no longer on any LRU — mappings outliving the pages' accounted
-lifetime. That is the same shape as PROVEN 4 / the hypothesis above: mappings
-that were supposed to be torn down and invalidated, but were not.
+that are no longer on any LRU — mappings outliving the pages' accounted lifetime.
 
 N90 under identical workload shows the normal profile
 (`Mapped 753 MB`, `AnonPages 10.5 GB`) — the inversion is specific to the failure.
 
-So the OOM and the Oops may be **two symptoms of one defect** (stage-2 unmap /
-invalidation not completing) rather than two findings. That is currently a
-hypothesis, and experiment 1 above is the shared discriminator for both.
+**The OOM is a separate, still-unexplained defect.** An earlier revision
+suggested it and the Oops might be two symptoms of one root cause; with PROVEN
+2/3 that link is gone — the Oops is union type confusion and has nothing to do
+with page lifetime. Do not carry the merged theory forward.
+
+The most promising thread is `handle_hyp_req_mem()` (`handle_exit.c:345`), which
+is now known to run for ordinary VMs on a pKVM host. It donates pages to EL2 and
+accounts them into `kvm->stat.protected_hyp_mem`, and `arm.c:510` subtracts
+`stage2_mc.nr_pages` and calls `free_hyp_memcache()` only on vCPU destroy. Pages
+donated to EL2 leave host accounting exactly as observed, so the questions worth
+asking are whether every donated page is reclaimed when an *ordinary* VM on a
+pKVM host tears down, and whether that path is reached at all when the owning
+task is killed rather than closing its fds. Unverified — no evidence gathered yet.
+
+Both boards now carry `mem-watch.sh` sampling, whose `unaccounted_mb` column is
+the direct measure; a recurrence gives the growth curve instead of an end state.
