@@ -1,0 +1,474 @@
+Extracting prog: 57.392723778s
+Minimizing prog: 8m36.444419474s
+Simplifying prog options: 1m19.51275772s
+Extracting C: 33.157376272s
+Simplifying C: 0s
+
+
+extracting reproducer from 7 programs
+first checking the prog from the crash report
+single: executing 1 programs separately with timeout 45s
+testing program (duration=45s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+failed to symbolize report: failed to run ["scripts/get_maintainer.pl" "--git-min-percent=15" "-f" "home/jose/common/mm/slub.c"]: exit status 2
+program crashed: BUG: unable to handle kernel NULL pointer dereference in __kvm_mmu_topup_memory_cache
+single: successfully extracted reproducer
+found reproducer with 5 syscalls
+minimizing guilty program
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+syz_kvm_setup_cpu$arm64(r1, 0xffffffffffffffff, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(0xffffffffffffffff, 0xae80, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r0 = ioctl$KVM_CREATE_VCPU(0xffffffffffffffff, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(0xffffffffffffffff, r0, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r0, 0xae80, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = ioctl$KVM_CREATE_VM(0xffffffffffffffff, 0xae01, 0x0)
+r1 = ioctl$KVM_CREATE_VCPU(r0, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r0, r1, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r1, 0xae80, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, 0x0, 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, 0x0, 0x0, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, 0x0}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+program did not crash
+extracting C reproducer
+testing compiled C program (duration=1m0.195931653s, {Threaded:true Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+program did not crash
+simplifying guilty program options
+testing program (duration=1m0.195931653s, {Threaded:false Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+failed to symbolize report: failed to run ["scripts/get_maintainer.pl" "--git-min-percent=15" "-f" "home/jose/common/mm/slub.c"]: exit status 2
+program crashed: BUG: unable to handle kernel NULL pointer dereference in __kvm_mmu_topup_memory_cache
+extracting C reproducer
+testing compiled C program (duration=1m0.195931653s, {Threaded:false Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+program did not crash
+testing program (duration=1m0.195931653s, {Threaded:false Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+failed to symbolize report: failed to run ["scripts/get_maintainer.pl" "--git-min-percent=15" "-f" "home/jose/common/mm/slub.c"]: exit status 2
+program crashed: BUG: unable to handle kernel NULL pointer dereference in __kvm_mmu_topup_memory_cache
+validation run: crashed=true
+testing program (duration=1m0.195931653s, {Threaded:false Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+failed to symbolize report: failed to run ["scripts/get_maintainer.pl" "--git-min-percent=15" "-f" "home/jose/common/mm/slub.c"]: exit status 2
+program crashed: BUG: unable to handle kernel NULL pointer dereference in __kvm_mmu_topup_memory_cache
+validation run: crashed=true
+testing program (duration=1m0.195931653s, {Threaded:false Repeat:true RepeatTimes:0 Procs:1 Slowdown:10 Sandbox:none SandboxArg:0 Leak:false NetInjection:true NetDevices:true NetReset:true Cgroups:true BinfmtMisc:true CloseFDs:true KCSAN:false DevlinkPCI:false NicVF:false USB:false VhciInjection:false Wifi:false IEEE802154:false Sysctl:true Swap:true UseTmpDir:true HandleSegv:true Trace:false CallComments:true LegacyOptions:{Collide:false Fault:false FaultCall:0 FaultNth:0}}): openat$kvm-ioctl$KVM_CREATE_VM-ioctl$KVM_CREATE_VCPU-syz_kvm_setup_cpu$arm64-ioctl$KVM_RUN
+detailed listing:
+executing program 0:
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+failed to symbolize report: failed to run ["scripts/get_maintainer.pl" "--git-min-percent=15" "-f" "home/jose/common/mm/slub.c"]: exit status 2
+program crashed: BUG: unable to handle kernel NULL pointer dereference in __kvm_mmu_topup_memory_cache
+validation run: crashed=true
+reproducing took 13m39.45625024s
+repro crashed as (corrupted=false):
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel NULL pointer dereference at virtual address 000000000000001f
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000002261f53000
+[000000000000001f] pgd=080000205a0c4003, p4d=080000205a0c4003, pud=080000234d4ac003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#8] SMP
+Modules linked in: gadgetfs udc_core bnep xt_tcpudp joydev bluetooth ecdh_generic ecc cfg80211 st xt_conntrack xt_MASQUERADE nf_conntrack_netlink nfnetlink xfrm_user xfrm_algo iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c xt_addrtype iptable_filter br_netfilter bridge stp llc overlay rfkill aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm snd_hda_codec_conexant sm4_ce snd_hda_codec_aw882xx snd_hda_aw882xx sm4_ce_cipher nls_iso8859_1 sm3_ce sha3_ce snd_hda_codec_aw883xx snd_hda_aw883xx sha512_ce sha512_arm64 snd_hda_codec_generic ledtrig_audio sha2_ce sha256_arm64 sha1_ce snd_hda_codec_hdmi snd_hda_intel snd_hda_phytium snd_intel_dspcfg snd_hda_codec cppc_cpufreq thermal xhci_pci i2c_phytium_platform snd_hda_core xhci_pci_renesas i2c_phytium_core hwmon_vid parport_pc ppdev lp parport ip_tables x_tables vfat multipath linear amdgpu i2c_algo_bit drm_ttm_helper ttm video drm_exec drm_suballoc_helper amdxcp drm_buddy gpu_sched drm_display_helper drm_kms_helper drm
+CPU: 0 PID: 309197 Comm: syz.2.17 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe4\xb8\x96\xe6\x81\x92D80F3/GWMDDB1EL1T, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 03/25/2025
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+pc : kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+lr : mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+lr : __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+sp : ffff0022d6757560
+x29: ffff0022d6757570 x28: 0000000000000024 x27: 0000000000000003
+x26: ffff80008006c5a4 x25: ffff0021efd2a408 x24: ffff800082df2000
+x23: 0000000007ffffff x22: 0000000000000020 x21: 0000000000000003
+x20: 000000006291f020 x19: 0000000000000003 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff60043c898c97
+x11: 1fffe0043c898c96 x10: ffff0025d25f1168 x9 : ffff80008006c5a4
+x8 : 0000000000025135 x7 : 0000000000000098 x6 : ffff001fdfe86718
+x5 : 0000000008e25135 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : 0000000000000007 x1 : 0000000000000000 x0 : ffff001f8a2a5100
+Call trace:
+ slab_alloc_node home/jose/common/mm/slub.c:3479 [inline]
+ slab_alloc home/jose/common/mm/slub.c:3511 [inline]
+ __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+ kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+ mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+ __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+ kvm_mmu_topup_memory_cache+0x2c/0x40 virt/kvm/kvm_main.c:448
+ user_mem_abort arch/arm64/kvm/mmu.c:1981 [inline]
+ kvm_handle_guest_abort+0x580/0x12e8 arch/arm64/kvm/mmu.c:2325
+ handle_trap_exceptions arch/arm64/kvm/handle_exit.c:328 [inline]
+ handle_exit+0x134/0x540 arch/arm64/kvm/handle_exit.c:419
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50 arch/arm64/kvm/arm.c:1197
+ kvm_vcpu_ioctl+0x2d0/0xc98 virt/kvm/kvm_main.c:4161
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+Code: f942fc01 f90007e1 d2800001 f90003ff (b9401e76) 
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+kernel BUG at arch/arm64/kvm/fpsimd.c:54!
+Internal error: Oops - BUG: 00000000f2000800 [#9] SMP
+Modules linked in: gadgetfs udc_core bnep xt_tcpudp joydev bluetooth ecdh_generic ecc cfg80211 st xt_conntrack xt_MASQUERADE nf_conntrack_netlink nfnetlink xfrm_user xfrm_algo iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c xt_addrtype iptable_filter br_netfilter bridge stp llc overlay rfkill aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm snd_hda_codec_conexant sm4_ce snd_hda_codec_aw882xx snd_hda_aw882xx sm4_ce_cipher nls_iso8859_1 sm3_ce sha3_ce snd_hda_codec_aw883xx snd_hda_aw883xx sha512_ce sha512_arm64 snd_hda_codec_generic ledtrig_audio sha2_ce sha256_arm64 sha1_ce snd_hda_codec_hdmi snd_hda_intel snd_hda_phytium snd_intel_dspcfg snd_hda_codec cppc_cpufreq thermal xhci_pci i2c_phytium_platform snd_hda_core xhci_pci_renesas i2c_phytium_core hwmon_vid parport_pc ppdev lp parport ip_tables x_tables vfat multipath linear amdgpu i2c_algo_bit drm_ttm_helper ttm video drm_exec drm_suballoc_helper amdxcp drm_buddy gpu_sched drm_display_helper drm_kms_helper drm
+CPU: 0 PID: 309197 Comm: syz.2.17 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe4\xb8\x96\xe6\x81\x92D80F3/GWMDDB1EL1T, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 03/25/2025
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+lr : kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+sp : ffff0022d6756660
+x29: ffff0022d6756660 x28: 0001000000000000 x27: ffff001fe19f8b80
+x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000002001
+x23: 0000000000000000 x22: ffff001f8a2a3cc0 x21: 0000000000000000
+x20: ffff001f8a2a5100 x19: ffff0021efd28000 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffef95a3f0
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff6003f0023e1c
+x11: 1fffe003f0023e1b x10: ffff6003f0023e1b x9 : ffff800080082678
+x8 : 00009ffc0ffdc1e5 x7 : ffff001f8011f0dc x6 : 0000000000000001
+x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+x2 : 0000000000000007 x1 : ffff001f8a2a5100 x0 : 0000000000000000
+Call trace:
+ kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+ kvm_arch_vcpu_load+0x178/0x490 arch/arm64/kvm/arm.c:565
+ kvm_sched_in+0x64/0x80 virt/kvm/kvm_main.c:5963
+ __fire_sched_in_preempt_notifiers kernel/sched/core.c:5066 [inline]
+ fire_sched_in_preempt_notifiers kernel/sched/core.c:5072 [inline]
+ finish_task_switch.isra.0+0x17c/0x370 kernel/sched/core.c:5397
+ context_switch kernel/sched/core.c:5519 [inline]
+ __schedule+0x1084/0x1e10 kernel/sched/core.c:6844
+ preempt_schedule_common kernel/sched/core.c:7011 [inline]
+ __cond_resched+0x4c/0x78 kernel/sched/core.c:8742
+ _cond_resched include/linux/sched.h:2117 [inline]
+ __cond_resched_rwlock_write kernel/sched/core.c:8850 [inline]
+ __cond_resched_rwlock_write+0xdc/0x170 kernel/sched/core.c:8841
+ stage2_apply_range arch/arm64/kvm/mmu.c:86 [inline]
+ __unmap_stage2_range.isra.0+0x14c/0x340 arch/arm64/kvm/mmu.c:461
+ unmap_stage2_range arch/arm64/kvm/mmu.c:467 [inline]
+ kvm_arch_flush_shadow_all+0x100/0x1a8 arch/arm64/kvm/mmu.c:2660
+ kvm_flush_shadow_all virt/kvm/kvm_main.c:398 [inline]
+ kvm_mmu_notifier_release+0x38/0x98 virt/kvm/kvm_main.c:917
+ mn_hlist_release home/jose/common/mm/mmu_notifier.c:319 [inline]
+ __mmu_notifier_release+0x120/0x398 home/jose/common/mm/mmu_notifier.c:357
+ mmu_notifier_release home/jose/common/include/linux/mmu_notifier.h:422 [inline]
+ exit_mmap+0x5ac/0x610 home/jose/common/mm/mmap.c:3248
+ __mmput+0xb4/0x358 kernel/fork.c:1380
+ mmput+0x94/0xb0 kernel/fork.c:1403
+ exit_mm kernel/exit.c:570 [inline]
+ do_exit+0x4f8/0x10c8 kernel/exit.c:865
+ make_task_dead+0xe8/0x298 kernel/exit.c:989
+ die+0x3fc/0x418 home/jose/common/arch/arm64/kernel/traps.c:243
+ die_kernel_fault+0x270/0x470 home/jose/common/arch/arm64/mm/fault.c:337
+ __do_kernel_fault+0x21c/0x238 home/jose/common/arch/arm64/mm/fault.c:437
+ do_page_fault+0x18c/0x728 home/jose/common/arch/arm64/mm/fault.c:727
+ do_translation_fault+0x134/0x160 home/jose/common/arch/arm64/mm/fault.c:738
+ do_mem_abort+0x64/0x108 home/jose/common/arch/arm64/mm/fault.c:880
+ el1_abort+0x34/0x50 home/jose/common/arch/arm64/kernel/entry-common.c:402
+ el1h_64_sync_handler+0x94/0xd0 home/jose/common/arch/arm64/kernel/entry-common.c:462
+ el1h_64_sync+0x64/0x68 home/jose/common/arch/arm64/kernel/entry.S:594
+ slab_alloc_node home/jose/common/mm/slub.c:3479 [inline]
+ slab_alloc home/jose/common/mm/slub.c:3511 [inline]
+ __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+ kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+ mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+ __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+ kvm_mmu_topup_memory_cache+0x2c/0x40 virt/kvm/kvm_main.c:448
+ user_mem_abort arch/arm64/kvm/mmu.c:1981 [inline]
+ kvm_handle_guest_abort+0x580/0x12e8 arch/arm64/kvm/mmu.c:2325
+ handle_trap_exceptions arch/arm64/kvm/handle_exit.c:328 [inline]
+ handle_exit+0x134/0x540 arch/arm64/kvm/handle_exit.c:419
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50 arch/arm64/kvm/arm.c:1197
+ kvm_vcpu_ioctl+0x2d0/0xc98 virt/kvm/kvm_main.c:4161
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+---[ end trace 0000000000000000 ]---
+note: syz.2.17[309197] exited with irqs disabled
+Fixing recursive fault but reboot is needed!
+----------------
+Code disassembly (best guess):
+   0:	f942fc01 	ldr	x1, [x0, #1528]
+   4:	f90007e1 	str	x1, [sp, #8]
+   8:	d2800001 	mov	x1, #0x0                   	// #0
+   c:	f90003ff 	str	xzr, [sp]
+* 10:	b9401e76 	ldr	w22, [x19, #28] <-- trapping instruction
+
+final repro crashed as (corrupted=false):
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel NULL pointer dereference at virtual address 000000000000001f
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000002261f53000
+[000000000000001f] pgd=080000205a0c4003, p4d=080000205a0c4003, pud=080000234d4ac003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#8] SMP
+Modules linked in: gadgetfs udc_core bnep xt_tcpudp joydev bluetooth ecdh_generic ecc cfg80211 st xt_conntrack xt_MASQUERADE nf_conntrack_netlink nfnetlink xfrm_user xfrm_algo iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c xt_addrtype iptable_filter br_netfilter bridge stp llc overlay rfkill aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm snd_hda_codec_conexant sm4_ce snd_hda_codec_aw882xx snd_hda_aw882xx sm4_ce_cipher nls_iso8859_1 sm3_ce sha3_ce snd_hda_codec_aw883xx snd_hda_aw883xx sha512_ce sha512_arm64 snd_hda_codec_generic ledtrig_audio sha2_ce sha256_arm64 sha1_ce snd_hda_codec_hdmi snd_hda_intel snd_hda_phytium snd_intel_dspcfg snd_hda_codec cppc_cpufreq thermal xhci_pci i2c_phytium_platform snd_hda_core xhci_pci_renesas i2c_phytium_core hwmon_vid parport_pc ppdev lp parport ip_tables x_tables vfat multipath linear amdgpu i2c_algo_bit drm_ttm_helper ttm video drm_exec drm_suballoc_helper amdxcp drm_buddy gpu_sched drm_display_helper drm_kms_helper drm
+CPU: 0 PID: 309197 Comm: syz.2.17 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe4\xb8\x96\xe6\x81\x92D80F3/GWMDDB1EL1T, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 03/25/2025
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+pc : kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+lr : mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+lr : __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+sp : ffff0022d6757560
+x29: ffff0022d6757570 x28: 0000000000000024 x27: 0000000000000003
+x26: ffff80008006c5a4 x25: ffff0021efd2a408 x24: ffff800082df2000
+x23: 0000000007ffffff x22: 0000000000000020 x21: 0000000000000003
+x20: 000000006291f020 x19: 0000000000000003 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff60043c898c97
+x11: 1fffe0043c898c96 x10: ffff0025d25f1168 x9 : ffff80008006c5a4
+x8 : 0000000000025135 x7 : 0000000000000098 x6 : ffff001fdfe86718
+x5 : 0000000008e25135 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : 0000000000000007 x1 : 0000000000000000 x0 : ffff001f8a2a5100
+Call trace:
+ slab_alloc_node home/jose/common/mm/slub.c:3479 [inline]
+ slab_alloc home/jose/common/mm/slub.c:3511 [inline]
+ __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+ kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+ mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+ __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+ kvm_mmu_topup_memory_cache+0x2c/0x40 virt/kvm/kvm_main.c:448
+ user_mem_abort arch/arm64/kvm/mmu.c:1981 [inline]
+ kvm_handle_guest_abort+0x580/0x12e8 arch/arm64/kvm/mmu.c:2325
+ handle_trap_exceptions arch/arm64/kvm/handle_exit.c:328 [inline]
+ handle_exit+0x134/0x540 arch/arm64/kvm/handle_exit.c:419
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50 arch/arm64/kvm/arm.c:1197
+ kvm_vcpu_ioctl+0x2d0/0xc98 virt/kvm/kvm_main.c:4161
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+Code: f942fc01 f90007e1 d2800001 f90003ff (b9401e76) 
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+kernel BUG at arch/arm64/kvm/fpsimd.c:54!
+Internal error: Oops - BUG: 00000000f2000800 [#9] SMP
+Modules linked in: gadgetfs udc_core bnep xt_tcpudp joydev bluetooth ecdh_generic ecc cfg80211 st xt_conntrack xt_MASQUERADE nf_conntrack_netlink nfnetlink xfrm_user xfrm_algo iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c xt_addrtype iptable_filter br_netfilter bridge stp llc overlay rfkill aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm snd_hda_codec_conexant sm4_ce snd_hda_codec_aw882xx snd_hda_aw882xx sm4_ce_cipher nls_iso8859_1 sm3_ce sha3_ce snd_hda_codec_aw883xx snd_hda_aw883xx sha512_ce sha512_arm64 snd_hda_codec_generic ledtrig_audio sha2_ce sha256_arm64 sha1_ce snd_hda_codec_hdmi snd_hda_intel snd_hda_phytium snd_intel_dspcfg snd_hda_codec cppc_cpufreq thermal xhci_pci i2c_phytium_platform snd_hda_core xhci_pci_renesas i2c_phytium_core hwmon_vid parport_pc ppdev lp parport ip_tables x_tables vfat multipath linear amdgpu i2c_algo_bit drm_ttm_helper ttm video drm_exec drm_suballoc_helper amdxcp drm_buddy gpu_sched drm_display_helper drm_kms_helper drm
+CPU: 0 PID: 309197 Comm: syz.2.17 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe4\xb8\x96\xe6\x81\x92D80F3/GWMDDB1EL1T, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 03/25/2025
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+lr : kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+sp : ffff0022d6756660
+x29: ffff0022d6756660 x28: 0001000000000000 x27: ffff001fe19f8b80
+x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000002001
+x23: 0000000000000000 x22: ffff001f8a2a3cc0 x21: 0000000000000000
+x20: ffff001f8a2a5100 x19: ffff0021efd28000 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffef95a3f0
+x14: 0000000000000000 x13: 0000000000000000 x12: ffff6003f0023e1c
+x11: 1fffe003f0023e1b x10: ffff6003f0023e1b x9 : ffff800080082678
+x8 : 00009ffc0ffdc1e5 x7 : ffff001f8011f0dc x6 : 0000000000000001
+x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+x2 : 0000000000000007 x1 : ffff001f8a2a5100 x0 : 0000000000000000
+Call trace:
+ kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+ kvm_arch_vcpu_load+0x178/0x490 arch/arm64/kvm/arm.c:565
+ kvm_sched_in+0x64/0x80 virt/kvm/kvm_main.c:5963
+ __fire_sched_in_preempt_notifiers kernel/sched/core.c:5066 [inline]
+ fire_sched_in_preempt_notifiers kernel/sched/core.c:5072 [inline]
+ finish_task_switch.isra.0+0x17c/0x370 kernel/sched/core.c:5397
+ context_switch kernel/sched/core.c:5519 [inline]
+ __schedule+0x1084/0x1e10 kernel/sched/core.c:6844
+ preempt_schedule_common kernel/sched/core.c:7011 [inline]
+ __cond_resched+0x4c/0x78 kernel/sched/core.c:8742
+ _cond_resched include/linux/sched.h:2117 [inline]
+ __cond_resched_rwlock_write kernel/sched/core.c:8850 [inline]
+ __cond_resched_rwlock_write+0xdc/0x170 kernel/sched/core.c:8841
+ stage2_apply_range arch/arm64/kvm/mmu.c:86 [inline]
+ __unmap_stage2_range.isra.0+0x14c/0x340 arch/arm64/kvm/mmu.c:461
+ unmap_stage2_range arch/arm64/kvm/mmu.c:467 [inline]
+ kvm_arch_flush_shadow_all+0x100/0x1a8 arch/arm64/kvm/mmu.c:2660
+ kvm_flush_shadow_all virt/kvm/kvm_main.c:398 [inline]
+ kvm_mmu_notifier_release+0x38/0x98 virt/kvm/kvm_main.c:917
+ mn_hlist_release home/jose/common/mm/mmu_notifier.c:319 [inline]
+ __mmu_notifier_release+0x120/0x398 home/jose/common/mm/mmu_notifier.c:357
+ mmu_notifier_release home/jose/common/include/linux/mmu_notifier.h:422 [inline]
+ exit_mmap+0x5ac/0x610 home/jose/common/mm/mmap.c:3248
+ __mmput+0xb4/0x358 kernel/fork.c:1380
+ mmput+0x94/0xb0 kernel/fork.c:1403
+ exit_mm kernel/exit.c:570 [inline]
+ do_exit+0x4f8/0x10c8 kernel/exit.c:865
+ make_task_dead+0xe8/0x298 kernel/exit.c:989
+ die+0x3fc/0x418 home/jose/common/arch/arm64/kernel/traps.c:243
+ die_kernel_fault+0x270/0x470 home/jose/common/arch/arm64/mm/fault.c:337
+ __do_kernel_fault+0x21c/0x238 home/jose/common/arch/arm64/mm/fault.c:437
+ do_page_fault+0x18c/0x728 home/jose/common/arch/arm64/mm/fault.c:727
+ do_translation_fault+0x134/0x160 home/jose/common/arch/arm64/mm/fault.c:738
+ do_mem_abort+0x64/0x108 home/jose/common/arch/arm64/mm/fault.c:880
+ el1_abort+0x34/0x50 home/jose/common/arch/arm64/kernel/entry-common.c:402
+ el1h_64_sync_handler+0x94/0xd0 home/jose/common/arch/arm64/kernel/entry-common.c:462
+ el1h_64_sync+0x64/0x68 home/jose/common/arch/arm64/kernel/entry.S:594
+ slab_alloc_node home/jose/common/mm/slub.c:3479 [inline]
+ slab_alloc home/jose/common/mm/slub.c:3511 [inline]
+ __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+ kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+ mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+ __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+ kvm_mmu_topup_memory_cache+0x2c/0x40 virt/kvm/kvm_main.c:448
+ user_mem_abort arch/arm64/kvm/mmu.c:1981 [inline]
+ kvm_handle_guest_abort+0x580/0x12e8 arch/arm64/kvm/mmu.c:2325
+ handle_trap_exceptions arch/arm64/kvm/handle_exit.c:328 [inline]
+ handle_exit+0x134/0x540 arch/arm64/kvm/handle_exit.c:419
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50 arch/arm64/kvm/arm.c:1197
+ kvm_vcpu_ioctl+0x2d0/0xc98 virt/kvm/kvm_main.c:4161
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+---[ end trace 0000000000000000 ]---
+note: syz.2.17[309197] exited with irqs disabled
+Fixing recursive fault but reboot is needed!
+----------------
+Code disassembly (best guess):
+   0:	f942fc01 	ldr	x1, [x0, #1528]
+   4:	f90007e1 	str	x1, [sp, #8]
+   8:	d2800001 	mov	x1, #0x0                   	// #0
+   c:	f90003ff 	str	xzr, [sp]
+* 10:	b9401e76 	ldr	w22, [x19, #28] <-- trapping instruction
+

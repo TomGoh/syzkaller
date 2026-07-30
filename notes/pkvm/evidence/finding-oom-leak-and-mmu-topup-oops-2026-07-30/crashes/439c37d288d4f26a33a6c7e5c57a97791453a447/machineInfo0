@@ -1,0 +1,23 @@
+[CPU Info]
+processor           : 0, 1, 2, 3, 4, 5, 6, 7
+model name          : Phytium D3000
+BogoMIPS            : 100.00
+Features            : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm lrcpc dcpop sha3 sm3 sm4 asimddp sha512
+CPU implementer     : 0x70
+CPU architecture    : 8
+CPU variant         : 0x0
+CPU part            : 0x862
+CPU revision        : 0
+
+--------------------------------------------------------------------------------
+
+[KVM]
+/sys/module/kvm:
+	halt_poll_ns_grow: 2
+	halt_poll_ns_grow_start: 10000
+	halt_poll_ns_shrink: 0
+	halt_poll_ns: 500000
+
+
+--------------------------------------------------------------------------------
+

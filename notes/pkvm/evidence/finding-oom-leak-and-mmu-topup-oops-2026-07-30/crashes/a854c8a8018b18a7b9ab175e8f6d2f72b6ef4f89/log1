@@ -1,0 +1,1688 @@
+last executing test programs:
+
+20.480975938s ago: executing program 0 (id=219):
+r0 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000), 0x80280, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r0, 0x0, 0x7fc00000, 0x1)
+r1 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000640), 0x8000, 0x0)
+r2 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r3 = ioctl$KVM_CREATE_VM(r2, 0xae01, 0x0)
+r4 = syz_kvm_setup_syzos_vm$arm64(r3, &(0x7f0000c00000/0x400000)=nil)
+r5 = syz_kvm_add_vcpu$arm64(r4, &(0x7f0000000080)={0x0, 0x0}, 0x0, 0x0)
+ioctl$KVM_SET_ONE_REG(r5, 0x4010aeac, &(0x7f0000000140)=@arm64_sys={0x603000000013803e, &(0x7f00000000c0)=0x8})
+syz_kvm_run_fw_fault_gen$arm64(r1, 0x0, 0x7fc00000, 0x0)
+
+20.434135165s ago: executing program 0 (id=220):
+r0 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000080), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+ioctl$KVM_CREATE_DEVICE(r1, 0xc00caee0, &(0x7f0000000140)={0x4, 0xffffffffffffffff, 0x2})
+r2 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000), 0x2c001, 0x0)
+ioctl$KVM_CREATE_VM(r2, 0x894c, 0x0)
+
+20.433217016s ago: executing program 0 (id=221):
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = syz_kvm_setup_syzos_vm$arm64(r1, &(0x7f0000c00000/0x400000)=nil)
+r3 = syz_kvm_add_vcpu$arm64(r2, &(0x7f0000000080)={0x0, &(0x7f00000000c0)=[@mrs={0xbe, 0x18, {0x603000000013df40}}], 0x18}, &(0x7f0000000100)=[@featur1={0x1, 0x8}], 0x1)
+r4 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r5 = ioctl$KVM_CREATE_VM(r4, 0xae01, 0x0)
+r6 = syz_kvm_setup_syzos_vm$arm64(r5, &(0x7f0000c00000/0x400000)=nil)
+r7 = syz_kvm_add_vcpu$arm64(r6, &(0x7f0000000080)={0x0, &(0x7f00000000c0)=[@irq_setup={0x46, 0x18, {0x1, 0x20}}], 0x18}, 0x0, 0x0)
+ioctl$KVM_CREATE_DEVICE(r5, 0xc00caee0, &(0x7f0000000100)={0x7, <r8=>0xffffffffffffffff})
+ioctl$KVM_SET_DEVICE_ATTR(r8, 0x4018aee1, &(0x7f00000001c0)=@attr_arm64={0x0, 0x0, 0x2, &(0x7f0000000200)=0x8000000})
+ioctl$KVM_SET_DEVICE_ATTR(r8, 0x4018aee1, &(0x7f0000000240)=@attr_arm64={0x0, 0x0, 0x5, &(0x7f0000000280)=0x400000080a0000})
+ioctl$KVM_SET_DEVICE_ATTR(r8, 0x4018aee1, &(0x7f00000002c0)=@attr_arm64={0x0, 0x4, 0x0, 0x0})
+ioctl$KVM_RUN(r7, 0xae80, 0x0)
+ioctl$KVM_IRQ_LINE(r5, 0x4008ae61, &(0x7f0000000300)={0x1000020, 0x1})
+ioctl$KVM_SET_DEVICE_ATTR_vcpu(r3, 0x4018aee1, &(0x7f0000000140)=@attr_pmu_init)
+ioctl$KVM_RUN(r3, 0xae80, 0x0)
+
+10.369175708s ago: executing program 0 (id=222):
+r0 = ioctl$KVM_CREATE_VM_PROTECTED(0xffffffffffffffff, 0xae01, 0x800000ef)
+ioctl$KVM_CAP_ARM_USER_IRQ(r0, 0x4068aea3, &(0x7f0000000000))
+r1 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r2 = ioctl$KVM_CREATE_VM(r1, 0xae01, 0x0)
+r3 = syz_kvm_setup_syzos_vm$arm64(r2, &(0x7f0000c00000/0x400000)=nil)
+syz_kvm_add_vcpu$arm64(r3, &(0x7f0000000080)={0x0, 0x0}, 0x0, 0x0)
+ioctl$KVM_CREATE_DEVICE(r2, 0xc00caee0, &(0x7f0000000100)={0x4, <r4=>0xffffffffffffffff})
+ioctl$KVM_SET_DEVICE_ATTR(r4, 0x4018aee1, &(0x7f00000002c0)=@attr_arm64={0x0, 0x4, 0x0, 0x0})
+ioctl$KVM_GET_DEVICE_ATTR(r4, 0x4018aee2, &(0x7f0000000140)=@attr_arm64={0x0, 0x1, 0x4, &(0x7f0000000280)=0x200})
+openat$kvm(0xffffffffffffff9c, &(0x7f00000001c0), 0x8000, 0x0)
+r5 = openat$kvm(0xffffffffffffff9c, &(0x7f00000000c0), 0x28000, 0x0)
+r6 = ioctl$KVM_CREATE_VM(r5, 0xae01, 0x37)
+r7 = eventfd2(0x3, 0x80000)
+ioctl$KVM_IOEVENTFD(r6, 0x4040ae79, &(0x7f0000000040)={0xc38, 0x80a0000, 0x1, r7, 0x8})
+ioctl$KVM_IRQFD(r0, 0x4020ae76, &(0x7f0000000140)={r7, 0xc8, 0x3, 0x0})
+r8 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000180), 0x10000, 0x0)
+r9 = ioctl$KVM_CREATE_VM(r8, 0xae01, 0x0)
+syz_kvm_setup_syzos_vm$arm64(r0, &(0x7f0000bfd000/0x400000)=nil)
+ioctl$KVM_CREATE_DEVICE(r9, 0xc00caee0, &(0x7f0000000140)={0x4, <r10=>0xffffffffffffffff, 0x1})
+r11 = ioctl$KVM_CREATE_VM(r10, 0x894c, 0x0)
+ioctl$KVM_CREATE_VCPU(r11, 0xb702, 0x0)
+r12 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r13 = ioctl$KVM_CREATE_VM(r12, 0xae01, 0x0)
+r14 = ioctl$KVM_CREATE_VCPU(r13, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r13, r14, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, 0x0}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_GET_ONE_REG(r14, 0x4010aeab, &(0x7f0000000a00)=@arm64_sys={0x603000000013df11, 0x0})
+r15 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000240), 0x0, 0x0)
+r16 = ioctl$KVM_CREATE_VM(r15, 0xae01, 0x14)
+ioctl$KVM_GET_STATS_FD_vm(r16, 0xaece)
+close$kvmvm_protected(r16)
+
+10.369032541s ago: executing program 0 (id=223):
+r0 = openat$kvm(0x0, &(0x7f0000000140), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+syz_kvm_setup_syzos_vm$arm64(r1, &(0x7f0000c00000/0x400000)=nil)
+r2 = syz_kvm_setup_syzos_vm$arm64(r1, &(0x7f0000c00000/0x400000)=nil)
+r3 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r4 = ioctl$KVM_CREATE_VM(r3, 0xae01, 0x0)
+r5 = syz_kvm_setup_syzos_vm$arm64(r4, &(0x7f0000c00000/0x400000)=nil)
+r6 = syz_kvm_add_vcpu$arm64(r5, &(0x7f0000000080)={0x0, &(0x7f0000000000)=[@smc={0x1e, 0x40, {0x80000002, [0x5, 0xfffffffffffffffc, 0x7fffffffffffffdf, 0x7, 0x8]}}], 0x40}, 0x0, 0x0)
+ioctl$KVM_RUN(r6, 0xae80, 0x0)
+r7 = syz_kvm_add_vcpu$arm64(r2, &(0x7f0000000180)={0x0, &(0x7f00000001c0)=[@msr={0x14, 0x20, {0x6030000000138015, 0x8000}}], 0x20}, 0x0, 0x0)
+ioctl$KVM_SET_ONE_REG(r7, 0x4010aeac, &(0x7f0000000040)=@riscv64_v={0x8030000009000014, &(0x7f0000000000)=0x7})
+r8 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x1b)
+ioctl$KVM_CAP_PTP_KVM(r8, 0x4068aea3, &(0x7f0000000080))
+r9 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000), 0x40, 0x0)
+r10 = ioctl$KVM_CREATE_VM(r9, 0xae01, 0x3f)
+close(r10)
+syz_kvm_setup_syzos_vm$arm64(r10, &(0x7f0000c00000/0x400000)=nil)
+ioctl$KVM_RUN(r7, 0xae80, 0x0)
+
+0s ago: executing program 0 (id=224):
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r1, r2, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000080)=[{0x0, &(0x7f0000000000)=[@memwrite={0x6e, 0x30, @generic={0xdddd1000, 0x2f0}}], 0x30}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r2, 0xae80, 0x0)
+
+kernel console output (not intermixed with test programs):
+
+rmal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.167745]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.167776] CPU: 0 PID: 174757 Comm: syz.0.196 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.167794] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.167805] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.167821] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.167840] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.167858] sp : ffff0020f274f6b0
+[33318.167865] x29: ffff0020f274f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.167888] x26: 00000000dddd3000 x25: ffff00221fa84000 x24: ffff0020c5d73400
+[33318.167911] x23: 00000000dddd1000 x22: ffff00221fa84a20 x21: ffffffffffffffff
+[33318.167934] x20: 0000000000002000 x19: 1fffe0041e4e9ed6 x18: 0000000000000000
+[33318.167956] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33318.167978] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.168000] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.168023] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022229b6540
+[33318.168046] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.168069] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000870
+[33318.168091] Call trace:
+[33318.168098]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.168117]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.168140]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.168160]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.168183]  kvm_set_memslot+0x278/0x8c8
+[33318.168200]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.168218]  kvm_vm_ioctl+0x814/0x2430
+[33318.168238]  __arm64_sys_ioctl+0x134/0x158
+[33318.168260]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.168285]  el0_svc_common.constprop.0+0x138/0x170
+[33318.168310]  do_el0_svc+0x38/0x50
+[33318.168332]  el0_svc+0x28/0x60
+[33318.168354]  el0t_64_sync_handler+0x118/0x128
+[33318.168378]  el0t_64_sync+0x14c/0x150
+[33318.168392] ---[ end trace 0000000000000000 ]---
+[33318.221163] ------------[ cut here ]------------
+[33318.221176] WARNING: CPU: 0 PID: 174759 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.221210] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.221661]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.221691] CPU: 0 PID: 174759 Comm: syz.0.197 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.221708] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.221720] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.221736] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.221755] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.221773] sp : ffff002225edf6b0
+[33318.221780] x29: ffff002225edf710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.221804] x26: 00000000dddd3000 x25: ffff0020a16b6000 x24: ffff0020c5d70200
+[33318.221827] x23: 00000000dddd1000 x22: ffff0020a16b6a20 x21: ffffffffffffffff
+[33318.221850] x20: 0000000000002000 x19: 1fffe00444bdbed6 x18: 0000000000000000
+[33318.221872] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.221894] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.221916] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.221940] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022229b3cc0
+[33318.221963] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.221985] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000cff
+[33318.222008] Call trace:
+[33318.222014]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.222033]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.222057]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.222077]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.222100]  kvm_set_memslot+0x278/0x8c8
+[33318.222117]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.222135]  kvm_vm_ioctl+0x814/0x2430
+[33318.222155]  __arm64_sys_ioctl+0x134/0x158
+[33318.222178]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.222203]  el0_svc_common.constprop.0+0x138/0x170
+[33318.222228]  do_el0_svc+0x38/0x50
+[33318.222250]  el0_svc+0x28/0x60
+[33318.222272]  el0t_64_sync_handler+0x118/0x128
+[33318.222296]  el0t_64_sync+0x14c/0x150
+[33318.222310] ---[ end trace 0000000000000000 ]---
+[33318.263827] ------------[ cut here ]------------
+[33318.263841] WARNING: CPU: 0 PID: 174760 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.263876] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.264330]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.264360] CPU: 0 PID: 174760 Comm: syz.0.198 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.264377] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.264389] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.264404] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.264423] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.264441] sp : ffff0020f274f6b0
+[33318.264449] x29: ffff0020f274f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.264472] x26: 00000000dddd3000 x25: ffff0022c4a56000 x24: ffff00226e6dec00
+[33318.264495] x23: 00000000dddd1000 x22: ffff0022c4a56a20 x21: ffffffffffffffff
+[33318.264518] x20: 0000000000002000 x19: 1fffe0041e4e9ed6 x18: 0000000000000000
+[33318.264541] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.264563] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.264585] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.264608] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022229b5100
+[33318.264631] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.264654] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce3
+[33318.264676] Call trace:
+[33318.264683]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.264702]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.264725]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.264746]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.264769]  kvm_set_memslot+0x278/0x8c8
+[33318.264786]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.264804]  kvm_vm_ioctl+0x814/0x2430
+[33318.264823]  __arm64_sys_ioctl+0x134/0x158
+[33318.264846]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.264871]  el0_svc_common.constprop.0+0x138/0x170
+[33318.264896]  do_el0_svc+0x38/0x50
+[33318.264918]  el0_svc+0x28/0x60
+[33318.264941]  el0t_64_sync_handler+0x118/0x128
+[33318.264964]  el0t_64_sync+0x14c/0x150
+[33318.264979] ---[ end trace 0000000000000000 ]---
+[33318.300972] ------------[ cut here ]------------
+[33318.301001] WARNING: CPU: 0 PID: 174761 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.301053] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.301573]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.301609] CPU: 0 PID: 174761 Comm: syz.0.199 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.301628] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.301641] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.301658] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.301677] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.301696] sp : ffff002225edf6b0
+[33318.301704] x29: ffff002225edf710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.301728] x26: 00000000dddd3000 x25: ffff0020b80a6000 x24: ffff00226e6dd600
+[33318.301753] x23: 00000000dddd1000 x22: ffff0020b80a6a20 x21: ffffffffffffffff
+[33318.301776] x20: 0000000000002000 x19: 1fffe00444bdbed6 x18: 0000000000000000
+[33318.301800] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.301824] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.301846] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.301870] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022229b1440
+[33318.301894] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.301920] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 00000000000010cc
+[33318.301944] Call trace:
+[33318.301951]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.301973]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.302000]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.302023]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.302047]  kvm_set_memslot+0x278/0x8c8
+[33318.302064]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.302082]  kvm_vm_ioctl+0x814/0x2430
+[33318.302104]  __arm64_sys_ioctl+0x134/0x158
+[33318.302131]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.302160]  el0_svc_common.constprop.0+0x138/0x170
+[33318.302185]  do_el0_svc+0x38/0x50
+[33318.302209]  el0_svc+0x28/0x60
+[33318.302237]  el0t_64_sync_handler+0x118/0x128
+[33318.302261]  el0t_64_sync+0x14c/0x150
+[33318.302275] ---[ end trace 0000000000000000 ]---
+[33318.374828] ------------[ cut here ]------------
+[33318.374842] WARNING: CPU: 0 PID: 174762 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.374877] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.375327]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.375357] CPU: 0 PID: 174762 Comm: syz.0.200 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.375375] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.375386] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.375402] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.375421] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.375439] sp : ffff0022ffc1f6b0
+[33318.375446] x29: ffff0022ffc1f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.375470] x26: 00000000dddd3000 x25: ffff00226cdbc000 x24: ffff00226e6df800
+[33318.375493] x23: 00000000dddd1000 x22: ffff00226cdbca20 x21: ffffffffffffffff
+[33318.375516] x20: 0000000000002000 x19: 1fffe0045ff83ed6 x18: 0000000000000000
+[33318.375538] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.375560] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.375583] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.375606] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022229b0000
+[33318.375628] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.375651] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000b8e
+[33318.375674] Call trace:
+[33318.375680]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.375700]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.375723]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.375743]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.375766]  kvm_set_memslot+0x278/0x8c8
+[33318.375783]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.375801]  kvm_vm_ioctl+0x814/0x2430
+[33318.375821]  __arm64_sys_ioctl+0x134/0x158
+[33318.375844]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.375869]  el0_svc_common.constprop.0+0x138/0x170
+[33318.375894]  do_el0_svc+0x38/0x50
+[33318.375916]  el0_svc+0x28/0x60
+[33318.375938]  el0t_64_sync_handler+0x118/0x128
+[33318.375962]  el0t_64_sync+0x14c/0x150
+[33318.375976] ---[ end trace 0000000000000000 ]---
+[33318.383808] ------------[ cut here ]------------
+[33318.383817] WARNING: CPU: 0 PID: 174762 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.383847] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.384287]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.384315] CPU: 0 PID: 174762 Comm: syz.0.200 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.384332] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.384343] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.384358] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.384377] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.384395] sp : ffff0022ffc1f6b0
+[33318.384402] x29: ffff0022ffc1f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.384426] x26: 00000000dddd3000 x25: ffff0020a9aec000 x24: ffff00226e6dd200
+[33318.384448] x23: 00000000dddd1000 x22: ffff0020a9aeca20 x21: ffffffffffffffff
+[33318.384471] x20: 0000000000002000 x19: 1fffe0045ff83ed6 x18: 0000000000000000
+[33318.384493] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33318.384515] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.384537] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.384560] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022229b0000
+[33318.384582] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.384605] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000870
+[33318.384627] Call trace:
+[33318.384633]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.384653]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.384675]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.384695]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.384718]  kvm_set_memslot+0x278/0x8c8
+[33318.384734]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.384752]  kvm_vm_ioctl+0x814/0x2430
+[33318.384772]  __arm64_sys_ioctl+0x134/0x158
+[33318.384794]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.384819]  el0_svc_common.constprop.0+0x138/0x170
+[33318.384843]  do_el0_svc+0x38/0x50
+[33318.384866]  el0_svc+0x28/0x60
+[33318.384887]  el0t_64_sync_handler+0x118/0x128
+[33318.384910]  el0t_64_sync+0x14c/0x150
+[33318.384924] ---[ end trace 0000000000000000 ]---
+[33318.452773] ------------[ cut here ]------------
+[33318.452787] WARNING: CPU: 0 PID: 174763 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.452821] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.453274]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.453304] CPU: 0 PID: 174763 Comm: syz.0.201 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.453322] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.453333] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.453349] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.453368] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.453386] sp : ffff0020c4d7f6b0
+[33318.453393] x29: ffff0020c4d7f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.453417] x26: 00000000dddd3000 x25: ffff0021700bc000 x24: ffff0022864ad200
+[33318.453440] x23: 00000000dddd1000 x22: ffff0021700bca20 x21: ffffffffffffffff
+[33318.453463] x20: 0000000000002000 x19: 1fffe004189afed6 x18: 0000000000000000
+[33318.453485] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.453507] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.453530] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.453553] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff002172fd0000
+[33318.453576] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.453599] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000c75
+[33318.453621] Call trace:
+[33318.453627]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.453647]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.453671]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.453691]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.453714]  kvm_set_memslot+0x278/0x8c8
+[33318.453731]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.453749]  kvm_vm_ioctl+0x814/0x2430
+[33318.453769]  __arm64_sys_ioctl+0x134/0x158
+[33318.453792]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.453817]  el0_svc_common.constprop.0+0x138/0x170
+[33318.453842]  do_el0_svc+0x38/0x50
+[33318.453864]  el0_svc+0x28/0x60
+[33318.453887]  el0t_64_sync_handler+0x118/0x128
+[33318.453910]  el0t_64_sync+0x14c/0x150
+[33318.453925] ---[ end trace 0000000000000000 ]---
+[33318.481697] ------------[ cut here ]------------
+[33318.481711] WARNING: CPU: 0 PID: 174764 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.481746] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.482198]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.482227] CPU: 0 PID: 174764 Comm: syz.0.202 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.482244] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.482256] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.482272] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.482291] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.482309] sp : ffff0020a82976b0
+[33318.482316] x29: ffff0020a8297710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.482339] x26: 00000000dddd3000 x25: ffff00226739c000 x24: ffff0022864ae000
+[33318.482362] x23: 00000000dddd1000 x22: ffff00226739ca20 x21: ffffffffffffffff
+[33318.482385] x20: 0000000000002000 x19: 1fffe00415052ed6 x18: 0000000000000000
+[33318.482408] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.482430] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.482453] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.482476] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020a50ce540
+[33318.482499] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.482522] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000cf9
+[33318.482545] Call trace:
+[33318.482551]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.482571]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.482595]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.482616]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.482639]  kvm_set_memslot+0x278/0x8c8
+[33318.482656]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.482674]  kvm_vm_ioctl+0x814/0x2430
+[33318.482694]  __arm64_sys_ioctl+0x134/0x158
+[33318.482717]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.482743]  el0_svc_common.constprop.0+0x138/0x170
+[33318.482768]  do_el0_svc+0x38/0x50
+[33318.482790]  el0_svc+0x28/0x60
+[33318.482813]  el0t_64_sync_handler+0x118/0x128
+[33318.482836]  el0t_64_sync+0x14c/0x150
+[33318.482850] ---[ end trace 0000000000000000 ]---
+[33318.486476] ------------[ cut here ]------------
+[33318.486486] WARNING: CPU: 0 PID: 174764 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.486518] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.486964]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.486993] CPU: 0 PID: 174764 Comm: syz.0.202 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.487010] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.487022] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.487037] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.487056] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.487074] sp : ffff0020a82976b0
+[33318.487081] x29: ffff0020a8297710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.487105] x26: 00000000dddd3000 x25: ffff0020a26f0000 x24: ffff0022864afa00
+[33318.487128] x23: 00000000dddd1000 x22: ffff0020a26f0a20 x21: ffffffffffffffff
+[33318.487151] x20: 0000000000002000 x19: 1fffe00415052ed6 x18: 0000000000000000
+[33318.487173] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.487195] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.487218] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.487241] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020a50ce540
+[33318.487264] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.487287] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000893
+[33318.487310] Call trace:
+[33318.487316]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.487336]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.487359]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.487379]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.487402]  kvm_set_memslot+0x278/0x8c8
+[33318.487418]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.487437]  kvm_vm_ioctl+0x814/0x2430
+[33318.487456]  __arm64_sys_ioctl+0x134/0x158
+[33318.487479]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.487504]  el0_svc_common.constprop.0+0x138/0x170
+[33318.487529]  do_el0_svc+0x38/0x50
+[33318.487551]  el0_svc+0x28/0x60
+[33318.487573]  el0t_64_sync_handler+0x118/0x128
+[33318.487597]  el0t_64_sync+0x14c/0x150
+[33318.487611] ---[ end trace 0000000000000000 ]---
+[33318.492541] ------------[ cut here ]------------
+[33318.492553] WARNING: CPU: 0 PID: 174764 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.492586] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.493037]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.493066] CPU: 0 PID: 174764 Comm: syz.0.202 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.493084] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.493095] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.493111] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.493129] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.493148] sp : ffff0020a82976b0
+[33318.493155] x29: ffff0020a8297710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.493178] x26: 00000000dddd3000 x25: ffff0020cd70e000 x24: ffff002221177c00
+[33318.493201] x23: 00000000dddd1000 x22: ffff0020cd70ea20 x21: ffffffffffffffff
+[33318.493224] x20: 0000000000002000 x19: 1fffe00415052ed6 x18: 0000000000000000
+[33318.493247] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33318.493269] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.493291] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.493315] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020a50ce540
+[33318.493338] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.493360] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000bce
+[33318.493383] Call trace:
+[33318.493389]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.493408]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.493432]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.493452]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.493475]  kvm_set_memslot+0x278/0x8c8
+[33318.493492]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.493510]  kvm_vm_ioctl+0x814/0x2430
+[33318.493530]  __arm64_sys_ioctl+0x134/0x158
+[33318.493552]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.493578]  el0_svc_common.constprop.0+0x138/0x170
+[33318.493602]  do_el0_svc+0x38/0x50
+[33318.493625]  el0_svc+0x28/0x60
+[33318.493647]  el0t_64_sync_handler+0x118/0x128
+[33318.493671]  el0t_64_sync+0x14c/0x150
+[33318.493685] ---[ end trace 0000000000000000 ]---
+[33318.525605] KVM: debugfs: duplicate directory 174765-7
+[33318.528729] ------------[ cut here ]------------
+[33318.528741] WARNING: CPU: 0 PID: 174765 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.528775] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.529241]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.529276] CPU: 0 PID: 174765 Comm: syz.0.203 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.529297] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.529309] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.529327] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.529347] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.529367] sp : ffff00227cd476b0
+[33318.529375] x29: ffff00227cd47710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.529401] x26: 00000000dddd3000 x25: ffff0022d96e2000 x24: ffff002221176e00
+[33318.529426] x23: 00000000dddd1000 x22: ffff0022d96e2a20 x21: ffffffffffffffff
+[33318.529450] x20: 0000000000002000 x19: 1fffe0044f9a8ed6 x18: 0000000000000000
+[33318.529474] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.529498] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.529522] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.529547] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020a50cd100
+[33318.529571] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.529595] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce3
+[33318.529619] Call trace:
+[33318.529627]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.529648]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.529676]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.529698]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.529721]  kvm_set_memslot+0x278/0x8c8
+[33318.529739]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.529757]  kvm_vm_ioctl+0x814/0x2430
+[33318.529778]  __arm64_sys_ioctl+0x134/0x158
+[33318.529804]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.529833]  el0_svc_common.constprop.0+0x138/0x170
+[33318.529859]  do_el0_svc+0x38/0x50
+[33318.529881]  el0_svc+0x28/0x60
+[33318.529909]  el0t_64_sync_handler+0x118/0x128
+[33318.529934]  el0t_64_sync+0x14c/0x150
+[33318.529951] ---[ end trace 0000000000000000 ]---
+[33318.563646] ------------[ cut here ]------------
+[33318.563659] WARNING: CPU: 0 PID: 174766 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.563693] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.564163]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.564200] CPU: 0 PID: 174766 Comm: syz.0.204 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.564222] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.564234] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.564252] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.564272] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.564292] sp : ffff0020a82976b0
+[33318.564300] x29: ffff0020a8297710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.564326] x26: 00000000dddd3000 x25: ffff0020b9186000 x24: ffff002221174000
+[33318.564350] x23: 00000000dddd1000 x22: ffff0020b9186a20 x21: ffffffffffffffff
+[33318.564374] x20: 0000000000002000 x19: 1fffe00415052ed6 x18: 0000000000000000
+[33318.564398] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.564423] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.564447] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.564471] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020eb836540
+[33318.564495] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.564519] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000d06
+[33318.564543] Call trace:
+[33318.564550]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.564570]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.564597]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.564619]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.564642]  kvm_set_memslot+0x278/0x8c8
+[33318.564660]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.564679]  kvm_vm_ioctl+0x814/0x2430
+[33318.564700]  __arm64_sys_ioctl+0x134/0x158
+[33318.564727]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.564756]  el0_svc_common.constprop.0+0x138/0x170
+[33318.564783]  do_el0_svc+0x38/0x50
+[33318.564806]  el0_svc+0x28/0x60
+[33318.564833]  el0t_64_sync_handler+0x118/0x128
+[33318.564857]  el0t_64_sync+0x14c/0x150
+[33318.564874] ---[ end trace 0000000000000000 ]---
+[33318.568244] KVM: debugfs: duplicate directory 174766-5
+[33318.629595] ------------[ cut here ]------------
+[33318.629608] WARNING: CPU: 0 PID: 174768 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.629643] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.630093]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.630122] CPU: 0 PID: 174768 Comm: syz.0.206 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.630140] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.630151] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.630168] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.630186] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.630204] sp : ffff0020a82976b0
+[33318.630211] x29: ffff0020a8297710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.630235] x26: 00000000dddd3000 x25: ffff002226988000 x24: ffff002221176600
+[33318.630258] x23: 00000000dddd1000 x22: ffff002226988a20 x21: ffffffffffffffff
+[33318.630281] x20: 0000000000002000 x19: 1fffe00415052ed6 x18: 0000000000000000
+[33318.630303] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33318.630326] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.630349] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.630372] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020b732d100
+[33318.630395] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.630417] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce3
+[33318.630440] Call trace:
+[33318.630446]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.630466]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.630489]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.630509]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.630532]  kvm_set_memslot+0x278/0x8c8
+[33318.630548]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.630566]  kvm_vm_ioctl+0x814/0x2430
+[33318.630586]  __arm64_sys_ioctl+0x134/0x158
+[33318.630609]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.630635]  el0_svc_common.constprop.0+0x138/0x170
+[33318.630659]  do_el0_svc+0x38/0x50
+[33318.630682]  el0_svc+0x28/0x60
+[33318.630704]  el0t_64_sync_handler+0x118/0x128
+[33318.630728]  el0t_64_sync+0x14c/0x150
+[33318.630742] ---[ end trace 0000000000000000 ]---
+[33318.661266] ------------[ cut here ]------------
+[33318.661279] WARNING: CPU: 0 PID: 174769 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.661314] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.661767]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.661795] CPU: 0 PID: 174769 Comm: syz.0.207 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.661813] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.661824] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.661840] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.661859] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.661878] sp : ffff002176a776b0
+[33318.661885] x29: ffff002176a77710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.661908] x26: 00000000dddd3000 x25: ffff002224a6c000 x24: ffff00209f2d9800
+[33318.661931] x23: 00000000dddd1000 x22: ffff002224a6ca20 x21: ffffffffffffffff
+[33318.661954] x20: 0000000000002000 x19: 1fffe0042ed4eed6 x18: 0000000000000000
+[33318.661977] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.662000] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.662023] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.662046] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020b0ced100
+[33318.662069] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.662092] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000c4c
+[33318.662115] Call trace:
+[33318.662121]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.662141]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.662165]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.662185]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.662209]  kvm_set_memslot+0x278/0x8c8
+[33318.662225]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.662243]  kvm_vm_ioctl+0x814/0x2430
+[33318.662263]  __arm64_sys_ioctl+0x134/0x158
+[33318.662286]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.662311]  el0_svc_common.constprop.0+0x138/0x170
+[33318.662336]  do_el0_svc+0x38/0x50
+[33318.662359]  el0_svc+0x28/0x60
+[33318.662381]  el0t_64_sync_handler+0x118/0x128
+[33318.662405]  el0t_64_sync+0x14c/0x150
+[33318.662419] ---[ end trace 0000000000000000 ]---
+[33318.690066] ------------[ cut here ]------------
+[33318.690079] WARNING: CPU: 0 PID: 174770 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.690115] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.690565]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.690594] CPU: 0 PID: 174770 Comm: syz.0.208 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.690612] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.690623] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.690639] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.690658] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.690676] sp : ffff00227cd476b0
+[33318.690683] x29: ffff00227cd47710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.690706] x26: 00000000dddd3000 x25: ffff00226978c000 x24: ffff0022667b1200
+[33318.690729] x23: 00000000dddd1000 x22: ffff00226978ca20 x21: ffffffffffffffff
+[33318.690752] x20: 0000000000002000 x19: 1fffe0044f9a8ed6 x18: 0000000000000000
+[33318.690775] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.690797] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.690820] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.690843] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff002266d66540
+[33318.690866] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.690888] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000d36
+[33318.690911] Call trace:
+[33318.690918]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.690937]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.690961]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.690981]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.691004]  kvm_set_memslot+0x278/0x8c8
+[33318.691021]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.691039]  kvm_vm_ioctl+0x814/0x2430
+[33318.691058]  __arm64_sys_ioctl+0x134/0x158
+[33318.691081]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.691107]  el0_svc_common.constprop.0+0x138/0x170
+[33318.691132]  do_el0_svc+0x38/0x50
+[33318.691154]  el0_svc+0x28/0x60
+[33318.691177]  el0t_64_sync_handler+0x118/0x128
+[33318.691200]  el0t_64_sync+0x14c/0x150
+[33318.691214] ---[ end trace 0000000000000000 ]---
+[33318.696340] ------------[ cut here ]------------
+[33318.696352] WARNING: CPU: 0 PID: 174770 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.696384] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.696831]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.696858] CPU: 0 PID: 174770 Comm: syz.0.208 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.696876] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.696887] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.696903] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.696921] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.696940] sp : ffff00227cd476b0
+[33318.696947] x29: ffff00227cd47710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.696970] x26: 00000000dddd3000 x25: ffff0022b1840000 x24: ffff00208b1f0200
+[33318.696993] x23: 00000000dddd1000 x22: ffff0022b1840a20 x21: ffffffffffffffff
+[33318.697016] x20: 0000000000002000 x19: 1fffe0044f9a8ed6 x18: 0000000000000000
+[33318.697038] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.697061] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.697084] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.697107] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff002266d66540
+[33318.697130] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.697152] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000870
+[33318.697175] Call trace:
+[33318.697181]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.697200]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.697224]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.697244]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.697267]  kvm_set_memslot+0x278/0x8c8
+[33318.697284]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.697302]  kvm_vm_ioctl+0x814/0x2430
+[33318.697321]  __arm64_sys_ioctl+0x134/0x158
+[33318.697343]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.697368]  el0_svc_common.constprop.0+0x138/0x170
+[33318.697393]  do_el0_svc+0x38/0x50
+[33318.697415]  el0_svc+0x28/0x60
+[33318.697438]  el0t_64_sync_handler+0x118/0x128
+[33318.697461]  el0t_64_sync+0x14c/0x150
+[33318.697476] ---[ end trace 0000000000000000 ]---
+[33318.702894] KVM: debugfs: duplicate directory 174770-16
+[33318.741338] ------------[ cut here ]------------
+[33318.741367] WARNING: CPU: 0 PID: 174771 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.741415] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.741941]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.741977] CPU: 0 PID: 174771 Comm: syz.0.209 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.742000] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.742013] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.742031] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.742050] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.742069] sp : ffff00227b4776b0
+[33318.742077] x29: ffff00227b477710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.742102] x26: 00000000dddd3000 x25: ffff002279a32000 x24: ffff00208b1f3000
+[33318.742126] x23: 00000000dddd1000 x22: ffff002279a32a20 x21: ffffffffffffffff
+[33318.742149] x20: 0000000000002000 x19: 1fffe0044f68eed6 x18: 0000000000000000
+[33318.742174] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.742199] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.742222] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.742246] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff002266d61440
+[33318.742270] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.742294] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000c8b
+[33318.742318] Call trace:
+[33318.742324]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.742344]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.742372]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.742393]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.742418]  kvm_set_memslot+0x278/0x8c8
+[33318.742436]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.742454]  kvm_vm_ioctl+0x814/0x2430
+[33318.742475]  __arm64_sys_ioctl+0x134/0x158
+[33318.742499]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.742527]  el0_svc_common.constprop.0+0x138/0x170
+[33318.742552]  do_el0_svc+0x38/0x50
+[33318.742575]  el0_svc+0x28/0x60
+[33318.742600]  el0t_64_sync_handler+0x118/0x128
+[33318.742625]  el0t_64_sync+0x14c/0x150
+[33318.742640] ---[ end trace 0000000000000000 ]---
+[33318.779527] ------------[ cut here ]------------
+[33318.779541] WARNING: CPU: 0 PID: 174772 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.779575] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.780028]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.780058] CPU: 0 PID: 174772 Comm: syz.0.210 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.780075] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.780087] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.780103] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.780122] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.780140] sp : ffff0020ed37f6b0
+[33318.780147] x29: ffff0020ed37f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.780171] x26: 00000000dddd3000 x25: ffff002272956000 x24: ffff00208b1f2400
+[33318.780194] x23: 00000000dddd1000 x22: ffff002272956a20 x21: ffffffffffffffff
+[33318.780216] x20: 0000000000002000 x19: 1fffe0041da6fed6 x18: 0000000000000000
+[33318.780239] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33318.780262] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.780284] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.780307] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff002266d62880
+[33318.780331] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.780353] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce3
+[33318.780376] Call trace:
+[33318.780383]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.780402]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.780426]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.780445]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.780469]  kvm_set_memslot+0x278/0x8c8
+[33318.780486]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.780504]  kvm_vm_ioctl+0x814/0x2430
+[33318.780524]  __arm64_sys_ioctl+0x134/0x158
+[33318.780546]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.780572]  el0_svc_common.constprop.0+0x138/0x170
+[33318.780596]  do_el0_svc+0x38/0x50
+[33318.780619]  el0_svc+0x28/0x60
+[33318.780641]  el0t_64_sync_handler+0x118/0x128
+[33318.780665]  el0t_64_sync+0x14c/0x150
+[33318.780679] ---[ end trace 0000000000000000 ]---
+[33318.810124] ------------[ cut here ]------------
+[33318.810138] WARNING: CPU: 0 PID: 174773 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.810173] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33318.810626]  drm_display_helper drm_kms_helper drm serio_raw
+[33318.810654] CPU: 0 PID: 174773 Comm: syz.0.211 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33318.810672] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33318.810684] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33318.810700] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.810719] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.810737] sp : ffff00227b4776b0
+[33318.810744] x29: ffff00227b477710 x28: 00000000dddd2fff x27: 0000000040000000
+[33318.810768] x26: 00000000dddd3000 x25: ffff0022b1ba2000 x24: ffff00208b1f1600
+[33318.810791] x23: 00000000dddd1000 x22: ffff0022b1ba2a20 x21: ffffffffffffffff
+[33318.810814] x20: 0000000000002000 x19: 1fffe0044f68eed6 x18: 0000000000000000
+[33318.810836] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33318.810859] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33318.810882] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33318.810905] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff002266d60000
+[33318.810928] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33318.810951] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce7
+[33318.810974] Call trace:
+[33318.810980]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33318.810999]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33318.811023]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33318.811043]  kvm_arch_commit_memory_region+0x45c/0x510
+[33318.811066]  kvm_set_memslot+0x278/0x8c8
+[33318.811083]  __kvm_set_memory_region+0x5d4/0x6e0
+[33318.811101]  kvm_vm_ioctl+0x814/0x2430
+[33318.811121]  __arm64_sys_ioctl+0x134/0x158
+[33318.811144]  invoke_syscall.constprop.0+0x64/0x1a8
+[33318.811169]  el0_svc_common.constprop.0+0x138/0x170
+[33318.811193]  do_el0_svc+0x38/0x50
+[33318.811216]  el0_svc+0x28/0x60
+[33318.811238]  el0t_64_sync_handler+0x118/0x128
+[33318.811262]  el0t_64_sync+0x14c/0x150
+[33318.811276] ---[ end trace 0000000000000000 ]---
+[33328.864047] ------------[ cut here ]------------
+[33328.864060] WARNING: CPU: 0 PID: 174786 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.864096] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.864551]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.864580] CPU: 0 PID: 174786 Comm: syz.0.212 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.864597] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.864609] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.864625] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.864644] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.864662] sp : ffff0020ed37f6b0
+[33328.864669] x29: ffff0020ed37f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.864693] x26: 00000000dddd3000 x25: ffff002095f02000 x24: ffff002274412000
+[33328.864716] x23: 00000000dddd1000 x22: ffff002095f02a20 x21: ffffffffffffffff
+[33328.864739] x20: 0000000000002000 x19: 1fffe0041da6fed6 x18: 0000000000000000
+[33328.864762] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33328.864784] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.864806] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.864830] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0020b044e540
+[33328.864853] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.864876] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce5
+[33328.864898] Call trace:
+[33328.864905]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.864924]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.864948]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.864968]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.864991]  kvm_set_memslot+0x278/0x8c8
+[33328.865008]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.865026]  kvm_vm_ioctl+0x814/0x2430
+[33328.865046]  __arm64_sys_ioctl+0x134/0x158
+[33328.865069]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.865095]  el0_svc_common.constprop.0+0x138/0x170
+[33328.865119]  do_el0_svc+0x38/0x50
+[33328.865141]  el0_svc+0x28/0x60
+[33328.865164]  el0t_64_sync_handler+0x118/0x128
+[33328.865187]  el0t_64_sync+0x14c/0x150
+[33328.865202] ---[ end trace 0000000000000000 ]---
+[33328.897596] ------------[ cut here ]------------
+[33328.897611] WARNING: CPU: 0 PID: 174787 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.897646] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.898100]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.898129] CPU: 0 PID: 174787 Comm: syz.0.213 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.898147] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.898158] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.898174] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.898193] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.898212] sp : ffff002222b676b0
+[33328.898219] x29: ffff002222b67710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.898243] x26: 00000000dddd3000 x25: ffff00208d9f2000 x24: ffff002274410000
+[33328.898266] x23: 00000000dddd1000 x22: ffff00208d9f2a20 x21: ffffffffffffffff
+[33328.898289] x20: 0000000000002000 x19: 1fffe0044456ced6 x18: 0000000000000000
+[33328.898311] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33328.898334] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.898357] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.898380] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae376540
+[33328.898403] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.898426] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000cfd
+[33328.898449] Call trace:
+[33328.898455]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.898475]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.898499]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.898519]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.898542]  kvm_set_memslot+0x278/0x8c8
+[33328.898559]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.898577]  kvm_vm_ioctl+0x814/0x2430
+[33328.898597]  __arm64_sys_ioctl+0x134/0x158
+[33328.898620]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.898646]  el0_svc_common.constprop.0+0x138/0x170
+[33328.898670]  do_el0_svc+0x38/0x50
+[33328.898693]  el0_svc+0x28/0x60
+[33328.898715]  el0t_64_sync_handler+0x118/0x128
+[33328.898739]  el0t_64_sync+0x14c/0x150
+[33328.898753] ---[ end trace 0000000000000000 ]---
+[33328.904074] ------------[ cut here ]------------
+[33328.904094] WARNING: CPU: 0 PID: 174787 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.904135] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.904636]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.904670] CPU: 0 PID: 174787 Comm: syz.0.213 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.904689] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.904702] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.904719] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.904739] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.904757] sp : ffff002222b676b0
+[33328.904765] x29: ffff002222b67710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.904790] x26: 00000000dddd3000 x25: ffff002286558000 x24: ffff002274410800
+[33328.904813] x23: 00000000dddd1000 x22: ffff002286558a20 x21: ffffffffffffffff
+[33328.904836] x20: 0000000000002000 x19: 1fffe0044456ced6 x18: 0000000000000000
+[33328.904859] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33328.904882] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.904907] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.904931] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae376540
+[33328.904954] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.904977] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 00000000000008e1
+[33328.905001] Call trace:
+[33328.905008]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.905028]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.905055]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.905076]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.905101]  kvm_set_memslot+0x278/0x8c8
+[33328.905118]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.905135]  kvm_vm_ioctl+0x814/0x2430
+[33328.905157]  __arm64_sys_ioctl+0x134/0x158
+[33328.905182]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.905208]  el0_svc_common.constprop.0+0x138/0x170
+[33328.905233]  do_el0_svc+0x38/0x50
+[33328.905255]  el0_svc+0x28/0x60
+[33328.905278]  el0t_64_sync_handler+0x118/0x128
+[33328.905301]  el0t_64_sync+0x14c/0x150
+[33328.905316] ---[ end trace 0000000000000000 ]---
+[33328.909780] ------------[ cut here ]------------
+[33328.909791] WARNING: CPU: 0 PID: 174787 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.909822] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.910261]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.910288] CPU: 0 PID: 174787 Comm: syz.0.213 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.910305] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.910316] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.910332] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.910350] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.910368] sp : ffff002222b676b0
+[33328.910375] x29: ffff002222b67710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.910398] x26: 00000000dddd3000 x25: ffff002266c5a000 x24: ffff002274410200
+[33328.910421] x23: 00000000dddd1000 x22: ffff002266c5aa20 x21: ffffffffffffffff
+[33328.910443] x20: 0000000000002000 x19: 1fffe0044456ced6 x18: 0000000000000000
+[33328.910466] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33328.910488] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.910510] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.910533] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae376540
+[33328.910556] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.910578] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000877
+[33328.910601] Call trace:
+[33328.910607]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.910627]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.910650]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.910670]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.910693]  kvm_set_memslot+0x278/0x8c8
+[33328.910710]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.910728]  kvm_vm_ioctl+0x814/0x2430
+[33328.910747]  __arm64_sys_ioctl+0x134/0x158
+[33328.910770]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.910795]  el0_svc_common.constprop.0+0x138/0x170
+[33328.910819]  do_el0_svc+0x38/0x50
+[33328.910841]  el0_svc+0x28/0x60
+[33328.910863]  el0t_64_sync_handler+0x118/0x128
+[33328.910886]  el0t_64_sync+0x14c/0x150
+[33328.910901] ---[ end trace 0000000000000000 ]---
+[33328.942988] ------------[ cut here ]------------
+[33328.943002] WARNING: CPU: 0 PID: 174788 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.943036] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.943487]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.943516] CPU: 0 PID: 174788 Comm: syz.0.214 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.943534] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.943545] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.943561] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.943579] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.943598] sp : ffff0020ed37f6b0
+[33328.943605] x29: ffff0020ed37f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.943628] x26: 00000000dddd3000 x25: ffff00227a44a000 x24: ffff00209f2d8400
+[33328.943651] x23: 00000000dddd1000 x22: ffff00227a44aa20 x21: ffffffffffffffff
+[33328.943674] x20: 0000000000002000 x19: 1fffe0041da6fed6 x18: 0000000000000000
+[33328.943697] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33328.943720] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.943742] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.943765] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae375100
+[33328.943788] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.943810] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000bc1
+[33328.943833] Call trace:
+[33328.943840]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.943859]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.943883]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.943903]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.943926]  kvm_set_memslot+0x278/0x8c8
+[33328.943943]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.943961]  kvm_vm_ioctl+0x814/0x2430
+[33328.943980]  __arm64_sys_ioctl+0x134/0x158
+[33328.944003]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.944028]  el0_svc_common.constprop.0+0x138/0x170
+[33328.944053]  do_el0_svc+0x38/0x50
+[33328.944075]  el0_svc+0x28/0x60
+[33328.944097]  el0t_64_sync_handler+0x118/0x128
+[33328.944121]  el0t_64_sync+0x14c/0x150
+[33328.944135] ---[ end trace 0000000000000000 ]---
+[33328.949252] ------------[ cut here ]------------
+[33328.949264] WARNING: CPU: 0 PID: 174788 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.949296] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.949746]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.949774] CPU: 0 PID: 174788 Comm: syz.0.214 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.949791] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.949803] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.949818] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.949837] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.949855] sp : ffff0020ed37f6b0
+[33328.949862] x29: ffff0020ed37f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.949886] x26: 00000000dddd3000 x25: ffff00209d4f4000 x24: ffff00209f2d9400
+[33328.949908] x23: 00000000dddd1000 x22: ffff00209d4f4a20 x21: ffffffffffffffff
+[33328.949931] x20: 0000000000002000 x19: 1fffe0041da6fed6 x18: 0000000000000000
+[33328.949953] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33328.949976] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.949998] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.950022] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae375100
+[33328.950045] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.950067] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000c59
+[33328.950090] Call trace:
+[33328.950096]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.950115]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.950139]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.950159]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.950182]  kvm_set_memslot+0x278/0x8c8
+[33328.950199]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.950217]  kvm_vm_ioctl+0x814/0x2430
+[33328.950237]  __arm64_sys_ioctl+0x134/0x158
+[33328.950259]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.950285]  el0_svc_common.constprop.0+0x138/0x170
+[33328.950310]  do_el0_svc+0x38/0x50
+[33328.950332]  el0_svc+0x28/0x60
+[33328.950354]  el0t_64_sync_handler+0x118/0x128
+[33328.950378]  el0t_64_sync+0x14c/0x150
+[33328.950392] ---[ end trace 0000000000000000 ]---
+[33328.990662] ------------[ cut here ]------------
+[33328.990674] WARNING: CPU: 0 PID: 174788 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.990707] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33328.991159]  drm_display_helper drm_kms_helper drm serio_raw
+[33328.991188] CPU: 0 PID: 174788 Comm: syz.0.214 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33328.991205] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33328.991217] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33328.991233] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.991251] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.991270] sp : ffff0020ed37f6b0
+[33328.991277] x29: ffff0020ed37f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33328.991300] x26: 00000000dddd3000 x25: ffff0022163f0000 x24: ffff00209f2da200
+[33328.991323] x23: 00000000dddd1000 x22: ffff0022163f0a20 x21: ffffffffffffffff
+[33328.991346] x20: 0000000000002000 x19: 1fffe0041da6fed6 x18: 0000000000000000
+[33328.991369] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33328.991391] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33328.991414] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33328.991437] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae375100
+[33328.991459] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33328.991482] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 000000000000089e
+[33328.991505] Call trace:
+[33328.991511]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33328.991531]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33328.991554]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33328.991574]  kvm_arch_commit_memory_region+0x45c/0x510
+[33328.991597]  kvm_set_memslot+0x278/0x8c8
+[33328.991614]  __kvm_set_memory_region+0x5d4/0x6e0
+[33328.991632]  kvm_vm_ioctl+0x814/0x2430
+[33328.991651]  __arm64_sys_ioctl+0x134/0x158
+[33328.991674]  invoke_syscall.constprop.0+0x64/0x1a8
+[33328.991700]  el0_svc_common.constprop.0+0x138/0x170
+[33328.991725]  do_el0_svc+0x38/0x50
+[33328.991747]  el0_svc+0x28/0x60
+[33328.991769]  el0t_64_sync_handler+0x118/0x128
+[33328.991792]  el0t_64_sync+0x14c/0x150
+[33328.991807] ---[ end trace 0000000000000000 ]---
+[33339.065907] ------------[ cut here ]------------
+[33339.065921] WARNING: CPU: 0 PID: 174801 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.065955] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33339.066407]  drm_display_helper drm_kms_helper drm serio_raw
+[33339.066437] CPU: 0 PID: 174801 Comm: syz.0.216 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33339.066454] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33339.066466] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33339.066481] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.066500] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.066519] sp : ffff00226ee6f6b0
+[33339.066526] x29: ffff00226ee6f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33339.066549] x26: 00000000dddd3000 x25: ffff00227aa46000 x24: ffff002222aea200
+[33339.066572] x23: 00000000dddd1000 x22: ffff00227aa46a20 x21: ffffffffffffffff
+[33339.066595] x20: 0000000000002000 x19: 1fffe0044ddcded6 x18: 0000000000000000
+[33339.066618] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33339.066640] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33339.066663] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33339.066686] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae372880
+[33339.066709] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33339.066732] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000d30
+[33339.066754] Call trace:
+[33339.066761]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.066780]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33339.066804]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33339.066824]  kvm_arch_commit_memory_region+0x45c/0x510
+[33339.066847]  kvm_set_memslot+0x278/0x8c8
+[33339.066864]  __kvm_set_memory_region+0x5d4/0x6e0
+[33339.066882]  kvm_vm_ioctl+0x814/0x2430
+[33339.066902]  __arm64_sys_ioctl+0x134/0x158
+[33339.066925]  invoke_syscall.constprop.0+0x64/0x1a8
+[33339.066950]  el0_svc_common.constprop.0+0x138/0x170
+[33339.066975]  do_el0_svc+0x38/0x50
+[33339.066997]  el0_svc+0x28/0x60
+[33339.067019]  el0t_64_sync_handler+0x118/0x128
+[33339.067043]  el0t_64_sync+0x14c/0x150
+[33339.067057] ---[ end trace 0000000000000000 ]---
+[33339.107527] ------------[ cut here ]------------
+[33339.107542] WARNING: CPU: 0 PID: 174802 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.107576] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33339.108032]  drm_display_helper drm_kms_helper drm serio_raw
+[33339.108061] CPU: 0 PID: 174802 Comm: syz.0.217 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33339.108079] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33339.108090] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33339.108106] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.108125] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.108143] sp : ffff002174a8f6b0
+[33339.108150] x29: ffff002174a8f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33339.108174] x26: 00000000dddd3000 x25: ffff002226b70000 x24: ffff002222aeae00
+[33339.108197] x23: 00000000dddd1000 x22: ffff002226b70a20 x21: ffffffffffffffff
+[33339.108220] x20: 0000000000002000 x19: 1fffe0042e951ed6 x18: 0000000000000000
+[33339.108243] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33339.108265] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33339.108288] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33339.108311] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0022ae370000
+[33339.108334] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33339.108357] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000d06
+[33339.108380] Call trace:
+[33339.108386]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.108405]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33339.108429]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33339.108449]  kvm_arch_commit_memory_region+0x45c/0x510
+[33339.108472]  kvm_set_memslot+0x278/0x8c8
+[33339.108489]  __kvm_set_memory_region+0x5d4/0x6e0
+[33339.108506]  kvm_vm_ioctl+0x814/0x2430
+[33339.108526]  __arm64_sys_ioctl+0x134/0x158
+[33339.108549]  invoke_syscall.constprop.0+0x64/0x1a8
+[33339.108574]  el0_svc_common.constprop.0+0x138/0x170
+[33339.108598]  do_el0_svc+0x38/0x50
+[33339.108621]  el0_svc+0x28/0x60
+[33339.108643]  el0t_64_sync_handler+0x118/0x128
+[33339.108667]  el0t_64_sync+0x14c/0x150
+[33339.108681] ---[ end trace 0000000000000000 ]---
+[33339.136716] ------------[ cut here ]------------
+[33339.136730] WARNING: CPU: 0 PID: 174803 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.136766] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33339.137220]  drm_display_helper drm_kms_helper drm serio_raw
+[33339.137249] CPU: 0 PID: 174803 Comm: syz.0.218 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33339.137266] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33339.137278] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33339.137294] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.137312] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.137331] sp : ffff00226ee6f6b0
+[33339.137338] x29: ffff00226ee6f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33339.137361] x26: 00000000dddd3000 x25: ffff00226b5f0000 x24: ffff002222ae9000
+[33339.137384] x23: 00000000dddd1000 x22: ffff00226b5f0a20 x21: ffffffffffffffff
+[33339.137407] x20: 0000000000002000 x19: 1fffe0044ddcded6 x18: 0000000000000000
+[33339.137430] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33339.137452] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33339.137475] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33339.137498] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0023137bd100
+[33339.137521] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33339.137543] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce7
+[33339.137566] Call trace:
+[33339.137572]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.137592]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33339.137615]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33339.137635]  kvm_arch_commit_memory_region+0x45c/0x510
+[33339.137658]  kvm_set_memslot+0x278/0x8c8
+[33339.137675]  __kvm_set_memory_region+0x5d4/0x6e0
+[33339.137693]  kvm_vm_ioctl+0x814/0x2430
+[33339.137713]  __arm64_sys_ioctl+0x134/0x158
+[33339.137735]  invoke_syscall.constprop.0+0x64/0x1a8
+[33339.137761]  el0_svc_common.constprop.0+0x138/0x170
+[33339.137786]  do_el0_svc+0x38/0x50
+[33339.137808]  el0_svc+0x28/0x60
+[33339.137831]  el0t_64_sync_handler+0x118/0x128
+[33339.137854]  el0t_64_sync+0x14c/0x150
+[33339.137869] ---[ end trace 0000000000000000 ]---
+[33339.143923] ------------[ cut here ]------------
+[33339.143942] WARNING: CPU: 0 PID: 174803 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.143984] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33339.144474]  drm_display_helper drm_kms_helper drm serio_raw
+[33339.144508] CPU: 0 PID: 174803 Comm: syz.0.218 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33339.144528] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33339.144541] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33339.144558] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.144578] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.144598] sp : ffff00226ee6f6b0
+[33339.144605] x29: ffff00226ee6f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33339.144630] x26: 00000000dddd3000 x25: ffff0020eb2be000 x24: ffff002222ae9e00
+[33339.144654] x23: 00000000dddd1000 x22: ffff0020eb2bea20 x21: ffffffffffffffff
+[33339.144678] x20: 0000000000002000 x19: 1fffe0044ddcded6 x18: 0000000000000000
+[33339.144702] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33339.144726] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33339.144750] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33339.144774] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0023137bd100
+[33339.144799] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33339.144822] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 00000000000008a1
+[33339.144846] Call trace:
+[33339.144853]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.144875]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33339.144901]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33339.144926]  kvm_arch_commit_memory_region+0x45c/0x510
+[33339.144949]  kvm_set_memslot+0x278/0x8c8
+[33339.144967]  __kvm_set_memory_region+0x5d4/0x6e0
+[33339.144985]  kvm_vm_ioctl+0x814/0x2430
+[33339.145006]  __arm64_sys_ioctl+0x134/0x158
+[33339.145031]  invoke_syscall.constprop.0+0x64/0x1a8
+[33339.145059]  el0_svc_common.constprop.0+0x138/0x170
+[33339.145084]  do_el0_svc+0x38/0x50
+[33339.145108]  el0_svc+0x28/0x60
+[33339.145136]  el0t_64_sync_handler+0x118/0x128
+[33339.145160]  el0t_64_sync+0x14c/0x150
+[33339.145176] ---[ end trace 0000000000000000 ]---
+[33339.149748] ------------[ cut here ]------------
+[33339.149759] WARNING: CPU: 0 PID: 174803 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.149789] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33339.150236]  drm_display_helper drm_kms_helper drm serio_raw
+[33339.150264] CPU: 0 PID: 174803 Comm: syz.0.218 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33339.150281] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33339.150293] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33339.150308] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.150327] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.150345] sp : ffff00226ee6f6b0
+[33339.150352] x29: ffff00226ee6f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33339.150375] x26: 00000000dddd3000 x25: ffff0022713fc000 x24: ffff0022d94bc600
+[33339.150397] x23: 00000000dddd1000 x22: ffff0022713fca20 x21: ffffffffffffffff
+[33339.150420] x20: 0000000000002000 x19: 1fffe0044ddcded6 x18: 0000000000000000
+[33339.150443] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33339.150465] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33339.150487] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33339.150510] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0023137bd100
+[33339.150533] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33339.150556] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 000000000000088d
+[33339.150578] Call trace:
+[33339.150584]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.150604]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33339.150627]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33339.150647]  kvm_arch_commit_memory_region+0x45c/0x510
+[33339.150670]  kvm_set_memslot+0x278/0x8c8
+[33339.150687]  __kvm_set_memory_region+0x5d4/0x6e0
+[33339.150704]  kvm_vm_ioctl+0x814/0x2430
+[33339.150724]  __arm64_sys_ioctl+0x134/0x158
+[33339.150746]  invoke_syscall.constprop.0+0x64/0x1a8
+[33339.150771]  el0_svc_common.constprop.0+0x138/0x170
+[33339.150796]  do_el0_svc+0x38/0x50
+[33339.150818]  el0_svc+0x28/0x60
+[33339.150840]  el0t_64_sync_handler+0x118/0x128
+[33339.150864]  el0t_64_sync+0x14c/0x150
+[33339.150878] ---[ end trace 0000000000000000 ]---
+[33339.154549] ------------[ cut here ]------------
+[33339.154558] WARNING: CPU: 0 PID: 174803 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.154588] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33339.155032]  drm_display_helper drm_kms_helper drm serio_raw
+[33339.155060] CPU: 0 PID: 174803 Comm: syz.0.218 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33339.155077] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33339.155088] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33339.155103] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.155122] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.155140] sp : ffff00226ee6f6b0
+[33339.155147] x29: ffff00226ee6f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33339.155170] x26: 00000000dddd3000 x25: ffff002174520000 x24: ffff0022d94bcc00
+[33339.155193] x23: 00000000dddd1000 x22: ffff002174520a20 x21: ffffffffffffffff
+[33339.155216] x20: 0000000000002000 x19: 1fffe0044ddcded6 x18: 0000000000000000
+[33339.155238] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33339.155261] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33339.155283] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33339.155306] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0023137bd100
+[33339.155329] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33339.155351] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000877
+[33339.155374] Call trace:
+[33339.155380]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33339.155399]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33339.155422]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33339.155442]  kvm_arch_commit_memory_region+0x45c/0x510
+[33339.155465]  kvm_set_memslot+0x278/0x8c8
+[33339.155482]  __kvm_set_memory_region+0x5d4/0x6e0
+[33339.155500]  kvm_vm_ioctl+0x814/0x2430
+[33339.155519]  __arm64_sys_ioctl+0x134/0x158
+[33339.155541]  invoke_syscall.constprop.0+0x64/0x1a8
+[33339.155566]  el0_svc_common.constprop.0+0x138/0x170
+[33339.155591]  do_el0_svc+0x38/0x50
+[33339.155613]  el0_svc+0x28/0x60
+[33339.155635]  el0t_64_sync_handler+0x118/0x128
+[33339.155658]  el0t_64_sync+0x14c/0x150
+[33339.155673] ---[ end trace 0000000000000000 ]---
+[33349.213249] ------------[ cut here ]------------
+[33349.213263] WARNING: CPU: 0 PID: 174815 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.213298] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33349.213753]  drm_display_helper drm_kms_helper drm serio_raw
+[33349.213782] CPU: 0 PID: 174815 Comm: syz.0.219 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33349.213800] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33349.213811] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33349.213827] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.213847] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.213866] sp : ffff002174a8f6b0
+[33349.213874] x29: ffff002174a8f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33349.213897] x26: 00000000dddd3000 x25: ffff002266222000 x24: ffff0022d94bf000
+[33349.213920] x23: 00000000dddd1000 x22: ffff002266222a20 x21: ffffffffffffffff
+[33349.213943] x20: 0000000000002000 x19: 1fffe0042e951ed6 x18: 0000000000000000
+[33349.213965] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33349.213988] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33349.214010] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33349.214033] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0023137bbcc0
+[33349.214056] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33349.214079] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000cac
+[33349.214102] Call trace:
+[33349.214109]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.214128]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33349.214152]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33349.214172]  kvm_arch_commit_memory_region+0x45c/0x510
+[33349.214195]  kvm_set_memslot+0x278/0x8c8
+[33349.214212]  __kvm_set_memory_region+0x5d4/0x6e0
+[33349.214230]  kvm_vm_ioctl+0x814/0x2430
+[33349.214250]  __arm64_sys_ioctl+0x134/0x158
+[33349.214273]  invoke_syscall.constprop.0+0x64/0x1a8
+[33349.214298]  el0_svc_common.constprop.0+0x138/0x170
+[33349.214323]  do_el0_svc+0x38/0x50
+[33349.214345]  el0_svc+0x28/0x60
+[33349.214368]  el0t_64_sync_handler+0x118/0x128
+[33349.214391]  el0t_64_sync+0x14c/0x150
+[33349.214406] ---[ end trace 0000000000000000 ]---
+[33349.273130] ------------[ cut here ]------------
+[33349.273157] WARNING: CPU: 0 PID: 174818 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.273204] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33349.273680]  drm_display_helper drm_kms_helper drm serio_raw
+[33349.273709] CPU: 0 PID: 174818 Comm: syz.0.221 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33349.273726] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33349.273738] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33349.273754] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.273772] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.273791] sp : ffff0020961776b0
+[33349.273798] x29: ffff002096177710 x28: 00000000dddd2fff x27: 0000000040000000
+[33349.273822] x26: 00000000dddd3000 x25: ffff00220cb40000 x24: ffff0022d94bda00
+[33349.273844] x23: 00000000dddd1000 x22: ffff00220cb40a20 x21: ffffffffffffffff
+[33349.273867] x20: 0000000000002000 x19: 1fffe00412c2eed6 x18: 0000000000000000
+[33349.273890] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33349.273912] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33349.273934] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33349.273957] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff00226e5d3cc0
+[33349.273980] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33349.274002] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000d06
+[33349.274025] Call trace:
+[33349.274031]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.274050]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33349.274073]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33349.274094]  kvm_arch_commit_memory_region+0x45c/0x510
+[33349.274116]  kvm_set_memslot+0x278/0x8c8
+[33349.274133]  __kvm_set_memory_region+0x5d4/0x6e0
+[33349.274151]  kvm_vm_ioctl+0x814/0x2430
+[33349.274171]  __arm64_sys_ioctl+0x134/0x158
+[33349.274194]  invoke_syscall.constprop.0+0x64/0x1a8
+[33349.274220]  el0_svc_common.constprop.0+0x138/0x170
+[33349.274244]  do_el0_svc+0x38/0x50
+[33349.274267]  el0_svc+0x28/0x60
+[33349.274289]  el0t_64_sync_handler+0x118/0x128
+[33349.274312]  el0t_64_sync+0x14c/0x150
+[33349.274327] ---[ end trace 0000000000000000 ]---
+[33349.278133] ------------[ cut here ]------------
+[33349.278144] WARNING: CPU: 0 PID: 174818 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.278175] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33349.278623]  drm_display_helper drm_kms_helper drm serio_raw
+[33349.278652] CPU: 0 PID: 174818 Comm: syz.0.221 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33349.278669] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33349.278680] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33349.278696] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.278714] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.278733] sp : ffff0020961776b0
+[33349.278740] x29: ffff002096177710 x28: 00000000dddd2fff x27: 0000000040000000
+[33349.278763] x26: 00000000dddd3000 x25: ffff0020a3822000 x24: ffff00209a5b9c00
+[33349.278786] x23: 00000000dddd1000 x22: ffff0020a3822a20 x21: ffffffffffffffff
+[33349.278809] x20: 0000000000002000 x19: 1fffe00412c2eed6 x18: 0000000000000000
+[33349.278832] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33349.278854] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33349.278877] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33349.278900] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff00226e5d3cc0
+[33349.278923] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33349.278945] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 00000000000008bc
+[33349.278968] Call trace:
+[33349.278974]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33349.278993]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33349.279016]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33349.279036]  kvm_arch_commit_memory_region+0x45c/0x510
+[33349.279059]  kvm_set_memslot+0x278/0x8c8
+[33349.279076]  __kvm_set_memory_region+0x5d4/0x6e0
+[33349.279094]  kvm_vm_ioctl+0x814/0x2430
+[33349.279113]  __arm64_sys_ioctl+0x134/0x158
+[33349.279136]  invoke_syscall.constprop.0+0x64/0x1a8
+[33349.279161]  el0_svc_common.constprop.0+0x138/0x170
+[33349.279186]  do_el0_svc+0x38/0x50
+[33349.279208]  el0_svc+0x28/0x60
+[33349.279230]  el0t_64_sync_handler+0x118/0x128
+[33349.279254]  el0t_64_sync+0x14c/0x150
+[33349.279268] ---[ end trace 0000000000000000 ]---
+[33359.318642] ------------[ cut here ]------------
+[33359.318656] WARNING: CPU: 0 PID: 174831 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.318690] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33359.319143]  drm_display_helper drm_kms_helper drm serio_raw
+[33359.319172] CPU: 0 PID: 174831 Comm: syz.0.222 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33359.319190] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33359.319202] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33359.319218] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.319236] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.319255] sp : ffff002174a8f6b0
+[33359.319262] x29: ffff002174a8f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33359.319286] x26: 00000000dddd3000 x25: ffff0021b47b2000 x24: ffff00209a5bb200
+[33359.319309] x23: 00000000dddd1000 x22: ffff0021b47b2a20 x21: ffffffffffffffff
+[33359.319332] x20: 0000000000002000 x19: 1fffe0042e951ed6 x18: 0000000000000000
+[33359.319354] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33359.319377] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33359.319399] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33359.319422] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff00226e5d2880
+[33359.319445] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33359.319468] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000c4c
+[33359.319490] Call trace:
+[33359.319497]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.319516]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33359.319539]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33359.319560]  kvm_arch_commit_memory_region+0x45c/0x510
+[33359.319583]  kvm_set_memslot+0x278/0x8c8
+[33359.319600]  __kvm_set_memory_region+0x5d4/0x6e0
+[33359.319618]  kvm_vm_ioctl+0x814/0x2430
+[33359.319637]  __arm64_sys_ioctl+0x134/0x158
+[33359.319661]  invoke_syscall.constprop.0+0x64/0x1a8
+[33359.319687]  el0_svc_common.constprop.0+0x138/0x170
+[33359.319712]  do_el0_svc+0x38/0x50
+[33359.319734]  el0_svc+0x28/0x60
+[33359.319756]  el0t_64_sync_handler+0x118/0x128
+[33359.319780]  el0t_64_sync+0x14c/0x150
+[33359.319794] ---[ end trace 0000000000000000 ]---
+[33359.326144] ------------[ cut here ]------------
+[33359.326158] WARNING: CPU: 0 PID: 174831 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.326192] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33359.326645]  drm_display_helper drm_kms_helper drm serio_raw
+[33359.326674] CPU: 0 PID: 174831 Comm: syz.0.222 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33359.326691] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33359.326703] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33359.326719] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.326737] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.326756] sp : ffff002174a8f6b0
+[33359.326763] x29: ffff002174a8f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33359.326786] x26: 00000000dddd3000 x25: ffff002088598000 x24: ffff00209a5b8e00
+[33359.326809] x23: 00000000dddd1000 x22: ffff002088598a20 x21: ffffffffffffffff
+[33359.326832] x20: 0000000000002000 x19: 1fffe0042e951ed6 x18: 0000000000000000
+[33359.326855] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33359.326877] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33359.326900] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33359.326923] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff00226e5d2880
+[33359.326946] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33359.326969] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000bef
+[33359.326991] Call trace:
+[33359.326997]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.327016]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33359.327040]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33359.327060]  kvm_arch_commit_memory_region+0x45c/0x510
+[33359.327084]  kvm_set_memslot+0x278/0x8c8
+[33359.327101]  __kvm_set_memory_region+0x5d4/0x6e0
+[33359.327119]  kvm_vm_ioctl+0x814/0x2430
+[33359.327138]  __arm64_sys_ioctl+0x134/0x158
+[33359.327161]  invoke_syscall.constprop.0+0x64/0x1a8
+[33359.327187]  el0_svc_common.constprop.0+0x138/0x170
+[33359.327211]  do_el0_svc+0x38/0x50
+[33359.327233]  el0_svc+0x28/0x60
+[33359.327256]  el0t_64_sync_handler+0x118/0x128
+[33359.327279]  el0t_64_sync+0x14c/0x150
+[33359.327294] ---[ end trace 0000000000000000 ]---
+[33359.356974] ------------[ cut here ]------------
+[33359.356987] WARNING: CPU: 0 PID: 174832 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.357021] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33359.357473]  drm_display_helper drm_kms_helper drm serio_raw
+[33359.357502] CPU: 0 PID: 174832 Comm: syz.0.223 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33359.357519] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33359.357531] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33359.357547] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.357566] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.357584] sp : ffff0020961776b0
+[33359.357591] x29: ffff002096177710 x28: 00000000dddd2fff x27: 0000000040000000
+[33359.357615] x26: 00000000dddd3000 x25: ffff0020c6604000 x24: ffff00209a5baa00
+[33359.357637] x23: 00000000dddd1000 x22: ffff0020c6604a20 x21: ffffffffffffffff
+[33359.357660] x20: 0000000000002000 x19: 1fffe00412c2eed6 x18: 0000000000000000
+[33359.357683] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33359.357705] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33359.357727] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33359.357751] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0021701b2880
+[33359.357774] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33359.357796] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000ce5
+[33359.357818] Call trace:
+[33359.357825]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.357844]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33359.357867]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33359.357887]  kvm_arch_commit_memory_region+0x45c/0x510
+[33359.357910]  kvm_set_memslot+0x278/0x8c8
+[33359.357927]  __kvm_set_memory_region+0x5d4/0x6e0
+[33359.357945]  kvm_vm_ioctl+0x814/0x2430
+[33359.357965]  __arm64_sys_ioctl+0x134/0x158
+[33359.357988]  invoke_syscall.constprop.0+0x64/0x1a8
+[33359.358014]  el0_svc_common.constprop.0+0x138/0x170
+[33359.358038]  do_el0_svc+0x38/0x50
+[33359.358060]  el0_svc+0x28/0x60
+[33359.358083]  el0t_64_sync_handler+0x118/0x128
+[33359.358107]  el0t_64_sync+0x14c/0x150
+[33359.358122] ---[ end trace 0000000000000000 ]---
+[33359.361562] ------------[ cut here ]------------
+[33359.361573] WARNING: CPU: 0 PID: 174832 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.361604] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33359.362050]  drm_display_helper drm_kms_helper drm serio_raw
+[33359.362079] CPU: 0 PID: 174832 Comm: syz.0.223 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33359.362096] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33359.362108] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33359.362123] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.362142] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.362160] sp : ffff0020961776b0
+[33359.362167] x29: ffff002096177710 x28: 00000000dddd2fff x27: 0000000040000000
+[33359.362190] x26: 00000000dddd3000 x25: ffff0021b1aa6000 x24: ffff0022d94bfe00
+[33359.362213] x23: 00000000dddd1000 x22: ffff0021b1aa6a20 x21: ffffffffffffffff
+[33359.362236] x20: 0000000000002000 x19: 1fffe00412c2eed6 x18: 0000000000000000
+[33359.362258] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad3f0
+[33359.362281] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33359.362303] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33359.362326] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0021701b2880
+[33359.362349] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33359.362372] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000872
+[33359.362394] Call trace:
+[33359.362400]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33359.362419]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33359.362443]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33359.362462]  kvm_arch_commit_memory_region+0x45c/0x510
+[33359.362485]  kvm_set_memslot+0x278/0x8c8
+[33359.362503]  __kvm_set_memory_region+0x5d4/0x6e0
+[33359.362520]  kvm_vm_ioctl+0x814/0x2430
+[33359.362540]  __arm64_sys_ioctl+0x134/0x158
+[33359.362562]  invoke_syscall.constprop.0+0x64/0x1a8
+[33359.362588]  el0_svc_common.constprop.0+0x138/0x170
+[33359.362613]  do_el0_svc+0x38/0x50
+[33359.362635]  el0_svc+0x28/0x60
+[33359.362657]  el0t_64_sync_handler+0x118/0x128
+[33359.362680]  el0t_64_sync+0x14c/0x150
+[33359.362695] ---[ end trace 0000000000000000 ]---
+[33369.402232] ------------[ cut here ]------------
+[33369.402246] WARNING: CPU: 0 PID: 174844 at arch/arm64/kvm/hyp/pgtable.c:639 kvm_tlb_flush_vmid_range+0x210/0x248
+[33369.402280] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33369.402734]  drm_display_helper drm_kms_helper drm serio_raw
+[33369.402763] CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33369.402781] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33369.402792] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33369.402808] pc : kvm_tlb_flush_vmid_range+0x210/0x248
+[33369.402827] lr : kvm_tlb_flush_vmid_range+0x210/0x248
+[33369.402846] sp : ffff002174a8f6b0
+[33369.402853] x29: ffff002174a8f710 x28: 00000000dddd2fff x27: 0000000040000000
+[33369.402876] x26: 00000000dddd3000 x25: ffff0020df9fc000 x24: ffff0022513eb000
+[33369.402899] x23: 00000000dddd1000 x22: ffff0020df9fca20 x21: ffffffffffffffff
+[33369.402922] x20: 0000000000002000 x19: 1fffe0042e951ed6 x18: 0000000000000000
+[33369.402945] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad380
+[33369.402967] x14: 0000000000000000 x13: 0000000000000000 x12: ffff6004161fc001
+[33369.402989] x11: 1fffe004161fc000 x10: ffff6004161fc000 x9 : ffff8000800cd3c4
+[33369.403013] x8 : 00009ffbe9e04000 x7 : ffff0020b0fe0003 x6 : ffff0021701b3cc0
+[33369.403036] x5 : ffff800081d8c064 x4 : dfff800000000000 x3 : 0000000000000000
+[33369.403058] x2 : ffff8000a5cc1000 x1 : 0000000000400000 x0 : 0000000000000c5a
+[33369.403081] Call trace:
+[33369.403087]  kvm_tlb_flush_vmid_range+0x210/0x248
+[33369.403107]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[33369.403130]  kvm_flush_remote_tlbs_memslot+0x48/0xd0
+[33369.403150]  kvm_arch_commit_memory_region+0x45c/0x510
+[33369.403174]  kvm_set_memslot+0x278/0x8c8
+[33369.403191]  __kvm_set_memory_region+0x5d4/0x6e0
+[33369.403209]  kvm_vm_ioctl+0x814/0x2430
+[33369.403228]  __arm64_sys_ioctl+0x134/0x158
+[33369.403251]  invoke_syscall.constprop.0+0x64/0x1a8
+[33369.403277]  el0_svc_common.constprop.0+0x138/0x170
+[33369.403301]  do_el0_svc+0x38/0x50
+[33369.403323]  el0_svc+0x28/0x60
+[33369.403346]  el0t_64_sync_handler+0x118/0x128
+[33369.403369]  el0t_64_sync+0x14c/0x150
+[33369.403384] ---[ end trace 0000000000000000 ]---
+[33369.405827] Unable to handle kernel NULL pointer dereference at virtual address 000000000000001e
+[33369.405843] Mem abort info:
+[33369.405849]   ESR = 0x0000000096000006
+[33369.405856]   EC = 0x25: DABT (current EL), IL = 32 bits
+[33369.405866]   SET = 0, FnV = 0
+[33369.405874]   EA = 0, S1PTW = 0
+[33369.405881]   FSC = 0x06: level 2 translation fault
+[33369.405890] Data abort info:
+[33369.405895]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+[33369.405904]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[33369.405914]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[33369.405924] user pgtable: 4k pages, 48-bit VAs, pgdp=0000002109ceb000
+[33369.405936] [000000000000001e] pgd=0800002125afc003, p4d=0800002125afc003, pud=08000022f1ea1003, pmd=0000000000000000
+[33369.405965] Internal error: Oops: 0000000096000006 [#1] SMP
+[33369.412328] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33369.412779]  drm_display_helper drm_kms_helper drm serio_raw
+[33369.508843] CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+[33369.519289] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33369.530158] pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33369.537905] pc : kmem_cache_alloc+0x50/0x328
+[33369.542969] lr : __kvm_mmu_topup_memory_cache+0xc4/0x250
+[33369.549070] sp : ffff002174a8f560
+[33369.553164] x29: ffff002174a8f570 x28: 0000000000000024 x27: 0000000000000002
+[33369.561093] x26: ffff80008006c5a4 x25: ffff002267052408 x24: ffff800082df2000
+[33369.569021] x23: 0000000007ffffff x22: 0000000000000021 x21: 0000000000000002
+[33369.576948] x20: 00000000f350d021 x19: 0000000000000002 x18: 0000000000000000
+[33369.584875] x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+[33369.592802] x14: 0000000000003560 x13: ffff00226f4f0000 x12: ffff800080034458
+[33369.600729] x11: 0000000000000000 x10: ffff0025f2c24168 x9 : ffff80008006c5a4
+[33369.608656] x8 : 0000000000025135 x7 : ffff8000800343e8 x6 : 00000000000000b0
+[33369.616583] x5 : ffff00226f4f3610 x4 : dfff800000000000 x3 : 0000000000000000
+[33369.624510] x2 : ffff8000a5cc1000 x1 : 0000000000000000 x0 : ffff0021701b3cc0
+[33369.632437] Call trace:
+[33369.635663]  kmem_cache_alloc+0x50/0x328
+[33369.640373]  __kvm_mmu_topup_memory_cache+0xc4/0x250
+[33369.646126]  kvm_mmu_topup_memory_cache+0x2c/0x40
+[33369.651617]  kvm_handle_guest_abort+0x580/0x12e8
+[33369.657024]  handle_exit+0x134/0x540
+[33369.661384]  kvm_arch_vcpu_ioctl_run+0x370/0xd50
+[33369.666789]  kvm_vcpu_ioctl+0x2d0/0xc98
+[33369.671411]  __arm64_sys_ioctl+0x134/0x158
+[33369.676297]  invoke_syscall.constprop.0+0x64/0x1a8
+[33369.681879]  el0_svc_common.constprop.0+0x138/0x170
+[33369.687547]  do_el0_svc+0x38/0x50
+[33369.691651]  el0_svc+0x28/0x60
+[33369.695495]  el0t_64_sync_handler+0x118/0x128
+[33369.700641]  el0t_64_sync+0x14c/0x150
+[33369.705094] Code: f942fc01 f90007e1 d2800001 f90003ff (b9401e76) 
+[33369.711972] ---[ end trace 0000000000000000 ]---
+[33369.718601] ------------[ cut here ]------------
+[33369.724010] kernel BUG at arch/arm64/kvm/fpsimd.c:54!
+[33369.729844] Internal error: Oops - BUG: 00000000f2000800 [#2] SMP
+[33369.736720] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33369.737074]  drm_display_helper drm_kms_helper drm serio_raw
+[33369.833122] CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+[33369.843559] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33369.854426] pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33369.862170] pc : kvm_arch_vcpu_load_fp+0x198/0x1d8
+[33369.867756] lr : kvm_arch_vcpu_load_fp+0x198/0x1d8
+[33369.873336] sp : ffff002174a8e5e0
+[33369.877429] x29: ffff002174a8e5e0 x28: ffff800081d82990 x27: ffff0020f23bc500
+[33369.885354] x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000000402
+[33369.893279] x23: 0000000000000000 x22: ffff0020951a8000 x21: 0000000000000000
+[33369.901204] x20: ffff0021701b3cc0 x19: ffff002267050000 x18: 0000000000000000
+[33369.909129] x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+[33369.917054] x14: 00000000000039a0 x13: ffff00226f4f0000 x12: ffff600410023e1c
+[33369.924979] x11: 1fffe00410023e1b x10: ffff600410023e1b x9 : ffff800080082678
+[33369.932905] x8 : 00009ffbeffdc1e5 x7 : ffff00208011f0dc x6 : 0000000000000001
+[33369.940829] x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+[33369.948754] x2 : 0000000000000007 x1 : ffff0021701b3cc0 x0 : 0000000000000000
+[33369.956678] Call trace:
+[33369.959902]  kvm_arch_vcpu_load_fp+0x198/0x1d8
+[33369.965135]  kvm_arch_vcpu_load+0x178/0x490
+[33369.970104]  kvm_sched_in+0x64/0x80
+[33369.974377]  finish_task_switch.isra.0+0x17c/0x370
+[33369.979955]  __schedule+0x1084/0x1e10
+[33369.984404]  __cond_resched+0x4c/0x78
+[33369.988850]  __wait_for_common+0x9c/0x398
+[33369.993646]  wait_for_completion+0x24/0x38
+[33369.998527]  __synchronize_srcu+0xf4/0x148
+[33370.003408]  synchronize_srcu+0x198/0x248
+[33370.008201]  __mmu_notifier_release+0x1d4/0x398
+[33370.013520]  exit_mmap+0x5ac/0x610
+[33370.017709]  __mmput+0xb4/0x358
+[33370.021637]  mmput+0x94/0xb0
+[33370.025304]  do_exit+0x4f8/0x10c8
+[33370.029403]  make_task_dead+0xe8/0x298
+[33370.033937]  die+0x3fc/0x418
+[33370.037601]  die_kernel_fault+0x270/0x470
+[33370.042400]  __do_kernel_fault+0x21c/0x238
+[33370.047286]  do_page_fault+0x18c/0x728
+[33370.051818]  do_translation_fault+0x134/0x160
+[33370.056958]  do_mem_abort+0x64/0x108
+[33370.061322]  el1_abort+0x34/0x50
+[33370.065337]  el1h_64_sync_handler+0x94/0xd0
+[33370.070309]  el1h_64_sync+0x64/0x68
+[33370.074580]  kmem_cache_alloc+0x50/0x328
+[33370.079289]  __kvm_mmu_topup_memory_cache+0xc4/0x250
+[33370.085040]  kvm_mmu_topup_memory_cache+0x2c/0x40
+[33370.090530]  kvm_handle_guest_abort+0x580/0x12e8
+[33370.095934]  handle_exit+0x134/0x540
+[33370.100293]  kvm_arch_vcpu_ioctl_run+0x370/0xd50
+[33370.105696]  kvm_vcpu_ioctl+0x2d0/0xc98
+[33370.110316]  __arm64_sys_ioctl+0x134/0x158
+[33370.115199]  invoke_syscall.constprop.0+0x64/0x1a8
+[33370.120778]  el0_svc_common.constprop.0+0x138/0x170
+[33370.126444]  do_el0_svc+0x38/0x50
+[33370.130546]  el0_svc+0x28/0x60
+[33370.134388]  el0t_64_sync_handler+0x118/0x128
+[33370.139533]  el0t_64_sync+0x14c/0x150
+[33370.143983] Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+[33370.150858] ---[ end trace 0000000000000000 ]---
+[33370.156253] note: syz.0.224[174844] exited with irqs disabled
+[33370.162929] Fixing recursive fault but reboot is needed!
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+[33370.199166] ------------[ cut here ]------------
+[33370.204488] WARNING: CPU: 0 PID: 0 at kernel/context_tracking.c:128 ct_kernel_exit.constprop.0+0xb8/0xc0
+[33370.214677] Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+[33370.215033]  drm_display_helper drm_kms_helper drm serio_raw
+[33370.310906] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+[33370.320822] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[33370.331601] pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+[33370.339259] pc : ct_kernel_exit.constprop.0+0xb8/0xc0
+[33370.345009] lr : ct_kernel_exit.constprop.0+0x1c/0xc0
+[33370.350756] sp : ffff800082de7c80
+[33370.354762] x29: ffff800082de7c80 x28: 00000000d807a0ac x27: 00000000d5600000
+[33370.362601] x26: 0000000000000000 x25: 0000000000000000 x24: 00001e599adda114
+[33370.370438] x23: ffff800083619018 x22: ffff800083619000 x21: ffff800083619000
+[33370.378277] x20: ffff800082ce5848 x19: ffff0025f630c848 x18: 0000000000000000
+[33370.386115] x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad730
+[33370.393953] x14: 0000000000000000 x13: 000000000000000b x12: ffff6004bec6320f
+[33370.401791] x11: 1fffe004bec6320e x10: ffff6004bec6320e x9 : ffff800081d6a078
+[33370.409630] x8 : 00009ffb4139cdf2 x7 : ffff0025f6319073 x6 : 000001669b7dafa1
+[33370.417468] x5 : 00ffffffffffffff x4 : 0000000000000015 x3 : 00001c000766e5f4
+[33370.425306] x2 : 0000000000000012 x1 : 4000000000000002 x0 : 4000000000000000
+[33370.433143] Call trace:
+[33370.436281]  ct_kernel_exit.constprop.0+0xb8/0xc0
+[33370.441681]  ct_idle_enter+0xc/0x18
+[33370.445866]  cpuidle_enter_state+0x208/0x300
+[33370.450832]  cpuidle_enter+0x4c/0x78
+[33370.455110]  do_idle+0x2b4/0x348
+[33370.459039]  cpu_startup_entry+0x40/0x50
+[33370.463662]  rest_init+0xf8/0x100
+[33370.467672]  arch_call_rest_init+0x1c/0x28
+[33370.472467]  start_kernel+0x2e0/0x3b8
+[33370.476825]  __primary_switched+0xb8/0xc8
+[33370.481536] ---[ end trace 0000000000000000 ]---

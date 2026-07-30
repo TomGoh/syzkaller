@@ -1,0 +1,543 @@
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+Unable to handle kernel NULL pointer dereference at virtual address 000000000000001e
+Mem abort info:
+  ESR = 0x0000000096000006
+  EC = 0x25: DABT (current EL), IL = 32 bits
+  SET = 0, FnV = 0
+  EA = 0, S1PTW = 0
+  FSC = 0x06: level 2 translation fault
+Data abort info:
+  ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000002109ceb000
+[000000000000001e] pgd=0800002125afc003, p4d=0800002125afc003, pud=08000022f1ea1003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] SMP
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+pc : kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+lr : mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+lr : __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+sp : ffff002174a8f560
+x29: ffff002174a8f570 x28: 0000000000000024 x27: 0000000000000002
+x26: ffff80008006c5a4 x25: ffff002267052408 x24: ffff800082df2000
+x23: 0000000007ffffff x22: 0000000000000021 x21: 0000000000000002
+x20: 00000000f350d021 x19: 0000000000000002 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+x14: 0000000000003560 x13: ffff00226f4f0000 x12: ffff800080034458
+x11: 0000000000000000 x10: ffff0025f2c24168 x9 : ffff80008006c5a4
+x8 : 0000000000025135 x7 : ffff8000800343e8 x6 : 00000000000000b0
+x5 : ffff00226f4f3610 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : ffff8000a5cc1000 x1 : 0000000000000000 x0 : ffff0021701b3cc0
+Call trace:
+ slab_alloc_node home/jose/common/mm/slub.c:3479 [inline]
+ slab_alloc home/jose/common/mm/slub.c:3511 [inline]
+ __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+ kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+ mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+ __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+ kvm_mmu_topup_memory_cache+0x2c/0x40 virt/kvm/kvm_main.c:448
+ user_mem_abort arch/arm64/kvm/mmu.c:1981 [inline]
+ kvm_handle_guest_abort+0x580/0x12e8 arch/arm64/kvm/mmu.c:2325
+ handle_trap_exceptions arch/arm64/kvm/handle_exit.c:328 [inline]
+ handle_exit+0x134/0x540 arch/arm64/kvm/handle_exit.c:419
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50 arch/arm64/kvm/arm.c:1197
+ kvm_vcpu_ioctl+0x2d0/0xc98 virt/kvm/kvm_main.c:4161
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+Code: f942fc01 f90007e1 d2800001 f90003ff (b9401e76) 
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+kernel BUG at arch/arm64/kvm/fpsimd.c:54!
+Internal error: Oops - BUG: 00000000f2000800 [#2] SMP
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+lr : kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+sp : ffff002174a8e5e0
+x29: ffff002174a8e5e0 x28: ffff800081d82990 x27: ffff0020f23bc500
+x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000000402
+x23: 0000000000000000 x22: ffff0020951a8000 x21: 0000000000000000
+x20: ffff0021701b3cc0 x19: ffff002267050000 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+x14: 00000000000039a0 x13: ffff00226f4f0000 x12: ffff600410023e1c
+x11: 1fffe00410023e1b x10: ffff600410023e1b x9 : ffff800080082678
+x8 : 00009ffbeffdc1e5 x7 : ffff00208011f0dc x6 : 0000000000000001
+x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+x2 : 0000000000000007 x1 : ffff0021701b3cc0 x0 : 0000000000000000
+Call trace:
+ kvm_arch_vcpu_load_fp+0x198/0x1d8 arch/arm64/kvm/fpsimd.c:54
+ kvm_arch_vcpu_load+0x178/0x490 arch/arm64/kvm/arm.c:565
+ kvm_sched_in+0x64/0x80 virt/kvm/kvm_main.c:5963
+ __fire_sched_in_preempt_notifiers kernel/sched/core.c:5066 [inline]
+ fire_sched_in_preempt_notifiers kernel/sched/core.c:5072 [inline]
+ finish_task_switch.isra.0+0x17c/0x370 kernel/sched/core.c:5397
+ context_switch kernel/sched/core.c:5519 [inline]
+ __schedule+0x1084/0x1e10 kernel/sched/core.c:6844
+ preempt_schedule_common kernel/sched/core.c:7011 [inline]
+ __cond_resched+0x4c/0x78 kernel/sched/core.c:8742
+ __wait_for_common+0x9c/0x398 home/jose/common/kernel/sched/completion.c:111
+ wait_for_common home/jose/common/kernel/sched/completion.c:127 [inline]
+ wait_for_completion+0x24/0x38 home/jose/common/kernel/sched/completion.c:148
+ __synchronize_srcu+0xf4/0x148 home/jose/common/kernel/rcu/srcutree.c:1386
+ synchronize_srcu_expedited home/jose/common/kernel/rcu/srcutree.c:1411 [inline]
+ synchronize_srcu+0x198/0x248 home/jose/common/kernel/rcu/srcutree.c:1465
+ mn_hlist_release home/jose/common/mm/mmu_notifier.c:345 [inline]
+ __mmu_notifier_release+0x1d4/0x398 home/jose/common/mm/mmu_notifier.c:357
+ mmu_notifier_release home/jose/common/include/linux/mmu_notifier.h:422 [inline]
+ exit_mmap+0x5ac/0x610 home/jose/common/mm/mmap.c:3248
+ __mmput+0xb4/0x358 kernel/fork.c:1380
+ mmput+0x94/0xb0 kernel/fork.c:1403
+ exit_mm kernel/exit.c:570 [inline]
+ do_exit+0x4f8/0x10c8 kernel/exit.c:865
+ make_task_dead+0xe8/0x298 kernel/exit.c:989
+ die+0x3fc/0x418 home/jose/common/arch/arm64/kernel/traps.c:243
+ die_kernel_fault+0x270/0x470 home/jose/common/arch/arm64/mm/fault.c:337
+ __do_kernel_fault+0x21c/0x238 home/jose/common/arch/arm64/mm/fault.c:437
+ do_page_fault+0x18c/0x728 home/jose/common/arch/arm64/mm/fault.c:727
+ do_translation_fault+0x134/0x160 home/jose/common/arch/arm64/mm/fault.c:738
+ do_mem_abort+0x64/0x108 home/jose/common/arch/arm64/mm/fault.c:880
+ el1_abort+0x34/0x50 home/jose/common/arch/arm64/kernel/entry-common.c:402
+ el1h_64_sync_handler+0x94/0xd0 home/jose/common/arch/arm64/kernel/entry-common.c:462
+ el1h_64_sync+0x64/0x68 home/jose/common/arch/arm64/kernel/entry.S:594
+ slab_alloc_node home/jose/common/mm/slub.c:3479 [inline]
+ slab_alloc home/jose/common/mm/slub.c:3511 [inline]
+ __kmem_cache_alloc_lru home/jose/common/mm/slub.c:3518 [inline]
+ kmem_cache_alloc+0x50/0x328 home/jose/common/mm/slub.c:3527
+ mmu_memory_cache_alloc_obj virt/kvm/kvm_main.c:409 [inline]
+ __kvm_mmu_topup_memory_cache+0xc4/0x250 virt/kvm/kvm_main.c:438
+ kvm_mmu_topup_memory_cache+0x2c/0x40 virt/kvm/kvm_main.c:448
+ user_mem_abort arch/arm64/kvm/mmu.c:1981 [inline]
+ kvm_handle_guest_abort+0x580/0x12e8 arch/arm64/kvm/mmu.c:2325
+ handle_trap_exceptions arch/arm64/kvm/handle_exit.c:328 [inline]
+ handle_exit+0x134/0x540 arch/arm64/kvm/handle_exit.c:419
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50 arch/arm64/kvm/arm.c:1197
+ kvm_vcpu_ioctl+0x2d0/0xc98 virt/kvm/kvm_main.c:4161
+ vfs_ioctl home/jose/common/fs/ioctl.c:51 [inline]
+ __do_sys_ioctl home/jose/common/fs/ioctl.c:871 [inline]
+ __se_sys_ioctl home/jose/common/fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x134/0x158 home/jose/common/fs/ioctl.c:857
+ __invoke_syscall home/jose/common/arch/arm64/kernel/syscall.c:37 [inline]
+ invoke_syscall.constprop.0+0x64/0x1a8 home/jose/common/arch/arm64/kernel/syscall.c:51
+ el0_svc_common.constprop.0+0x138/0x170 home/jose/common/arch/arm64/kernel/syscall.c:136
+ do_el0_svc+0x38/0x50 home/jose/common/arch/arm64/kernel/syscall.c:155
+ el0_svc+0x28/0x60 home/jose/common/arch/arm64/kernel/entry-common.c:683
+ el0t_64_sync_handler+0x118/0x128 home/jose/common/arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync+0x14c/0x150 home/jose/common/arch/arm64/kernel/entry.S:599
+Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+---[ end trace 0000000000000000 ]---
+note: syz.0.224[174844] exited with irqs disabled
+Fixing recursive fault but reboot is needed!
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 0 at kernel/context_tracking.c:128 ct_kernel_exit.constprop.0+0xb8/0xc0 home/jose/common/kernel/context_tracking.c:153
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : ct_kernel_exit.constprop.0+0xb8/0xc0 home/jose/common/kernel/context_tracking.c:128
+lr : ct_kernel_exit.constprop.0+0x1c/0xc0 home/jose/common/kernel/context_tracking.c:126
+sp : ffff800082de7c80
+x29: ffff800082de7c80 x28: 00000000d807a0ac x27: 00000000d5600000
+x26: 0000000000000000 x25: 0000000000000000 x24: 00001e599adda114
+x23: ffff800083619018 x22: ffff800083619000 x21: ffff800083619000
+x20: ffff800082ce5848 x19: ffff0025f630c848 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad730
+x14: 0000000000000000 x13: 000000000000000b x12: ffff6004bec6320f
+x11: 1fffe004bec6320e x10: ffff6004bec6320e x9 : ffff800081d6a078
+x8 : 00009ffb4139cdf2 x7 : ffff0025f6319073 x6 : 000001669b7dafa1
+x5 : 00ffffffffffffff x4 : 0000000000000015 x3 : 00001c000766e5f4
+x2 : 0000000000000012 x1 : 4000000000000002 x0 : 4000000000000000
+Call trace:
+ ct_kernel_exit.constprop.0+0xb8/0xc0 home/jose/common/kernel/context_tracking.c:153
+ ct_idle_enter+0xc/0x18 home/jose/common/kernel/context_tracking.c:320
+ ct_cpuidle_enter home/jose/common/include/linux/cpuidle.h:137 [inline]
+ cpuidle_enter_state+0x208/0x300 home/jose/common/drivers/cpuidle/cpuidle.c:262
+ cpuidle_enter+0x4c/0x78 home/jose/common/drivers/cpuidle/cpuidle.c:401
+ call_cpuidle home/jose/common/kernel/sched/idle.c:134 [inline]
+ cpuidle_idle_call home/jose/common/kernel/sched/idle.c:215 [inline]
+ do_idle+0x2b4/0x348 home/jose/common/kernel/sched/idle.c:282
+ cpu_startup_entry+0x40/0x50 home/jose/common/kernel/sched/idle.c:380
+ rest_init+0xf8/0x100 home/jose/common/init/main.c:737
+ arch_call_rest_init+0x1c/0x28 home/jose/common/init/main.c:834
+ start_kernel+0x2e0/0x3b8 home/jose/common/init/main.c:1090
+ __primary_switched+0xb8/0xc8 home/jose/common/arch/arm64/kernel/head.S:523
+---[ end trace 0000000000000000 ]---
+----------------
+Code disassembly (best guess):
+   0:	f942fc01 	ldr	x1, [x0, #1528]
+   4:	f90007e1 	str	x1, [sp, #8]
+   8:	d2800001 	mov	x1, #0x0                   	// #0
+   c:	f90003ff 	str	xzr, [sp]
+* 10:	b9401e76 	ldr	w22, [x19, #28] <-- trapping instruction
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+  ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+  CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+  GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+user pgtable: 4k pages, 48-bit VAs, pgdp=0000002109ceb000
+[000000000000001e] pgd=0800002125afc003, p4d=0800002125afc003, pud=08000022f1ea1003, pmd=0000000000000000
+Internal error: Oops: 0000000096000006 [#1] SMP
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G        W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20000005 (nzCv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kmem_cache_alloc+0x50/0x328
+lr : __kvm_mmu_topup_memory_cache+0xc4/0x250
+sp : ffff002174a8f560
+x29: ffff002174a8f570 x28: 0000000000000024 x27: 0000000000000002
+x26: ffff80008006c5a4 x25: ffff002267052408 x24: ffff800082df2000
+x23: 0000000007ffffff x22: 0000000000000021 x21: 0000000000000002
+x20: 00000000f350d021 x19: 0000000000000002 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+x14: 0000000000003560 x13: ffff00226f4f0000 x12: ffff800080034458
+x11: 0000000000000000 x10: ffff0025f2c24168 x9 : ffff80008006c5a4
+x8 : 0000000000025135 x7 : ffff8000800343e8 x6 : 00000000000000b0
+x5 : ffff00226f4f3610 x4 : dfff800000000000 x3 : 0000000000000000
+x2 : ffff8000a5cc1000 x1 : 0000000000000000 x0 : ffff0021701b3cc0
+Call trace:
+ kmem_cache_alloc+0x50/0x328
+ __kvm_mmu_topup_memory_cache+0xc4/0x250
+ kvm_mmu_topup_memory_cache+0x2c/0x40
+ kvm_handle_guest_abort+0x580/0x12e8
+ handle_exit+0x134/0x540
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50
+ kvm_vcpu_ioctl+0x2d0/0xc98
+ __arm64_sys_ioctl+0x134/0x158
+ invoke_syscall.constprop.0+0x64/0x1a8
+ el0_svc_common.constprop.0+0x138/0x170
+ do_el0_svc+0x38/0x50
+ el0_svc+0x28/0x60
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+Code: f942fc01 f90007e1 d2800001 f90003ff (b9401e76) 
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+kernel BUG at arch/arm64/kvm/fpsimd.c:54!
+Internal error: Oops - BUG: 00000000f2000800 [#2] SMP
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_arch_vcpu_load_fp+0x198/0x1d8
+lr : kvm_arch_vcpu_load_fp+0x198/0x1d8
+sp : ffff002174a8e5e0
+x29: ffff002174a8e5e0 x28: ffff800081d82990 x27: ffff0020f23bc500
+x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000000402
+x23: 0000000000000000 x22: ffff0020951a8000 x21: 0000000000000000
+x20: ffff0021701b3cc0 x19: ffff002267050000 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+x14: 00000000000039a0 x13: ffff00226f4f0000 x12: ffff600410023e1c
+x11: 1fffe00410023e1b x10: ffff600410023e1b x9 : ffff800080082678
+x8 : 00009ffbeffdc1e5 x7 : ffff00208011f0dc x6 : 0000000000000001
+x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+x2 : 0000000000000007 x1 : ffff0021701b3cc0 x0 : 0000000000000000
+Call trace:
+ kvm_arch_vcpu_load_fp+0x198/0x1d8
+ kvm_arch_vcpu_load+0x178/0x490
+ kvm_sched_in+0x64/0x80
+ finish_task_switch.isra.0+0x17c/0x370
+ __schedule+0x1084/0x1e10
+ __cond_resched+0x4c/0x78
+ __wait_for_common+0x9c/0x398
+ wait_for_completion+0x24/0x38
+ __synchronize_srcu+0xf4/0x148
+ synchronize_srcu+0x198/0x248
+ __mmu_notifier_release+0x1d4/0x398
+ exit_mmap+0x5ac/0x610
+ __mmput+0xb4/0x358
+ mmput+0x94/0xb0
+ do_exit+0x4f8/0x10c8
+ make_task_dead+0xe8/0x298
+ die+0x3fc/0x418
+ die_kernel_fault+0x270/0x470
+ __do_kernel_fault+0x21c/0x238
+ do_page_fault+0x18c/0x728
+ do_translation_fault+0x134/0x160
+ do_mem_abort+0x64/0x108
+ el1_abort+0x34/0x50
+ el1h_64_sync_handler+0x94/0xd0
+ el1h_64_sync+0x64/0x68
+ kmem_cache_alloc+0x50/0x328
+ __kvm_mmu_topup_memory_cache+0xc4/0x250
+ kvm_mmu_topup_memory_cache+0x2c/0x40
+ kvm_handle_guest_abort+0x580/0x12e8
+ handle_exit+0x134/0x540
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50
+ kvm_vcpu_ioctl+0x2d0/0xc98
+ __arm64_sys_ioctl+0x134/0x158
+ invoke_syscall.constprop.0+0x64/0x1a8
+ el0_svc_common.constprop.0+0x138/0x170
+ do_el0_svc+0x38/0x50
+ el0_svc+0x28/0x60
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+---[ end trace 0000000000000000 ]---
+note: syz.0.224[174844] exited with irqs disabled
+Fixing recursive fault but reboot is needed!
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 0 at kernel/context_tracking.c:128 ct_kernel_exit.constprop.0+0xb8/0xc0
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : ct_kernel_exit.constprop.0+0xb8/0xc0
+lr : ct_kernel_exit.constprop.0+0x1c/0xc0
+sp : ffff800082de7c80
+x29: ffff800082de7c80 x28: 00000000d807a0ac x27: 00000000d5600000
+x26: 0000000000000000 x25: 0000000000000000 x24: 00001e599adda114
+x23: ffff800083619018 x22: ffff800083619000 x21: ffff800083619000
+x20: ffff800082ce5848 x19: ffff0025f630c848 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad730
+x14: 0000000000000000 x13: 000000000000000b x12: ffff6004bec6320f
+x11: 1fffe004bec6320e x10: ffff6004bec6320e x9 : ffff800081d6a078
+x8 : 00009ffb4139cdf2 x7 : ffff0025f6319073 x6 : 000001669b7dafa1
+x5 : 00ffffffffffffff x4 : 0000000000000015 x3 : 00001c000766e5f4
+x2 : 0000000000000012 x1 : 4000000000000002 x0 : 4000000000000000
+Call trace:
+ ct_kernel_exit.constprop.0+0xb8/0xc0
+ ct_idle_enter+0xc/0x18
+ cpuidle_enter_state+0x208/0x300
+ cpuidle_enter+0x4c/0x78
+ do_idle+0x2b4/0x348
+ cpu_startup_entry+0x40/0x50
+ rest_init+0xf8/0x100
+ arch_call_rest_init+0x1c/0x28
+ start_kernel+0x2e0/0x3b8
+ __primary_switched+0xb8/0xc8
+---[ end trace 0000000000000000 ]---
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+Code: f942fc01 f90007e1 d2800001 f90003ff (b9401e76) 
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+kernel BUG at arch/arm64/kvm/fpsimd.c:54!
+Internal error: Oops - BUG: 00000000f2000800 [#2] SMP
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_arch_vcpu_load_fp+0x198/0x1d8
+lr : kvm_arch_vcpu_load_fp+0x198/0x1d8
+sp : ffff002174a8e5e0
+x29: ffff002174a8e5e0 x28: ffff800081d82990 x27: ffff0020f23bc500
+x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000000402
+x23: 0000000000000000 x22: ffff0020951a8000 x21: 0000000000000000
+x20: ffff0021701b3cc0 x19: ffff002267050000 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+x14: 00000000000039a0 x13: ffff00226f4f0000 x12: ffff600410023e1c
+x11: 1fffe00410023e1b x10: ffff600410023e1b x9 : ffff800080082678
+x8 : 00009ffbeffdc1e5 x7 : ffff00208011f0dc x6 : 0000000000000001
+x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+x2 : 0000000000000007 x1 : ffff0021701b3cc0 x0 : 0000000000000000
+Call trace:
+ kvm_arch_vcpu_load_fp+0x198/0x1d8
+ kvm_arch_vcpu_load+0x178/0x490
+ kvm_sched_in+0x64/0x80
+ finish_task_switch.isra.0+0x17c/0x370
+ __schedule+0x1084/0x1e10
+ __cond_resched+0x4c/0x78
+ __wait_for_common+0x9c/0x398
+ wait_for_completion+0x24/0x38
+ __synchronize_srcu+0xf4/0x148
+ synchronize_srcu+0x198/0x248
+ __mmu_notifier_release+0x1d4/0x398
+ exit_mmap+0x5ac/0x610
+ __mmput+0xb4/0x358
+ mmput+0x94/0xb0
+ do_exit+0x4f8/0x10c8
+ make_task_dead+0xe8/0x298
+ die+0x3fc/0x418
+ die_kernel_fault+0x270/0x470
+ __do_kernel_fault+0x21c/0x238
+ do_page_fault+0x18c/0x728
+ do_translation_fault+0x134/0x160
+ do_mem_abort+0x64/0x108
+ el1_abort+0x34/0x50
+ el1h_64_sync_handler+0x94/0xd0
+ el1h_64_sync+0x64/0x68
+ kmem_cache_alloc+0x50/0x328
+ __kvm_mmu_topup_memory_cache+0xc4/0x250
+ kvm_mmu_topup_memory_cache+0x2c/0x40
+ kvm_handle_guest_abort+0x580/0x12e8
+ handle_exit+0x134/0x540
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50
+ kvm_vcpu_ioctl+0x2d0/0xc98
+ __arm64_sys_ioctl+0x134/0x158
+ invoke_syscall.constprop.0+0x64/0x1a8
+ el0_svc_common.constprop.0+0x138/0x170
+ do_el0_svc+0x38/0x50
+ el0_svc+0x28/0x60
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+---[ end trace 0000000000000000 ]---
+note: syz.0.224[174844] exited with irqs disabled
+Fixing recursive fault but reboot is needed!
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 0 at kernel/context_tracking.c:128 ct_kernel_exit.constprop.0+0xb8/0xc0
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : ct_kernel_exit.constprop.0+0xb8/0xc0
+lr : ct_kernel_exit.constprop.0+0x1c/0xc0
+sp : ffff800082de7c80
+x29: ffff800082de7c80 x28: 00000000d807a0ac x27: 00000000d5600000
+x26: 0000000000000000 x25: 0000000000000000 x24: 00001e599adda114
+x23: ffff800083619018 x22: ffff800083619000 x21: ffff800083619000
+x20: ffff800082ce5848 x19: ffff0025f630c848 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad730
+x14: 0000000000000000 x13: 000000000000000b x12: ffff6004bec6320f
+x11: 1fffe004bec6320e x10: ffff6004bec6320e x9 : ffff800081d6a078
+x8 : 00009ffb4139cdf2 x7 : ffff0025f6319073 x6 : 000001669b7dafa1
+x5 : 00ffffffffffffff x4 : 0000000000000015 x3 : 00001c000766e5f4
+x2 : 0000000000000012 x1 : 4000000000000002 x0 : 4000000000000000
+Call trace:
+ ct_kernel_exit.constprop.0+0xb8/0xc0
+ ct_idle_enter+0xc/0x18
+ cpuidle_enter_state+0x208/0x300
+ cpuidle_enter+0x4c/0x78
+ do_idle+0x2b4/0x348
+ cpu_startup_entry+0x40/0x50
+ rest_init+0xf8/0x100
+ arch_call_rest_init+0x1c/0x28
+ start_kernel+0x2e0/0x3b8
+ __primary_switched+0xb8/0xc8
+---[ end trace 0000000000000000 ]---
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+Internal error: Oops - BUG: 00000000f2000800 [#2] SMP
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 174844 Comm: syz.0.224 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 80000005 (Nzcv daif -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : kvm_arch_vcpu_load_fp+0x198/0x1d8
+lr : kvm_arch_vcpu_load_fp+0x198/0x1d8
+sp : ffff002174a8e5e0
+x29: ffff002174a8e5e0 x28: ffff800081d82990 x27: ffff0020f23bc500
+x26: ffff800082cd5008 x25: ffff800080065148 x24: 0000000000000402
+x23: 0000000000000000 x22: ffff0020951a8000 x21: 0000000000000000
+x20: ffff0021701b3cc0 x19: ffff002267050000 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff800080686144
+x14: 00000000000039a0 x13: ffff00226f4f0000 x12: ffff600410023e1c
+x11: 1fffe00410023e1b x10: ffff600410023e1b x9 : ffff800080082678
+x8 : 00009ffbeffdc1e5 x7 : ffff00208011f0dc x6 : 0000000000000001
+x5 : 0000000000000001 x4 : dfff800000000000 x3 : ffff8000801df434
+x2 : 0000000000000007 x1 : ffff0021701b3cc0 x0 : 0000000000000000
+Call trace:
+ kvm_arch_vcpu_load_fp+0x198/0x1d8
+ kvm_arch_vcpu_load+0x178/0x490
+ kvm_sched_in+0x64/0x80
+ finish_task_switch.isra.0+0x17c/0x370
+ __schedule+0x1084/0x1e10
+ __cond_resched+0x4c/0x78
+ __wait_for_common+0x9c/0x398
+ wait_for_completion+0x24/0x38
+ __synchronize_srcu+0xf4/0x148
+ synchronize_srcu+0x198/0x248
+ __mmu_notifier_release+0x1d4/0x398
+ exit_mmap+0x5ac/0x610
+ __mmput+0xb4/0x358
+ mmput+0x94/0xb0
+ do_exit+0x4f8/0x10c8
+ make_task_dead+0xe8/0x298
+ die+0x3fc/0x418
+ die_kernel_fault+0x270/0x470
+ __do_kernel_fault+0x21c/0x238
+ do_page_fault+0x18c/0x728
+ do_translation_fault+0x134/0x160
+ do_mem_abort+0x64/0x108
+ el1_abort+0x34/0x50
+ el1h_64_sync_handler+0x94/0xd0
+ el1h_64_sync+0x64/0x68
+ kmem_cache_alloc+0x50/0x328
+ __kvm_mmu_topup_memory_cache+0xc4/0x250
+ kvm_mmu_topup_memory_cache+0x2c/0x40
+ kvm_handle_guest_abort+0x580/0x12e8
+ handle_exit+0x134/0x540
+ kvm_arch_vcpu_ioctl_run+0x370/0xd50
+ kvm_vcpu_ioctl+0x2d0/0xc98
+ __arm64_sys_ioctl+0x134/0x158
+ invoke_syscall.constprop.0+0x64/0x1a8
+ el0_svc_common.constprop.0+0x138/0x170
+ do_el0_svc+0x38/0x50
+ el0_svc+0x28/0x60
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+Code: f94013f5 17ffffcc f90013f5 9408a54d (d4210000) 
+---[ end trace 0000000000000000 ]---
+note: syz.0.224[174844] exited with irqs disabled
+Fixing recursive fault but reboot is needed!
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 0 at kernel/context_tracking.c:128 ct_kernel_exit.constprop.0+0xb8/0xc0
+Modules linked in: bridge stp llc iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 libcrc32c gadgetfs udc_core st iptable_filter rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtk_btusb joydev btusb btrtl btintel btbcm btmtk r8152 mii bluetooth ecdh_generic ecc hid_multitouch hid_generic aes_ce_blk aes_ce_cipher crct10dif_ce ghash_ce sm4_ce_gcm sm4_ce_ccm sm4_ce sm4_ce_cipher sm3_ce sha3_ce sha512_ce sha512_arm64 sha2_ce sha256_arm64 snd_hda_codec_conexant sha1_ce snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx snd_soc_hdmi_codec snd_hda_aw883xx snd_hda_codec_generic snd_soc_pmdk_dp snd_soc_phytium_i2s_v2 ledtrig_audio i2c_hid_acpi uvcvideo libarc4 i2c_hid ftg340 snd_hda_phytium thermal hid snd_hda_codec videobuf2_vmalloc cppc_cpufreq ftv310_vpu_driver uvc rfkill snd_hda_core xhci_plat_hcd videobuf2_memops videobuf2_v4l2 videobuf2_common hwmon_vid parport_pc ppdev lp parport ip_tables x_tables multipath linear ftd330_drm_dc
+ drm_display_helper drm_kms_helper drm serio_raw
+CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D W         ------- ----- 6.6.30-covfix #51
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : ct_kernel_exit.constprop.0+0xb8/0xc0
+lr : ct_kernel_exit.constprop.0+0x1c/0xc0
+sp : ffff800082de7c80
+x29: ffff800082de7c80 x28: 00000000d807a0ac x27: 00000000d5600000
+x26: 0000000000000000 x25: 0000000000000000 x24: 00001e599adda114
+x23: ffff800083619018 x22: ffff800083619000 x21: ffff800083619000
+x20: ffff800082ce5848 x19: ffff0025f630c848 x18: 0000000000000000
+x17: 0000000000000000 x16: 0000000000000000 x15: 0000ffffe29ad730
+x14: 0000000000000000 x13: 000000000000000b x12: ffff6004bec6320f
+x11: 1fffe004bec6320e x10: ffff6004bec6320e x9 : ffff800081d6a078
+x8 : 00009ffb4139cdf2 x7 : ffff0025f6319073 x6 : 000001669b7dafa1
+x5 : 00ffffffffffffff x4 : 0000000000000015 x3 : 00001c000766e5f4
+x2 : 0000000000000012 x1 : 4000000000000002 x0 : 4000000000000000
+Call trace:
+ ct_kernel_exit.constprop.0+0xb8/0xc0
+ ct_idle_enter+0xc/0x18
+ cpuidle_enter_state+0x208/0x300
+ cpuidle_enter+0x4c/0x78
+ do_idle+0x2b4/0x348
+ cpu_startup_entry+0x40/0x50
+ rest_init+0xf8/0x100
+ arch_call_rest_init+0x1c/0x28
+ start_kernel+0x2e0/0x3b8
+ __primary_switched+0xb8/0xc8
+---[ end trace 0000000000000000 ]---
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+

@@ -1,0 +1,635 @@
+### date
+Thu Jul 30 09:12:45 +08 2026
+### uname
+Linux kylin-pc 6.6.30-covfix #51 SMP Wed Jul 29 18:12:39 +08 2026 aarch64 aarch64 aarch64 GNU/Linux
+### uptime
+ 09:12:45 up 14:49,  1 user,  load average: 3.34, 3.76, 3.80
+### meminfo
+MemTotal:       24614392 kB
+MemFree:          517152 kB
+MemAvailable:   11007252 kB
+Buffers:          350012 kB
+Cached:          9324048 kB
+SwapCached:            0 kB
+Active:         15207592 kB
+Inactive:        5212544 kB
+Active(anon):    9947048 kB
+Inactive(anon):   872348 kB
+Active(file):    5260544 kB
+Inactive(file):  4340196 kB
+Unevictable:          16 kB
+Mlocked:              16 kB
+SwapTotal:      34308160 kB
+SwapFree:       34308160 kB
+Zswap:                 0 kB
+Zswapped:              0 kB
+Dirty:             27532 kB
+Writeback:             0 kB
+AnonPages:      10732232 kB
+Mapped:           743156 kB
+Shmem:             73304 kB
+KReclaimable:    1237564 kB
+Slab:            2652716 kB
+SReclaimable:    1237564 kB
+SUnreclaim:      1415152 kB
+KernelStack:       29024 kB
+PageTables:        62992 kB
+SecPageTables:        72 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:    46615356 kB
+Committed_AS:    7917400 kB
+VmallocTotal:   133141626880 kB
+VmallocUsed:      403488 kB
+VmallocChunk:          0 kB
+Percpu:             6848 kB
+HardwareCorrupted:     0 kB
+AnonHugePages:   1310720 kB
+ShmemHugePages:        0 kB
+ShmemPmdMapped:        0 kB
+FileHugePages:         0 kB
+FilePmdMapped:         0 kB
+CmaTotal:         131072 kB
+CmaFree:           40808 kB
+HugePages_Total:       0
+HugePages_Free:        0
+HugePages_Rsvd:        0
+HugePages_Surp:        0
+Hugepagesize:       2048 kB
+Hugetlb:               0 kB
+### vmstat
+nr_free_pages 128776
+nr_zone_inactive_anon 218087
+nr_zone_active_anon 2485736
+nr_zone_inactive_file 1085049
+nr_zone_active_file 1315136
+nr_zone_unevictable 4
+nr_zone_write_pending 6883
+nr_mlock 4
+nr_bounce 0
+nr_zspages 0
+nr_free_cma 10202
+numa_hit 225560240
+numa_miss 0
+numa_foreign 0
+numa_interleave 31449
+numa_local 225560253
+numa_other 0
+nr_inactive_anon 218087
+nr_active_anon 2485736
+nr_inactive_file 1085049
+nr_active_file 1315136
+nr_unevictable 4
+nr_slab_reclaimable 309391
+nr_slab_unreclaimable 353788
+nr_isolated_anon 0
+nr_isolated_file 0
+workingset_nodes 18406
+workingset_refault_anon 0
+workingset_refault_file 139
+workingset_activate_anon 0
+workingset_activate_file 136
+workingset_restore_anon 0
+workingset_restore_file 17
+workingset_nodereclaim 1645
+nr_anon_pages 2682032
+nr_mapped 186665
+nr_file_pages 2418515
+nr_dirty 6883
+nr_writeback 0
+nr_writeback_temp 0
+nr_shmem 18326
+nr_shmem_hugepages 0
+nr_shmem_pmdmapped 0
+nr_file_hugepages 0
+nr_file_pmdmapped 0
+nr_anon_transparent_hugepages 638
+nr_vmscan_write 1
+nr_vmscan_immediate_reclaim 0
+nr_dirtied 10227790
+nr_written 10185458
+nr_throttled_written 0
+nr_kernel_misc_reclaimable 0
+nr_foll_pin_acquired 490915371
+nr_foll_pin_released 490915371
+nr_kernel_stack 29024
+nr_page_table_pages 15748
+nr_sec_page_table_pages 18
+nr_swapcached 0
+pgpromote_success 0
+pgpromote_candidate 0
+nr_dirty_threshold 1489502
+nr_dirty_background_threshold 868725
+pgpgin 2999959
+pgpgout 41721900
+pswpin 0
+pswpout 1
+pgalloc_dma 62010546
+pgalloc_dma32 0
+pgalloc_normal 923300476
+pgalloc_movable 0
+pgalloc_nosplit 0
+pgalloc_nomerge 0
+pgalloc_device 0
+allocstall_dma 0
+allocstall_dma32 0
+allocstall_normal 803
+allocstall_movable 144
+allocstall_nosplit 0
+allocstall_nomerge 0
+allocstall_device 0
+pgskip_dma 0
+pgskip_dma32 0
+pgskip_normal 0
+pgskip_movable 0
+pgskip_nosplit 0
+pgskip_nomerge 0
+pgskip_device 0
+pgfree 986182492
+pgactivate 587
+pgdeactivate 0
+pglazyfree 0
+pgfault 2857448109
+pgmajfault 4095
+pglazyfreed 0
+pgrefill 159789
+pgreuse 12912016
+pgsteal_kswapd 1068722
+pgsteal_direct 67620
+pgsteal_khugepaged 462
+pgdemote_kswapd 0
+pgdemote_direct 0
+pgdemote_khugepaged 0
+pgscan_kswapd 1078423
+pgscan_direct 68007
+pgscan_khugepaged 462
+pgscan_direct_throttle 0
+pgscan_anon 1
+pgscan_file 1146891
+pgsteal_anon 0
+pgsteal_file 1136804
+zone_reclaim_failed 0
+pginodesteal 0
+slabs_scanned 917120
+kswapd_inodesteal 1
+kswapd_low_wmark_hit_quickly 1908
+kswapd_high_wmark_hit_quickly 1
+pageoutrun 3095
+pgrotated 37497
+drop_pagecache 0
+drop_slab 0
+oom_kill 0
+numa_pte_updates 0
+numa_huge_pte_updates 0
+numa_hint_faults 0
+numa_hint_faults_local 0
+numa_pages_migrated 0
+pgmigrate_success 788323
+pgmigrate_fail 14060
+thp_migration_success 0
+thp_migration_fail 0
+thp_migration_split 0
+compact_migrate_scanned 376848427
+compact_free_scanned 172975181
+compact_isolated 1625120
+compact_stall 82
+compact_fail 81
+compact_success 1
+compact_daemon_wake 2988
+compact_daemon_migrate_scanned 376848393
+compact_daemon_free_scanned 172975181
+htlb_buddy_alloc_success 0
+htlb_buddy_alloc_fail 0
+cma_alloc_success 13
+cma_alloc_fail 0
+unevictable_pgs_culled 36083
+unevictable_pgs_scanned 0
+unevictable_pgs_rescued 16
+unevictable_pgs_mlocked 20
+unevictable_pgs_munlocked 16
+unevictable_pgs_cleared 0
+unevictable_pgs_stranded 0
+thp_fault_alloc 1318006
+thp_fault_fallback 60309
+thp_fault_fallback_charge 0
+thp_collapse_alloc 749
+thp_collapse_alloc_failed 0
+thp_file_alloc 0
+thp_file_fallback 0
+thp_file_fallback_charge 0
+thp_file_mapped 0
+thp_split_page 0
+thp_split_page_failed 0
+thp_deferred_split_page 3172
+thp_split_pmd 5094
+thp_shatter_page 0
+thp_shatter_page_failed 0
+thp_shatter_page_discarded 0
+thp_scan_exceed_none_pte 10
+thp_scan_exceed_swap_pte 0
+thp_scan_exceed_share_pte 167
+thp_zero_page_alloc 1
+thp_zero_page_alloc_failed 0
+thp_swpout 0
+thp_swpout_fallback 0
+balloon_inflate 0
+balloon_deflate 0
+balloon_migrate 0
+swap_ra 0
+swap_ra_hit 0
+ksm_swpin_copy 0
+cow_ksm 0
+zswpin 0
+zswpout 0
+nr_unstable 0
+### buddyinfo
+Node 0, zone      DMA    257    201    179    221    167    108     56     44     35     15     16 
+Node 0, zone   Normal  15114   2938   2443    581    340    168    112     68     27     11      3 
+### zoneinfo
+Node 0, zone      DMA
+  per-node stats
+      nr_inactive_anon 218087
+      nr_active_anon 2485809
+      nr_inactive_file 1085049
+      nr_active_file 1315136
+      nr_unevictable 4
+      nr_slab_reclaimable 309391
+      nr_slab_unreclaimable 353788
+      nr_isolated_anon 0
+      nr_isolated_file 0
+      workingset_nodes 18406
+      workingset_refault_anon 0
+      workingset_refault_file 139
+      workingset_activate_anon 0
+      workingset_activate_file 136
+      workingset_restore_anon 0
+      workingset_restore_file 17
+      workingset_nodereclaim 1645
+      nr_anon_pages 2682105
+      nr_mapped    188198
+      nr_file_pages 2418515
+      nr_dirty     6883
+      nr_writeback 0
+      nr_writeback_temp 0
+      nr_shmem     18326
+      nr_shmem_hugepages 0
+      nr_shmem_pmdmapped 0
+      nr_file_hugepages 0
+      nr_file_pmdmapped 0
+      nr_anon_transparent_hugepages 638
+      nr_vmscan_write 1
+      nr_vmscan_immediate_reclaim 0
+      nr_dirtied   10227790
+      nr_written   10185458
+      nr_throttled_written 0
+      nr_kernel_misc_reclaimable 0
+      nr_foll_pin_acquired 490915371
+      nr_foll_pin_released 490915371
+      nr_kernel_stack 29024
+      nr_page_table_pages 15748
+      nr_sec_page_table_pages 18
+      nr_swapcached 0
+      pgpromote_success 0
+      pgpromote_candidate 0
+  pages free     51511
+        boost    0
+        min      780
+        low      1205
+        high     1630
+        spanned  524288
+        present  507904
+        managed  441153
+        cma      32768
+        order    0
+        protection: (0, 0, 22314, 22314, 22314, 22314, 22314)
+      nr_free_pages 51511
+      nr_zone_inactive_anon 1536
+      nr_zone_active_anon 138355
+      nr_zone_inactive_file 121604
+      nr_zone_active_file 122455
+      nr_zone_unevictable 0
+      nr_zone_write_pending 0
+      nr_mlock     0
+      nr_bounce    0
+      nr_zspages   0
+      nr_free_cma  10202
+      numa_hit     3182277
+      numa_miss    0
+      numa_foreign 0
+      numa_interleave 0
+      numa_local   3182277
+      numa_other   0
+  pagesets
+    cpu: 0
+              count: 519
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 1
+              count: 63
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 2
+              count: 126
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 3
+              count: 113
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 4
+              count: 29
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 5
+              count: 127
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 6
+              count: 95
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+    cpu: 7
+              count: 0
+              high:  252
+              batch: 63
+  vm stats threshold: 40
+  node_unreclaimable:  0
+  start_pfn:           524288
+Node 0, zone    DMA32
+  pages free     0
+        boost    0
+        min      0
+        low      0
+        high     0
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        order    0
+        protection: (0, 0, 0, 0, 0, 0, 0)
+Node 0, zone   Normal
+  pages free     77777
+        boost    3072
+        min      13555
+        low      19267
+        high     24979
+        spanned  40370176
+        present  7864320
+        managed  5712445
+        cma      0
+        order    0
+        protection: (0, 0, 0, 0, 0, 0, 0)
+      nr_free_pages 77777
+      nr_zone_inactive_anon 216551
+      nr_zone_active_anon 2347454
+      nr_zone_inactive_file 963445
+      nr_zone_active_file 1192681
+      nr_zone_unevictable 4
+      nr_zone_write_pending 6883
+      nr_mlock     4
+      nr_bounce    0
+      nr_zspages   0
+      nr_free_cma  0
+      numa_hit     222377963
+      numa_miss    0
+      numa_foreign 0
+      numa_interleave 31449
+      numa_local   222377976
+      numa_other   0
+  pagesets
+    cpu: 0
+              count: 1826
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 1
+              count: 1094
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 2
+              count: 909
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 3
+              count: 786
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 4
+              count: 1710
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 5
+              count: 1043
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 6
+              count: 1589
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+    cpu: 7
+              count: 946
+              high:  2024
+              batch: 63
+  vm stats threshold: 72
+  node_unreclaimable:  0
+  start_pfn:           1048576
+Node 0, zone  Movable
+  pages free     0
+        boost    0
+        min      32
+        low      32
+        high     32
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        order    0
+        protection: (0, 0, 0, 0, 0, 0, 0)
+Node 0, zone  NoSplit
+  pages free     0
+        boost    0
+        min      32
+        low      32
+        high     32
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        order    0
+        protection: (0, 0, 0, 0, 0, 0, 0)
+Node 0, zone  NoMerge
+  pages free     0
+        boost    0
+        min      32
+        low      32
+        high     32
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        order    0
+        protection: (0, 0, 0, 0, 0, 0, 0)
+Node 0, zone   Device
+  pages free     0
+        boost    0
+        min      32
+        low      32
+        high     32
+        spanned  0
+        present  0
+        managed  0
+        cma      0
+        order    0
+        protection: (0, 0, 0, 0, 0, 0, 0)
+### slabinfo-top
+buffer_head       1902829 2072160    168   24    1 : tunables    0    0    0 : slabdata  86340  86340      0
+kmalloc-64        765181 765248    128   32    1 : tunables    0    0    0 : slabdata  23914  23914      0
+lsm_inode_cache   438571 476210    232   35    2 : tunables    0    0    0 : slabdata  13606  13606      0
+dentry            366846 385890    272   30    2 : tunables    0    0    0 : slabdata  12863  12863      0
+ext4_inode_cache  374926 385154   1448   22    8 : tunables    0    0    0 : slabdata  17507  17507      0
+kmalloc-96        369381 372096    128   32    1 : tunables    0    0    0 : slabdata  11628  11628      0
+radix_tree_node   223097 223307    704   23    4 : tunables    0    0    0 : slabdata   9709   9709      0
+skbuff_head_cache 188198 188850    320   25    2 : tunables    0    0    0 : slabdata   7554   7554      0
+extent_status      75902 155636     56   73    1 : tunables    0    0    0 : slabdata   2132   2132      0
+skbuff_small_head 155454 155454    832   39    8 : tunables    0    0    0 : slabdata   3986   3986      0
+kmalloc-192       127915 141568    256   32    2 : tunables    0    0    0 : slabdata   4424   4424      0
+names_cache       105980 106659   4352    7    8 : tunables    0    0    0 : slabdata  15237  15237      0
+filp               95939  98448    384   21    2 : tunables    0    0    0 : slabdata   4688   4688      0
+vma_lock           58729  84462     96   42    1 : tunables    0    0    0 : slabdata   2011   2011      0
+vm_area_struct     58642  80640    272   30    2 : tunables    0    0    0 : slabdata   2688   2688      0
+kmalloc-128        63200  63200    256   32    2 : tunables    0    0    0 : slabdata   1975   1975      0
+inode_cache        48789  48789    824   39    8 : tunables    0    0    0 : slabdata   1251   1251      0
+kernfs_node_cache  47952  48211    216   37    2 : tunables    0    0    0 : slabdata   1303   1303      0
+anon_vma_chain     33675  46494     96   42    1 : tunables    0    0    0 : slabdata   1107   1107      0
+maple_node         10624  44064    512   32    4 : tunables    0    0    0 : slabdata   1377   1377      0
+kmalloc-16         41190  41600     32  128    1 : tunables    0    0    0 : slabdata    325    325      0
+kmalloc-256        26947  33120    512   32    4 : tunables    0    0    0 : slabdata   1035   1035      0
+kmalloc-32         25223  27008     64   64    1 : tunables    0    0    0 : slabdata    422    422      0
+kmalloc-cg-32      26688  26688     64   64    1 : tunables    0    0    0 : slabdata    417    417      0
+kmalloc-512        21151  25120   1024   32    8 : tunables    0    0    0 : slabdata    785    785      0
+kmalloc-rcl-64     23360  23360    128   32    1 : tunables    0    0    0 : slabdata    730    730      0
+kmalloc-8          19770  19992     40  102    1 : tunables    0    0    0 : slabdata    196    196      0
+ext4_system_zone    1559  19783     56   73    1 : tunables    0    0    0 : slabdata    271    271      0
+anon_vma           16198  16412    184   22    1 : tunables    0    0    0 : slabdata    746    746      0
+proc_inode_cache    6442  13608    896   36    8 : tunables    0    0    0 : slabdata    378    378      0
+kmalloc-4k          9818   9876   8192    4    8 : tunables    0    0    0 : slabdata   2469   2469      0
+kmalloc-cg-4k       8100   8100   8192    4    8 : tunables    0    0    0 : slabdata   2025   2025      0
+ext4_groupinfo_4k   7380   7380    272   30    2 : tunables    0    0    0 : slabdata    246    246      0
+kmalloc-cg-8        6936   6936     40  102    1 : tunables    0    0    0 : slabdata     68     68      0
+ftrace_event_field   5428   5428     88   46    1 : tunables    0    0    0 : slabdata    118    118      0
+kmalloc-cg-96       5152   5152    128   32    1 : tunables    0    0    0 : slabdata    161    161      0
+kmalloc-cg-16       4749   5120     32  128    1 : tunables    0    0    0 : slabdata     40     40      0
+kmalloc-1k          4149   4656   2048   16    8 : tunables    0    0    0 : slabdata    291    291      0
+shmem_inode_cache   4518   4587    992   33    8 : tunables    0    0    0 : slabdata    139    139      0
+kmalloc-cg-512      4071   4096   1024   32    8 : tunables    0    0    0 : slabdata    128    128      0
+### pkvm_cov stats
+ring_pages          32
+ring_capacity_pcs   16381
+owner_cpu           0
+leaked_bytes        0
+
+# arm/skip
+begin_calls         2419340772
+skip_not_owner      651
+skip_no_kcov        160738447
+drains              2258601674
+
+# EL2 producer (per-#23, summed)
+el2_hits            423409560031
+el2_written         423409560031
+el2_dropped_ringful 0
+el2_nested_dropped  0
+el2_overflow_drains 0
+el2_hits_max        10201
+el2_written_max     10201
+LOST_IN_RING        0
+
+# runtime->link conversion
+link_ok             423409560031
+link_dropped        0
+
+# task KCOV delivery
+kcov_requested      423409560031
+kcov_accepted       6729638612
+kcov_mode_lost      0
+LOST_IN_KCOV_AREA   416679921419
+
+# per-#23 hit distribution (log2 buckets)
+hits_8_15 746570784
+hits_16_31 3340079
+hits_32_63 458149145
+hits_64_127 44999734
+hits_128_255 2393215
+hits_256_511 997168222
+hits_512_1023 5853372
+hits_1024_2047 11918
+hits_2048_4095 47581
+hits_4096_8191 33812
+hits_8192_16383 33812
+### kvm debugfs
+1727333-10
+1727333-5
+1727333-8
+174844-4
+213228-4
+blocking
+exits
+halt_attempted_poll
+halt_poll_fail_hist
+halt_poll_fail_ns
+halt_poll_invalid
+halt_poll_success_hist
+halt_poll_success_ns
+halt_successful_poll
+halt_wait_hist
+halt_wait_ns
+halt_wakeup
+hvc_exit_stat
+mmio_exit_kernel
+mmio_exit_user
+pkvm_cov
+protected_hyp_mem
+protected_pgtable_mem
+protected_shared_mem
+remote_tlb_flush
+remote_tlb_flush_requests
+signal_exits
+wfe_exit_stat
+wfi_exit_stat
+### tlb warn count
+1336
+### processes
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root        2393 23.6 37.0 11009972 9122292 ?    Ssl  Jul29 210:40 /usr/sbin/kysec-sync-daemon --init
+kylin       2962  1.0  0.7 3885232 188296 ?      Sl   Jul29   9:10 /usr/bin/ukui-kwin_x11 -session 10d9a6dccc000178514175900000030360037_1785146385_308898
+kylin       2987  0.0  0.7 1383908 176528 ?      Sl   Jul29   0:45 /usr/bin/peony-qt-desktop -w -d
+root        2348  8.6  0.6 4276016 159392 tty7   Ssl+ Jul29  76:37 /usr/lib/xorg/Xorg -core :0 -seat seat0 -auth /var/run/lightdm/root/:0 -nolisten tcp vt7 -novtswitch
+root         384  1.8  0.5 229780 142456 ?       S<s  Jul29  16:36 /lib/systemd/systemd-journald
+kylin       3390  0.0  0.5 338164 136128 ?       Sl   Jul29   0:04 /usr/bin/ukui-search
+root        2267  0.0  0.5 840328 132568 ?       Rl   Jul29   0:01 /usr/sbin/antivirus/avserver
+root     1712153  2.5  0.5 1375332 127520 ?      Ssl  09:10   0:03 /root/syzkaller-fuzz/syz-execprog -executor=/root/syzkaller-fuzz/syz-executor -arch=arm64 -sandbox=none -procs=1 -repeat=0 -threaded=true -collide=false -optional=slowdown=10:sandbox_arg=0:type=isolated /root/syzkaller-fuzz/syzkaller2398364333
+kylin       3284  0.0  0.4 1167800 112828 ?      Sl   Jul29   0:00 /usr/bin/kylin-weather noshowmainwindow
+kylin       3496  0.0  0.4 741240 105768 ?       Sl   Jul29   0:00 /usr/bin/ukui-control-center-session
+root        2378  0.0  0.4 212340 102752 ?       Ss   Jul29   0:06 /usr/bin/python3 /usr/share/kylin-system-updater/kylin-system-updater
+kylin       2974  0.0  0.3 1387684 89296 ?       Sl   Jul29   0:03 /usr/bin/ukui-settings-daemon
+root        5923  0.0  0.3 107888 82000 ?        S    Jul29   0:09 /usr/bin/python3 /usr/share/kylin-software-center-plugin-preprocessing/startDbus.py
+kylin       2680  0.0  0.3 107872 81948 ?        S    Jul29   0:03 /usr/bin/python3 /usr/share/kylin-software-center-plugin-preprocessing/startDbus.py
+kylin       2606  0.0  0.3 524756 81284 ?        Ssl  Jul29   0:01 ukui-session
+kylin       3317  0.0  0.3 670216 81236 ?        Sl   Jul29   0:02 /usr/lib/aarch64-linux-gnu/ukui-polkit/polkit-ukui-authentication-agent-1
+kylin       3267  0.1  0.3 1037996 80504 ?       Sl   Jul29   1:12 /usr/bin/kylin-printer-applet
+kylin       2976  0.0  0.3 3321896 78208 ?       Sl   Jul29   0:02 /usr/bin/ukui-panel
+root        2310  0.1  0.3 814080 76548 ?        SLsl Jul29   1:27 /usr/lib/biometric-authentication/biometric-authenticationd
