@@ -61,7 +61,11 @@ check() {
     echo "$b ($ip): kernel $rel — $ring — ready"
 }
 
-running() { pgrep -af "syz-manager.*$1" | head -1; }
+# Match the manager BINARY, not any process whose command line happens to
+# contain the config path — a shell running `pgrep -f "syz-manager.*<cfg>"`
+# matches itself, so the naive form reports a dead manager as alive (and, worse,
+# makes `start` refuse to launch). -x against the exact binary path avoids that.
+running() { pgrep -a -f "^$MGR -config $1\$" | head -1; }
 
 start() {
     local b=$1
