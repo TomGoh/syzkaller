@@ -103,6 +103,35 @@ Record at minimum: board, kernel build string and source commit, manager revisio
 
 `LOST_IN_RING` belongs in every record. If the ring dropped PCs, "no new coverage" is an instrument artifact rather than a property of the target — the first methodology rule in `notes/pkvm/OPERATOR-RUNBOOK.md`.
 
+## Reference trees — what may be compared against
+
+We work on **klinux `klad-v11-next`**. When an issue needs "does this exist elsewhere / where did it come from", compare only against these:
+
+| tree | what it is |
+| --- | --- |
+| `~/klinux` | the tree under test — the subject, not a reference |
+| `~/common` | the original ACK checkout (whether or not it carries kcov/pKVM changes is irrelevant here) |
+| `~/kernel-refs/ack` | **pure, unmodified ACK** — `android15-6.6`, `android16-6.12`, `android17-6.18`, fetched from `android.googlesource.com/kernel/common` and never committed to |
+| `~/kernel-refs/linux` | **pure, unmodified upstream Linux** |
+
+Both `~/kernel-refs` trees are deliberately left **with no checkout** — only `.git` is populated. A reference tree with no working files cannot be edited by accident, and it forces `git show <ref>:<path>`, which is the rule below. They are blobless (`--filter=blob:none`); blobs fetch on demand, and the two ACK branches beyond 6.6 are shallow, so file content is available but commit archaeology on them is not.
+
+Snapshots as first fetched, 2026-08-05 — cite these when a claim depends on a moving branch:
+
+| ref | tip |
+| --- | --- |
+| `aosp/android15-6.6` | `742616e` |
+| `aosp/android16-6.12` | `f068f96` |
+| `aosp/android17-6.18` | `42ab2c6` |
+| `torvalds/master` | `c21bb4193` |
+| `~/common` (`2030/bug930`) | `da966ce9a047` |
+
+**Prefer a tag over a branch** for mainline claims. `master` moves: reading `arch/arm64/kvm/mmu.c` from two snapshots taken hours apart gave `account_locked_vm` at `1692`/`1741` and then at `1724`/`1773`. A line number cited against `master` is wrong by the next fetch.
+
+**Do not compare against `~/common-stage2mvp`, `~/ksrc-pkvmfix` or `~/futlab-fixes`.** They are the `2030/bug930` lineage, which is not ours, and they carry local unpushed patches on top. Reasoning from them produced three false claims in one afternoon — that a fix had "landed on `2030/bug930`" when the branch is still unfixed, and that two ACK cherry-picks were on that branch when they are only on an unpushed local chain.
+
+**Read refs, not working trees.** Always `git show <ref>:<path>`, never `cat <path>` in a checkout. The trap that caused the errors above was a checkout whose working tree contained an uncommitted fix while its branch did not — the file looks fixed, the branch is not. The same rule applies to a build: compare the build string embedded in the binary, not the file's mtime.
+
 ## Working an issue
 
 Once an issue is filed, it goes through three steps in this order. Do not skip step 2 — shipping our own patch when an upstream fix already exists creates a divergence someone has to reconcile at every rebase, and the upstream version has been reviewed and tested by people with more context.

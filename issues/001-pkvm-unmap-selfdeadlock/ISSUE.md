@@ -130,7 +130,7 @@ Searched Android-Common and mainline before writing it. Two commits look like ma
 - `78adeb53eea1` *"Fix account_locked_mm() call in non-preemptible section"* (2024-05) — batches the accounting into `pkvm_unmap_range()` inside `write_unlock`/`write_lock`. Escapes `mmu_lock` only.
 - `246414094770` *"Don't do account_locked_vm() while atomic"* (2024-11) — per-page `write_unlock`/`account`/`write_lock`. Escapes `mmu_lock` only. **This tree already carried the equivalent**, adapted for huge pages; it is the code the deadlock was found in.
 
-Neither touches `mmap_lock`, and ACK `android15-6.6` still ships the bug at HEAD (2026-08-04). Mainline is immune only as a side effect of the v6.14 rework that moved guest stage-2 into EL2 (`fce886a60207` and its series) — new infrastructure, not a backportable fix. Also checked and irrelevant: `ed14b491ec76`/`9a13ca20af8d` (THP accounting arithmetic), `3ae13572d106` (THP reclaim with ballooning), `04512258010d` (charges reclaim against `kvm->mm` rather than `current->mm`).
+Neither touches `mmap_lock`. **ACK `android15-6.6` still ships the bug at HEAD** — verified first-hand from the unmodified reference tree, `git show aosp/android15-6.6:arch/arm64/kvm/mmu.c` at `742616e`, which shows `/* account_locked_vm may sleep */` and `account_locked_vm(mm, cnt, false)` at lines 349-351. Mainline is immune only as a side effect of the v6.14 rework that moved guest stage-2 into EL2 (`fce886a60207` and its series) — new infrastructure, not a backportable fix. Also checked and irrelevant: `ed14b491ec76` (THP accounting arithmetic), `3ae13572d106` (THP reclaim with ballooning), `04512258010d` (charges reclaim against `kvm->mm` rather than `current->mm` — landed upstream, `pkvm.c:355` on `torvalds/master`; klinux still uses `current->mm`).
 
 *Caveat on the search:* `lore.kernel.org` is behind a challenge that blocked automated queries, so an unmerged list posting could exist that was not seen. The merged state of mainline and ACK was verified from source.
 
@@ -153,44 +153,49 @@ e56d181356a4  Convert kvm_pinned_pages to an interval-tree       ← klinux has 
 
 That list is the complete history of `account_locked_vm` under `arch/arm64/kvm/` on `aosp/android15-6.6` — six commits, none of which addresses `mmap_lock`.
 
-Both downstream trees descend from it, by different routes:
+Two lineages descend from it, by different routes:
 
-- **`android/common` `2030/bug930`** (futlab; the tree `common-stage2mvp` and `ksrc-pkvmfix` check out) descends **directly** from `android15-6.6-pkvm_experimental` — `git merge-base --is-ancestor` confirms it, and the merge base *is* that branch's head `e70cae0cbb35`. It stops before `e56d181356a4`, so it still batches a single `cnt` over a maple tree.
-- **klinux `klad-v11-next`** imported the same ANDROID series into the V11 6.6.103 kernel — 272 `ANDROID: KVM: arm64` commits — *including* the interval-tree conversion. Hence per-ppage accounting in `pkvm_unmap_guest()`. The two trees share no object store, and their copies of this code are one ACK commit apart, which is the entire reason one patch cannot serve both.
+- **`android/common` `2030/bug930`** (the reference checkout `~/common`) descends **directly** from `android15-6.6-pkvm_experimental` — `git merge-base --is-ancestor` confirms it, and the merge base *is* that branch's head `e70cae0cbb35`. It stops before `e56d181356a4`, so it still batches a single `cnt` over a maple tree. This lineage is **not ours**; it appears here only to explain why a patch written for it does not apply.
+- **klinux `klad-v11-next`** — the tree we work on — imported the same ANDROID series into the V11 6.6.103 kernel, *including* the interval-tree conversion. Hence per-ppage accounting in `pkvm_unmap_guest()`. The two share no object store, and their copies of this code are one ACK change apart, which is the entire reason one patch cannot serve both.
 
-State of every line, each read from source rather than inferred:
+State of every line. Per the tree policy in [`issues/README.md`](../README.md), each row is read from an **unmodified** tree — `~/kernel-refs/ack`, `~/kernel-refs/linux`, or `~/common` — never from a locally patched checkout:
 
-| tree | accounting in the unmap path | affected |
-| --- | --- | --- |
-| mainline Linux `v6.19.14` | none — no `account_locked_vm` anywhere under `arch/arm64` at that tag | no |
-| ACK `android-mainline` | none | no |
-| ACK `android15-6.6` @ fetched tip `9f24219bc984` | `___unmap_stage2_range` → `pkvm_unmap_range` → `account_locked_vm(mm, cnt, false)` | **yes, still today** |
-| ACK `android15-6.6-pkvm_experimental` | same | **yes** |
-| futlab `2030/bug930` | same shape (batched `cnt`, maple tree) | **yes** — fixed locally by `d7c317637aa2` |
-| klinux `klad-v11-next` | per-ppage, interval tree | **yes** — fixed by `348c94763cc6` |
-| ACK `android16-6.12` | **none — `pkvm_unmap_range`/`pkvm_unmap_guest` do not exist** | no |
-| ACK `android17-6.18` | none | no |
+| tree | ref / snapshot | accounting in the unmap path | affected |
+| --- | --- | --- | --- |
+| mainline Linux | tag `v6.19.14` | none — no `account_locked_vm` anywhere under `arch/arm64` | no |
+| mainline Linux | `torvalds/master` @ `c21bb4193` | present again (`mmu.c:1724`, `:1773`, `pkvm.c:355`) but on the **fault and reclaim** paths only | no |
+| ACK `android15-6.6` | `aosp/android15-6.6` @ `742616e` | `___unmap_stage2_range` → `pkvm_unmap_range` → `account_locked_vm(mm, cnt, false)` (`mmu.c:349-351`) | **yes, still today** |
+| ACK `android15-6.6-pkvm_experimental` | @ `e70cae0cbb35` | same | **yes** |
+| `android/common` `2030/bug930` | `~/common` @ `da966ce9a047` | same shape (batched `cnt`, maple tree), `mmu.c:337-339` | **yes** — branch unfixed |
+| klinux `klad-v11-next` | @ `348c94763cc6` | per-ppage, interval tree | **yes** — fixed by `348c94763cc6` |
+| ACK `android16-6.12` | `aosp/android16-6.12` @ `f068f96` | **none — `pkvm_unmap_range`/`pkvm_unmap_guest` do not exist** | no |
+| ACK `android17-6.18` | `aosp/android17-6.18` @ `42ab2c6` | none | no |
+
+Mainline is cited by **tag** wherever the claim must stay true: `master` moves, and its line numbers shifted within a single afternoon (`mmu.c:1692`→`1724`).
 
 ### What ACK 6.12 shows, and why it matters here
 
 6.12 is the interesting one, because it did not fix this defect — it *dissolved* it, and the way it did so is independent confirmation of the design chosen here.
 
-`stage2_unmap_vm()` in 6.12 still takes `mmap_read_lock(current->mm)` across the whole unmap, exactly as 6.6 does. The lock did not change. What changed is that the accounting **left the unmap path**: `___unmap_stage2_range()` is now only `KVM_PGT_FN(kvm_pgtable_stage2_unmap)(...)`, and the only two un-accounting sites in the tree are in `pkvm.c`, both on **reclaim** paths and both outside `mmu_lock` and `mmap_lock` —
+`stage2_unmap_vm()` in 6.12 still takes `mmap_read_lock(current->mm)` across the whole unmap, exactly as 6.6 does. The lock did not change. What changed is that the accounting **left the unmap path**: `___unmap_stage2_range()` is now only `KVM_PGT_FN(kvm_pgtable_stage2_unmap)(...)`, and `pkvm_unmap_range()` / `pkvm_unmap_guest()` do not exist at all. The remaining un-accounting sites are:
 
 - `pkvm.c:417`, the VM-teardown loop over `__pkvm_reclaim_dying_guest_page`, batched *after* the loop;
-- `pkvm.c:762`, `pkvm_host_reclaim_page()`, after `write_unlock(&host_kvm->mmu_lock)`.
+- `pkvm.c:762`, `pkvm_host_reclaim_page()`, after `write_unlock(&host_kvm->mmu_lock)`;
+- `mmu.c:2072`, which is **not** an unmap-path decrement — it sits under the `free_ppages:` error label of the map path, rolling back the charge taken at `mmu.c:2059` for pages that were pinned but never mapped. Same shape as mainline's `dec_account:`.
+
+None of the three runs with `mmap_lock` held, which is the property that matters. (An earlier version of this note claimed there were only two sites, both in `pkvm.c`; reading the fetched tree rather than a web view corrected that.)
 
 So the ACK line converged on the same principle this fix applies — *un-accounting must not run inside the `mmap_lock`-held unmap* — and reached it by restructuring, across a major version, as part of the `__pkvm_pages_to_ppages` / `__pkvm_host_donate_guest` rework. Deferring through a per-VM atomic is the minimal expression of that principle on a 6.6-shaped tree, which is what makes it the right shape to carry rather than a local invention.
 
-*Caveat on this comparison:* 6.12 and 6.18 were read from their branch tips via gitiles, not from fetched history. The present-day absence of the code is verified; the commits that removed it were not identified, so no commit id is cited for it.
+*Scope of this comparison:* 6.12 and 6.18 are read from the fetched reference tree `~/kernel-refs/ack` at the snapshots given in the table above. The present-day absence of the code is verified first-hand; the commits that removed it were not identified — those branches are fetched shallow — so no commit id is cited for it.
 
 Two collateral notes from the same reading. `892713e97ca1` *"Sidestep stage2_unmap_vm() on vcpu reset when S2FWB is supported"* (2020) is why no one upstream trips over this: FWB silicon never enters the path. And 6.12's `pkvm_host_reclaim_page()` accounts against `host_kvm->mm`, where klinux still uses `current->mm` (`pkvm.c:311`, `:534`) — a *different* defect, matching `04512258010d` above, tracked separately and out of scope for this issue.
 
 ### Why our own sibling patch could not be cherry-picked
 
-`d7c317637aa2` on `futlab-fixes` fixes the identical defect on `android/common` `2030/bug930`, and klinux does not even share an object store with it. The two lineages descend from the *different* partial fixes above, so the defective statement lives in a different function, in a different unit, over a different data structure.
+An equivalent fix, `d7c317637aa2`, was written earlier for the **`android/common` `2030/bug930` lineage**. That is a different lineage from ours and its status there is out of scope for this issue; what matters here is only why it cannot be reused.
 
-Concretely: the sibling patch rewrites `pkvm_unmap_range()`, which batches a single `cnt` over a maple tree; klinux keeps pinned pages in an interval tree and un-accounts **per-ppage** inside `pkvm_unmap_guest()` in units of `1 << ppage->order` (`mmu.c:321-367`). The hunks have no matching context. What transferred is the design, and the field name, function name and comments were kept identical so the two remain recognisably the same fix if anyone reconciles them.
+It rewrites `pkvm_unmap_range()`, which batches a single `cnt` over a maple tree. klinux keeps pinned pages in an interval tree and un-accounts **per-ppage** inside `pkvm_unmap_guest()` in units of `1 << ppage->order` (`mmu.c:321-367`). Different function, different unit, different data structure — the hunks have no matching context, and the two trees share no object store. What transferred is the design, and the field name, function name and comments were kept identical so the two remain recognisably the same fix if anyone reconciles them.
 
 Because the change adds a field to `struct kvm_protected_vm`, it shifts offsets in `struct kvm_arch` and is read at EL2, so it required a full rebuild including the Rust nVHE bindings — an object-level compile test would not have proven it.
 
