@@ -1,0 +1,31 @@
+# Which register holds res.a0 at the WARN, and which hypercall id is issued.
+# vmlinux: /home/jose/klinux/vmlinux, 6.6.103+ #4 (byte-for-byte the kernel N90 ran:
+#   the repro's WARN reports x9 = ffff8000800bbc6c, inside this function body).
+# dmesg reports the WARN at kvm_tlb_flush_vmid_range+0x74; the function starts at
+# ffff8000800bbc20, so +0x74 = ffff8000800bbc94 -- the brk below.
+
+ffff8000800bbc60:	910023e0 	add	x0, sp, #0x8
+ffff8000800bbc64:	a900ffff 	stp	xzr, xzr, [sp, #8]
+ffff8000800bbc68:	97ffc692 	bl	ffff8000800ad6b0 <pkvm_cov_begin>
+ffff8000800bbc6c:	12001c04 	and	w4, w0, #0xff
+ffff8000800bbc70:	d2800140 	mov	x0, #0xa                   	// #10
+ffff8000800bbc74:	aa1303e1 	mov	x1, x19
+ffff8000800bbc78:	f2b8c000 	movk	x0, #0xc600, lsl #16
+ffff8000800bbc7c:	d4000002 	hvc	#0x0
+ffff8000800bbc80:	aa0003f3 	mov	x19, x0
+ffff8000800bbc84:	370002e4 	tbnz	w4, #0, ffff8000800bbce0 <kvm_tlb_flush_vmid_range+0xc0>
+ffff8000800bbc88:	9405e524 	bl	ffff800080235118 <__sanitizer_cov_trace_pc>
+ffff8000800bbc8c:	b4000153 	cbz	x19, ffff8000800bbcb4 <kvm_tlb_flush_vmid_range+0x94>
+ffff8000800bbc90:	9405e522 	bl	ffff800080235118 <__sanitizer_cov_trace_pc>
+ffff8000800bbc94:	d4210000 	brk	#0x800
+ffff8000800bbc98:	14000007 	b	ffff8000800bbcb4 <kvm_tlb_flush_vmid_range+0x94>
+
+# mov x0,#0xa + movk 0xc600 -> SMCCC function id for hypercall 10
+# mov x19,x0 after the hvc -> x19 IS res.a0
+# cbz x19 -> WARN_ON(res.a0 != SMCCC_RET_SUCCESS)
+
+# Authoritative enum values for THIS config, from the bindgen output the EL2 crate builds against:
+#   arch/arm64/kvm/hyp/xhypervisor/src/bindings/bindings_generated.rs
+#   __kvm_tlb_flush_vmid     = 10
+#   __pkvm_prot_finalize     = 18
+#   __pkvm_tlb_flush_vmid    = 39

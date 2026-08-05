@@ -1,0 +1,13 @@
+# res.a0 (x19) across every kvm_tlb_flush_vmid_range WARN of run 2026-08-05-klinux-n90-census
+# kernel: klinux 6.6.103+ #3 @39ee2e725c12, N90, kvm-arm.mode=protected
+# method:
+#   awk '/at arch\/arm64\/kvm\/hyp\/pgtable.c:654 kvm_tlb_flush_vmid_range/{f=1;next}
+#        f && /x19:/{ match($0,/x19: [0-9a-f]+/); print substr($0,RSTART+5,RLENGTH-5); f=0 }' dmesg | sort | uniq -c
+# SMCCC_RET_SUCCESS = 0, SMCCC_RET_NOT_SUPPORTED = -1  (include/linux/arm-smccc.h:339-340)
+
+  count  x19 (= res.a0)
+    270 ffffffffffffffff
+
+# first and last WARN timestamps (campaign ran 09:31:38-09:56:14, board booted ~08:57):
+[ 3353.599090] WARNING: CPU: 0 PID: 68086 at arch/arm64/kvm/hyp/pgtable.c:654
+[ 3563.050775] WARNING: CPU: 0 PID: 69433 at arch/arm64/kvm/hyp/pgtable.c:654

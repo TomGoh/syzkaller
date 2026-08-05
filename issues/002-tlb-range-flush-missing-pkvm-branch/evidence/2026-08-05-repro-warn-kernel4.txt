@@ -1,0 +1,37 @@
+[20695.671990] ------------[ cut here ]------------
+[20695.671998] WARNING: CPU: 0 PID: 92660 at arch/arm64/kvm/hyp/pgtable.c:654 kvm_tlb_flush_vmid_range+0x74/0xe0
+[20695.672018] Modules linked in: btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb btrtl aes_ce_blk btintel aes_ce_cipher btbcm crct10dif_ce btmtk ghash_ce bluetooth cfg80211 snd_hda_codec_conexant snd_hda_codec_aw882xx snd_hda_aw882xx snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce ecdh_generic sha512_ce snd_hda_codec_generic sha512_arm64 r8152 sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt ecc snd_soc_hdmi_codec ledtrig_audio snd_soc_pmdk_dp mii snd_hda_phytium libarc4 kylin_extra_button i2c_phytium_v2_platform snd_hda_codec snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus phytium_uart_v2 i2c_hid_acpi ftv310_vpu_driver i2c_hid snd_hda_core phytium_noc hid cppc_cpufreq thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce
+[20695.672258]  vivaldi_fmap sm4_ce_cipher ftd330_drm_dc serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks [last unloaded: vfio]
+[20695.672292] CPU: 0 PID: 92660 Comm: repro-tlbflush Not tainted 6.6.103+ #4
+[20695.672300] Source Version: 39ee2e725c122bbee2cc1cec1956a23db2670543
+[20695.672304] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[20695.672309] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[20695.672318] pc : kvm_tlb_flush_vmid_range+0x74/0xe0
+[20695.672327] lr : kvm_tlb_flush_vmid_range+0x74/0xe0
+[20695.672336] sp : ffff00208424baa0
+[20695.672340] x29: ffff00208424bac0 x28: ffff0022b0aaa000 x27: 00000000401fffff
+[20695.672353] x26: 0000000040000000 x25: ffff0022b0aaa028 x24: 0000000040200000
+[20695.672365] x23: ffff00208033d400 x22: 0000000040000000 x21: ffff0022b0aaa000
+[20695.672377] x20: ffff00208033d400 x19: ffffffffffffffff x18: ffff800081f5eb30
+[20695.672390] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000001
+[20695.672401] x14: 000012d2962d3b80 x13: ffff80267e028000 x12: ffff800081f62fe8
+[20695.672414] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff8000800bbc6c
+[20695.672426] x8 : ffff00222973cbb0 x7 : 0000000000000000 x6 : 0000000000000001
+[20695.672438] x5 : ffff80267e028000 x4 : 0000000000000000 x3 : ffff0020a9a20000
+[20695.672450] x2 : ffff00208424baa8 x1 : ffff00222973bc00 x0 : 0000000000000000
+[20695.672462] Call trace:
+[20695.672465]  kvm_tlb_flush_vmid_range+0x74/0xe0
+[20695.672475]  kvm_arch_flush_remote_tlbs_range+0x34/0x48
+[20695.672487]  kvm_flush_remote_tlbs_memslot+0x2c/0xa0
+[20695.672497]  kvm_arch_commit_memory_region+0x2e4/0x338
+[20695.672509]  kvm_set_memslot+0x1f0/0x728
+[20695.672517]  __kvm_set_memory_region+0x46c/0x550
+[20695.672525]  kvm_vm_ioctl+0xf08/0x1ca8
+[20695.672535]  __arm64_sys_ioctl+0x108/0x128
+[20695.672544]  invoke_syscall.constprop.0+0x74/0x170
+[20695.672555]  el0_svc_common.constprop.0+0x108/0x138
+[20695.672565]  do_el0_svc+0x2c/0x40
+[20695.672574]  el0_svc+0x20/0xb0
+[20695.672582]  el0t_64_sync_handler+0x118/0x128
+[20695.672591]  el0t_64_sync+0x14c/0x150
+[20695.672598] ---[ end trace 0000000000000000 ]---

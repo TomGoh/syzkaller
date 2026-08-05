@@ -16,7 +16,7 @@ enabled_syscalls: 61
 duration: 24m24s (09:31:38 – 09:56:14)
 result: corpus=271 coverage=10747 exec total=10356 (422/min)
 ring: LOST_IN_RING=0 skip_not_owner=0 LOST_IN_KCOV_AREA=10913821436
-observed: []
+observed: [2]
 not_observed: []
 ---
 
@@ -24,7 +24,9 @@ not_observed: []
 
 First campaign against klinux `6.6.103+ #3` on N90 after the board was rebooted onto that build. Stopped deliberately, not by a crash, to run the targeted deadlock reproduction ([2026-08-05-deadlock-repro](2026-08-05-deadlock-repro.md)).
 
-No kernel warning, Oops, panic or hung task was reported during the run.
+No kernel warning, Oops, panic or hung task was *reported* during the run — but the target's `dmesg` is not empty. Issue 002 fired 270 times in the last 3.5 minutes (`[3353.599090]` to `[3563.050775]`, against a capture ending at `[3563.051724]`), and syzkaller never saw any of it, because `WARNING:.* at arch/arm64/kvm/hyp/pgtable\.c:\d+ kvm_tlb_flush_vmid_range` is one of the ignores compiled into this manager binary. The artifact for that observation is the archived console log, not a crash directory — which is why `observed:` lists 2 while `workdir/crashes/` is empty.
+
+That distinction is the reason `filters.reporter_ignores` is recorded above. "Nothing was reported" and "nothing happened" are different claims, and only the second one would license `not-observed`.
 
 ## What this run could NOT observe
 
