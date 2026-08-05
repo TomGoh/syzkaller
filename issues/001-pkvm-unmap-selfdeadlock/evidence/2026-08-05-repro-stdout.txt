@@ -1,0 +1,6 @@
+Kylin V11
+repro pid will be:
+first KVM_RUN returned -1 (errno 4) -- pages should now be pinned
+second KVM_ARM_VCPU_INIT -- hangs here on an affected kernel...
+Read from remote host 10.42.27.17: Connection reset by peer
+client_loop: send disconnect: Broken pipe

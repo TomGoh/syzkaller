@@ -1,0 +1,41 @@
+Kylin V11
+ring_pages          32
+ring_capacity_pcs   16381
+owner_cpu           0
+leaked_bytes        0
+
+# arm/skip
+begin_calls         115073618
+skip_not_owner      0
+skip_no_kcov        380985
+drains              114692632
+
+# EL2 producer (per-#23, summed)
+el2_hits            11028383127
+el2_written         11028383127
+el2_dropped_ringful 0
+el2_nested_dropped  0
+el2_overflow_drains 0
+el2_hits_max        2179
+el2_written_max     2179
+LOST_IN_RING        0
+
+# runtime->link conversion
+link_ok             11028383127
+link_dropped        0
+
+# task KCOV delivery
+kcov_requested      11028383127
+kcov_accepted       114561691
+kcov_mode_lost      0
+LOST_IN_KCOV_AREA   10913821436
+
+# per-#23 hit distribution (log2 buckets)
+hits_8_15 390378
+hits_16_31 1227
+hits_32_63 29146956
+hits_64_127 42713917
+hits_128_255 42437077
+hits_256_511 2043
+hits_1024_2047 1019
+hits_2048_4095 15

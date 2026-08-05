@@ -1,0 +1,335 @@
+Kylin V11
+[ 3808.996376] INFO: task repro-deadlock:79770 blocked for more than 122 seconds.
+[ 3808.996389]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3808.996394] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3808.996398] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3808.996411] Call trace:
+[ 3808.996414]  __switch_to+0x10c/0x158
+[ 3808.996430]  __schedule+0x3c0/0x12e8
+[ 3808.996440]  schedule+0x28/0x120
+[ 3808.996450]  schedule_preempt_disabled+0x14/0x28
+[ 3808.996461]  rwsem_down_write_slowpath+0x234/0x710
+[ 3808.996469]  down_write+0x60/0x78
+[ 3808.996475]  account_locked_vm+0x4c/0x108
+[ 3808.996487]  __unmap_stage2_range+0x230/0x2e8
+[ 3808.996499]  stage2_unmap_vm+0x178/0x298
+[ 3808.996509]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3808.996519]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3808.996529]  __arm64_sys_ioctl+0x108/0x128
+[ 3808.996538]  invoke_syscall.constprop.0+0x74/0x170
+[ 3808.996549]  el0_svc_common.constprop.0+0x108/0x138
+[ 3808.996559]  do_el0_svc+0x2c/0x40
+[ 3808.996569]  el0_svc+0x20/0xb0
+[ 3808.996577]  el0t_64_sync_handler+0x118/0x128
+[ 3808.996586]  el0t_64_sync+0x14c/0x150
+[ 3829.476399] INFO: task repro-deadlock:79770 blocked for more than 143 seconds.
+[ 3829.476412]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3829.476417] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3829.476421] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3829.476434] Call trace:
+[ 3829.476437]  __switch_to+0x10c/0x158
+[ 3829.476453]  __schedule+0x3c0/0x12e8
+[ 3829.476463]  schedule+0x28/0x120
+[ 3829.476473]  schedule_preempt_disabled+0x14/0x28
+[ 3829.476484]  rwsem_down_write_slowpath+0x234/0x710
+[ 3829.476492]  down_write+0x60/0x78
+[ 3829.476498]  account_locked_vm+0x4c/0x108
+[ 3829.476509]  __unmap_stage2_range+0x230/0x2e8
+[ 3829.476522]  stage2_unmap_vm+0x178/0x298
+[ 3829.476532]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3829.476542]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3829.476552]  __arm64_sys_ioctl+0x108/0x128
+[ 3829.476561]  invoke_syscall.constprop.0+0x74/0x170
+[ 3829.476572]  el0_svc_common.constprop.0+0x108/0x138
+[ 3829.476583]  do_el0_svc+0x2c/0x40
+[ 3829.476592]  el0_svc+0x20/0xb0
+[ 3829.476601]  el0t_64_sync_handler+0x118/0x128
+[ 3829.476610]  el0t_64_sync+0x14c/0x150
+[ 3849.956480] INFO: task repro-deadlock:79770 blocked for more than 163 seconds.
+[ 3849.956493]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3849.956499] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3849.956503] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3849.956515] Call trace:
+[ 3849.956519]  __switch_to+0x10c/0x158
+[ 3849.956534]  __schedule+0x3c0/0x12e8
+[ 3849.956545]  schedule+0x28/0x120
+[ 3849.956555]  schedule_preempt_disabled+0x14/0x28
+[ 3849.956566]  rwsem_down_write_slowpath+0x234/0x710
+[ 3849.956574]  down_write+0x60/0x78
+[ 3849.956581]  account_locked_vm+0x4c/0x108
+[ 3849.956592]  __unmap_stage2_range+0x230/0x2e8
+[ 3849.956605]  stage2_unmap_vm+0x178/0x298
+[ 3849.956615]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3849.956625]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3849.956635]  __arm64_sys_ioctl+0x108/0x128
+[ 3849.956644]  invoke_syscall.constprop.0+0x74/0x170
+[ 3849.956655]  el0_svc_common.constprop.0+0x108/0x138
+[ 3849.956666]  do_el0_svc+0x2c/0x40
+[ 3849.956675]  el0_svc+0x20/0xb0
+[ 3849.956684]  el0t_64_sync_handler+0x118/0x128
+[ 3849.956693]  el0t_64_sync+0x14c/0x150
+[ 3870.436575] INFO: task repro-deadlock:79770 blocked for more than 184 seconds.
+[ 3870.436588]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3870.436593] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3870.436598] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3870.436610] Call trace:
+[ 3870.436614]  __switch_to+0x10c/0x158
+[ 3870.436630]  __schedule+0x3c0/0x12e8
+[ 3870.436640]  schedule+0x28/0x120
+[ 3870.436650]  schedule_preempt_disabled+0x14/0x28
+[ 3870.436661]  rwsem_down_write_slowpath+0x234/0x710
+[ 3870.436669]  down_write+0x60/0x78
+[ 3870.436676]  account_locked_vm+0x4c/0x108
+[ 3870.436687]  __unmap_stage2_range+0x230/0x2e8
+[ 3870.436699]  stage2_unmap_vm+0x178/0x298
+[ 3870.436710]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3870.436719]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3870.436729]  __arm64_sys_ioctl+0x108/0x128
+[ 3870.436738]  invoke_syscall.constprop.0+0x74/0x170
+[ 3870.436749]  el0_svc_common.constprop.0+0x108/0x138
+[ 3870.436760]  do_el0_svc+0x2c/0x40
+[ 3870.436769]  el0_svc+0x20/0xb0
+[ 3870.436777]  el0t_64_sync_handler+0x118/0x128
+[ 3870.436786]  el0t_64_sync+0x14c/0x150
+[ 3890.916590] INFO: task repro-deadlock:79770 blocked for more than 204 seconds.
+[ 3890.916602]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3890.916608] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3890.916612] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3890.916624] Call trace:
+[ 3890.916628]  __switch_to+0x10c/0x158
+[ 3890.916643]  __schedule+0x3c0/0x12e8
+[ 3890.916653]  schedule+0x28/0x120
+[ 3890.916663]  schedule_preempt_disabled+0x14/0x28
+[ 3890.916674]  rwsem_down_write_slowpath+0x234/0x710
+[ 3890.916682]  down_write+0x60/0x78
+[ 3890.916689]  account_locked_vm+0x4c/0x108
+[ 3890.916700]  __unmap_stage2_range+0x230/0x2e8
+[ 3890.916712]  stage2_unmap_vm+0x178/0x298
+[ 3890.916722]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3890.916732]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3890.916742]  __arm64_sys_ioctl+0x108/0x128
+[ 3890.916751]  invoke_syscall.constprop.0+0x74/0x170
+[ 3890.916762]  el0_svc_common.constprop.0+0x108/0x138
+[ 3890.916773]  do_el0_svc+0x2c/0x40
+[ 3890.916782]  el0_svc+0x20/0xb0
+[ 3890.916790]  el0t_64_sync_handler+0x118/0x128
+[ 3890.916799]  el0t_64_sync+0x14c/0x150
+[ 3892.372007] sysrq: Show Blocked State
+[ 3892.377092] task:OptiDaemon      state:D stack:0     pid:1965  tgid:1965  ppid:1      flags:0x00000204
+[ 3892.377105] Call trace:
+[ 3892.377109]  __switch_to+0x10c/0x158
+[ 3892.377124]  __schedule+0x3c0/0x12e8
+[ 3892.377134]  schedule+0x28/0x120
+[ 3892.377144]  schedule_preempt_disabled+0x14/0x28
+[ 3892.377154]  rwsem_down_read_slowpath+0x224/0x508
+[ 3892.377163]  down_read_killable+0x48/0xd8
+[ 3892.377170]  __access_remote_vm+0x60/0x470
+[ 3892.377182]  access_remote_vm+0x30/0x40
+[ 3892.377193]  proc_pid_cmdline_read+0x1e8/0x570
+[ 3892.377204]  vfs_read+0x108/0x308
+[ 3892.377214]  ksys_read+0x90/0x148
+[ 3892.377223]  __arm64_sys_read+0x28/0x38
+[ 3892.377233]  invoke_syscall.constprop.0+0x74/0x170
+[ 3892.377245]  el0_svc_common.constprop.0+0x108/0x138
+[ 3892.377255]  do_el0_svc+0x2c/0x40
+[ 3892.377265]  el0_svc+0x20/0xb0
+[ 3892.377273]  el0t_64_sync_handler+0x118/0x128
+[ 3892.377282]  el0t_64_sync+0x14c/0x150
+[ 3892.377605] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3892.377616] Call trace:
+[ 3892.377619]  __switch_to+0x10c/0x158
+[ 3892.377630]  __schedule+0x3c0/0x12e8
+[ 3892.377639]  schedule+0x28/0x120
+[ 3892.377649]  schedule_preempt_disabled+0x14/0x28
+[ 3892.377660]  rwsem_down_write_slowpath+0x234/0x710
+[ 3892.377667]  down_write+0x60/0x78
+[ 3892.377674]  account_locked_vm+0x4c/0x108
+[ 3892.377684]  __unmap_stage2_range+0x230/0x2e8
+[ 3892.377695]  stage2_unmap_vm+0x178/0x298
+[ 3892.377705]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3892.377715]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3892.377724]  __arm64_sys_ioctl+0x108/0x128
+[ 3892.377732]  invoke_syscall.constprop.0+0x74/0x170
+[ 3892.377742]  el0_svc_common.constprop.0+0x108/0x138
+[ 3892.377753]  do_el0_svc+0x2c/0x40
+[ 3892.377763]  el0_svc+0x20/0xb0
+[ 3892.377770]  el0t_64_sync_handler+0x118/0x128
+[ 3892.377779]  el0t_64_sync+0x14c/0x150
+[ 3892.377811] task:ps              state:D stack:0     pid:82448 tgid:82448 ppid:82447  flags:0x00000204
+[ 3892.377822] Call trace:
+[ 3892.377825]  __switch_to+0x10c/0x158
+[ 3892.377835]  __schedule+0x3c0/0x12e8
+[ 3892.377845]  schedule+0x28/0x120
+[ 3892.377854]  schedule_preempt_disabled+0x14/0x28
+[ 3892.377865]  rwsem_down_read_slowpath+0x224/0x508
+[ 3892.377872]  down_read_killable+0x48/0xd8
+[ 3892.377879]  __access_remote_vm+0x60/0x470
+[ 3892.377890]  access_remote_vm+0x30/0x40
+[ 3892.377900]  environ_read+0x198/0x278
+[ 3892.377908]  vfs_read+0x108/0x308
+[ 3892.377917]  ksys_read+0x90/0x148
+[ 3892.377926]  __arm64_sys_read+0x28/0x38
+[ 3892.377935]  invoke_syscall.constprop.0+0x74/0x170
+[ 3892.377946]  el0_svc_common.constprop.0+0x108/0x138
+[ 3892.377956]  do_el0_svc+0x2c/0x40
+[ 3892.377966]  el0_svc+0x20/0xb0
+[ 3892.377974]  el0t_64_sync_handler+0x118/0x128
+[ 3892.377982]  el0t_64_sync+0x14c/0x150
+[ 3892.377993] task:pgrep           state:D stack:0     pid:83814 tgid:83814 ppid:83813  flags:0x00000204
+[ 3892.378004] Call trace:
+[ 3892.378007]  __switch_to+0x10c/0x158
+[ 3892.378017]  __schedule+0x3c0/0x12e8
+[ 3892.378027]  schedule+0x28/0x120
+[ 3892.378036]  schedule_preempt_disabled+0x14/0x28
+[ 3892.378047]  rwsem_down_read_slowpath+0x224/0x508
+[ 3892.378054]  down_read_killable+0x48/0xd8
+[ 3892.378061]  __access_remote_vm+0x60/0x470
+[ 3892.378071]  access_remote_vm+0x30/0x40
+[ 3892.378081]  proc_pid_cmdline_read+0x1e8/0x570
+[ 3892.378091]  vfs_read+0x108/0x308
+[ 3892.378099]  ksys_read+0x90/0x148
+[ 3892.378108]  __arm64_sys_read+0x28/0x38
+[ 3892.378118]  invoke_syscall.constprop.0+0x74/0x170
+[ 3892.378128]  el0_svc_common.constprop.0+0x108/0x138
+[ 3892.378138]  do_el0_svc+0x2c/0x40
+[ 3892.378148]  el0_svc+0x20/0xb0
+[ 3892.378155]  el0t_64_sync_handler+0x118/0x128
+[ 3892.378164]  el0t_64_sync+0x14c/0x150
+[ 3892.378172] task:ps              state:D stack:0     pid:83843 tgid:83843 ppid:83842  flags:0x00000204
+[ 3892.378183] Call trace:
+[ 3892.378186]  __switch_to+0x10c/0x158
+[ 3892.378196]  __schedule+0x3c0/0x12e8
+[ 3892.378205]  schedule+0x28/0x120
+[ 3892.378215]  schedule_preempt_disabled+0x14/0x28
+[ 3892.378225]  rwsem_down_read_slowpath+0x224/0x508
+[ 3892.378233]  down_read_killable+0x48/0xd8
+[ 3892.378240]  __access_remote_vm+0x60/0x470
+[ 3892.378250]  access_remote_vm+0x30/0x40
+[ 3892.378260]  proc_pid_cmdline_read+0x1e8/0x570
+[ 3892.378269]  vfs_read+0x108/0x308
+[ 3892.378278]  ksys_read+0x90/0x148
+[ 3892.378287]  __arm64_sys_read+0x28/0x38
+[ 3892.378296]  invoke_syscall.constprop.0+0x74/0x170
+[ 3892.378307]  el0_svc_common.constprop.0+0x108/0x138
+[ 3892.378317]  do_el0_svc+0x2c/0x40
+[ 3892.378327]  el0_svc+0x20/0xb0
+[ 3892.378334]  el0t_64_sync_handler+0x118/0x128
+[ 3892.378343]  el0t_64_sync+0x14c/0x150
+[ 3911.396472] INFO: task repro-deadlock:79770 blocked for more than 225 seconds.
+[ 3911.396485]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3911.396491] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3911.396495] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3911.396507] Call trace:
+[ 3911.396511]  __switch_to+0x10c/0x158
+[ 3911.396526]  __schedule+0x3c0/0x12e8
+[ 3911.396537]  schedule+0x28/0x120
+[ 3911.396546]  schedule_preempt_disabled+0x14/0x28
+[ 3911.396557]  rwsem_down_write_slowpath+0x234/0x710
+[ 3911.396565]  down_write+0x60/0x78
+[ 3911.396572]  account_locked_vm+0x4c/0x108
+[ 3911.396583]  __unmap_stage2_range+0x230/0x2e8
+[ 3911.396595]  stage2_unmap_vm+0x178/0x298
+[ 3911.396606]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3911.396616]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3911.396625]  __arm64_sys_ioctl+0x108/0x128
+[ 3911.396634]  invoke_syscall.constprop.0+0x74/0x170
+[ 3911.396646]  el0_svc_common.constprop.0+0x108/0x138
+[ 3911.396656]  do_el0_svc+0x2c/0x40
+[ 3911.396666]  el0_svc+0x20/0xb0
+[ 3911.396674]  el0t_64_sync_handler+0x118/0x128
+[ 3911.396683]  el0t_64_sync+0x14c/0x150
+[ 3931.876577] INFO: task repro-deadlock:79770 blocked for more than 245 seconds.
+[ 3931.876590]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3931.876596] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3931.876600] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3931.876612] Call trace:
+[ 3931.876616]  __switch_to+0x10c/0x158
+[ 3931.876631]  __schedule+0x3c0/0x12e8
+[ 3931.876642]  schedule+0x28/0x120
+[ 3931.876651]  schedule_preempt_disabled+0x14/0x28
+[ 3931.876662]  rwsem_down_write_slowpath+0x234/0x710
+[ 3931.876670]  down_write+0x60/0x78
+[ 3931.876677]  account_locked_vm+0x4c/0x108
+[ 3931.876688]  __unmap_stage2_range+0x230/0x2e8
+[ 3931.876700]  stage2_unmap_vm+0x178/0x298
+[ 3931.876710]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3931.876720]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3931.876730]  __arm64_sys_ioctl+0x108/0x128
+[ 3931.876739]  invoke_syscall.constprop.0+0x74/0x170
+[ 3931.876750]  el0_svc_common.constprop.0+0x108/0x138
+[ 3931.876761]  do_el0_svc+0x2c/0x40
+[ 3931.876770]  el0_svc+0x20/0xb0
+[ 3931.876779]  el0t_64_sync_handler+0x118/0x128
+[ 3931.876787]  el0t_64_sync+0x14c/0x150
+[ 3952.356508] INFO: task repro-deadlock:79770 blocked for more than 266 seconds.
+[ 3952.356521]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3952.356526] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3952.356530] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3952.356543] Call trace:
+[ 3952.356546]  __switch_to+0x10c/0x158
+[ 3952.356562]  __schedule+0x3c0/0x12e8
+[ 3952.356572]  schedule+0x28/0x120
+[ 3952.356582]  schedule_preempt_disabled+0x14/0x28
+[ 3952.356593]  rwsem_down_write_slowpath+0x234/0x710
+[ 3952.356601]  down_write+0x60/0x78
+[ 3952.356608]  account_locked_vm+0x4c/0x108
+[ 3952.356619]  __unmap_stage2_range+0x230/0x2e8
+[ 3952.356631]  stage2_unmap_vm+0x178/0x298
+[ 3952.356641]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3952.356651]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3952.356661]  __arm64_sys_ioctl+0x108/0x128
+[ 3952.356670]  invoke_syscall.constprop.0+0x74/0x170
+[ 3952.356681]  el0_svc_common.constprop.0+0x108/0x138
+[ 3952.356692]  do_el0_svc+0x2c/0x40
+[ 3952.356701]  el0_svc+0x20/0xb0
+[ 3952.356710]  el0t_64_sync_handler+0x118/0x128
+[ 3952.356718]  el0t_64_sync+0x14c/0x150
+[ 3972.836582] INFO: task repro-deadlock:79770 blocked for more than 286 seconds.
+[ 3972.836595]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3972.836601] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3972.836605] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3972.836618] Call trace:
+[ 3972.836621]  __switch_to+0x10c/0x158
+[ 3972.836637]  __schedule+0x3c0/0x12e8
+[ 3972.836647]  schedule+0x28/0x120
+[ 3972.836657]  schedule_preempt_disabled+0x14/0x28
+[ 3972.836668]  rwsem_down_write_slowpath+0x234/0x710
+[ 3972.836676]  down_write+0x60/0x78
+[ 3972.836683]  account_locked_vm+0x4c/0x108
+[ 3972.836694]  __unmap_stage2_range+0x230/0x2e8
+[ 3972.836706]  stage2_unmap_vm+0x178/0x298
+[ 3972.836716]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3972.836726]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3972.836735]  __arm64_sys_ioctl+0x108/0x128
+[ 3972.836745]  invoke_syscall.constprop.0+0x74/0x170
+[ 3972.836756]  el0_svc_common.constprop.0+0x108/0x138
+[ 3972.836767]  do_el0_svc+0x2c/0x40
+[ 3972.836776]  el0_svc+0x20/0xb0
+[ 3972.836784]  el0t_64_sync_handler+0x118/0x128
+[ 3972.836793]  el0t_64_sync+0x14c/0x150
+[ 3993.316535] INFO: task repro-deadlock:79770 blocked for more than 307 seconds.
+[ 3993.316547]       Tainted: G        W         ------- ----  6.6.103+ #3
+[ 3993.316553] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3993.316557] task:repro-deadlock  state:D stack:0     pid:79770 tgid:79770 ppid:79768  flags:0x00000204
+[ 3993.316570] Call trace:
+[ 3993.316574]  __switch_to+0x10c/0x158
+[ 3993.316590]  __schedule+0x3c0/0x12e8
+[ 3993.316600]  schedule+0x28/0x120
+[ 3993.316610]  schedule_preempt_disabled+0x14/0x28
+[ 3993.316621]  rwsem_down_write_slowpath+0x234/0x710
+[ 3993.316629]  down_write+0x60/0x78
+[ 3993.316636]  account_locked_vm+0x4c/0x108
+[ 3993.316647]  __unmap_stage2_range+0x230/0x2e8
+[ 3993.316659]  stage2_unmap_vm+0x178/0x298
+[ 3993.316669]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 3993.316679]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 3993.316688]  __arm64_sys_ioctl+0x108/0x128
+[ 3993.316697]  invoke_syscall.constprop.0+0x74/0x170
+[ 3993.316709]  el0_svc_common.constprop.0+0x108/0x138
+[ 3993.316719]  do_el0_svc+0x2c/0x40
+[ 3993.316729]  el0_svc+0x20/0xb0
+[ 3993.316737]  el0t_64_sync_handler+0x118/0x128
+[ 3993.316746]  el0t_64_sync+0x14c/0x150
+[ 3993.316754] Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings
+Read from remote host 10.42.27.17: Connection reset by peer
+client_loop: send disconnect: Broken pipe
