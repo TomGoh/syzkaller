@@ -50,4 +50,10 @@ Independent of the runtime result, the built `vmlinux` shows the change took eff
 
 Image-only, in place: same `KVER`, written over `/boot/ostree/kylin-<bootcsum>/vmlinuz-6.6.103+`, which the existing GRUB entry already points at. No GRUB edit was made — this board reports `GRUB_AUTOREGEN=yes`, so a hand-added menuentry would not have survived the next boot anyway. The previous `#3` image is kept at `/root/kernel-backups/vmlinuz-6.6.103+.build3`, and stock `6.6.0-76-generic` remains as GRUB menuentry index 1.
 
-**Known caveat:** `CONFIG_MODVERSIONS=y`, and adding a field to `struct kvm_protected_vm` shifts the CRC of exported symbols whose signature expands `struct kvm`. Exactly one module of 1823 imports any — `vfio.ko`, which uses `kvm_get_kvm_safe` / `kvm_put_kvm`. It is not loaded and is not used by fuzzing, but it will fail to load with "disagrees about version of symbol" until modules are rebuilt.
+**Module ABI: measured, no impact.** `CONFIG_MODVERSIONS=y`, so growing `struct kvm_protected_vm` was expected to shift CRCs for exported symbols whose signature expands `struct kvm`. Tested directly rather than predicted, by loading a `#3`-era module on the `#4` kernel:
+
+- `vfio.ko` — the only module of 1823 that references `kvm_` at all — **loads cleanly** on `#4`, exit 0, no dmesg complaint.
+- Its `__versions` section contains no KVM symbol whatsoever; the only match is `__kvmalloc_node_noprof`. The `kvm_get_kvm_safe` / `kvm_put_kvm` references are `symbol_get()` string literals resolved at runtime, which bypasses modversions.
+- Since boot on `#4`: **0** occurrences of "disagrees about version", "no symbol version" or "version magic" in dmesg, with 102 modules loaded.
+
+An earlier version of this record predicted `vfio.ko` would fail to load. That prediction came from a substring grep for `kvm_` in the `.ko`, which matched `__kvmalloc_node_noprof` and the `symbol_get` literals — not from checking what the module actually version-checks. The board was restored to its pre-test state (`vfio` unloaded).
