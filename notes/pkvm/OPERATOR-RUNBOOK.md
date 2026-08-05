@@ -29,6 +29,16 @@ The first is a **SILENT failure** — you will not get an error, you will get ze
 2. **CRASH RECOVERY.** `efi-pstore` is dead on N90 (firmware can't `SetVariable`), so a
    panic loses its log and the manager can't auto-recover. Add **netconsole or serial**
    capture + manager auto-reboot-and-continue, or the first real crash ends the run.
+   **A hang, however, is recoverable remotely** (verified 2026-08-05 on N90 while the
+   `pkvm_unmap_guest` deadlock had the box wedged): the kernel is alive, only tasks touching
+   the poisoned `mm` block, so ssh still logs in and `dmesg` still streams. Recover with
+   `echo 1 > /proc/sys/kernel/sysrq; echo b > /proc/sysrq-trigger` — the stock `sysrq` mask is
+   `176`, which does **not** include the `0x40` reboot bit, so it must be widened first.
+   `systemctl reboot` cannot work in this state (systemd's own `/proc` walk blocks). On both
+   V11 boards GRUB menuentry **index 0** is the pKVM fuzzing kernel, so the box comes back on
+   the right build unattended and `pkvm-cov-arm.service` re-arms the ring. Collect evidence
+   BEFORE rebooting: `/proc/<pid>/{stat,wchan,stack}` (never `cmdline` or `maps` — those take
+   `mmap_lock` and will wedge your shell too) and `echo w > /proc/sysrq-trigger`.
 3. **syz-hub** for the batch: without a shared corpus, N machines redundantly rediscover
    the same paths instead of collectively covering the codebase.
 4. **B (guest→hyp) design** — the biggest remaining coverage surface; see gap note below.
