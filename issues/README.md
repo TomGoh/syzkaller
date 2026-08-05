@@ -103,6 +103,20 @@ Record at minimum: board, kernel build string and source commit, manager revisio
 
 `LOST_IN_RING` belongs in every record. If the ring dropped PCs, "no new coverage" is an instrument artifact rather than a property of the target — the first methodology rule in `notes/pkvm/OPERATOR-RUNBOOK.md`.
 
+## Working an issue
+
+Once an issue is filed, it goes through three steps in this order. Do not skip step 2 — shipping our own patch when an upstream fix already exists creates a divergence someone has to reconcile at every rebase, and the upstream version has been reviewed and tested by people with more context.
+
+**1. Establish the cause, then have it reviewed.** Root-cause the defect, then hand the analysis to a reviewer whose brief is to *refute* it, not to agree. The reviewer reads complete function bodies against the actual tree and reports contradictions. This exists because the analysis being reviewed is usually the thing a fix will be built on, and this project has twice built on a confident mechanism that was wrong.
+
+**2. Search AOSP and Linux upstream for an existing or related fix.** A fix from a different or newer kernel version still counts — it tells us the shape of the accepted solution even when it cannot be applied as-is.
+
+The search has a trap that has already caught this project: in these repos the interesting upstream commits are frequently reachable **only from tags**, so searching branches returns nothing and wrongly concludes no fix exists. Always `git log --all --source`, which prints the ref each commit came from. Never rely on `git branch -r --contains`, which is slow and blind to tag-only commits. Search several angles — by function name, by `-S` on the code, and by the file's own history — because upstream subject lines rarely match our vocabulary. A subject that sounds right is a hypothesis; the diff is the evidence.
+
+**3. Apply the fix.** Cherry-pick cleanly if possible, preserving the original author and `Change-Id`. If the tree has diverged so the patch must be adapted, record what changed and why. If nothing upstream exists, write it locally and say explicitly what was searched.
+
+Record the outcome of all three in `ISSUE.md` under `Fix status`, including a negative result from step 2 — "we looked and found nothing" is worth writing down, because the next person will otherwise look again.
+
 ## Adding an issue
 
 1. Allocate the next ID, create `NNN-<slug>/`.

@@ -6,4 +6,4 @@
 
 | ID | Issue | Class | State by target | Diagnosis | Disposition | Repro | Hazard |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 001 | [pkvm_unmap_guest() takes mmap_lock for write while stage2_unmap_vm() holds it for read](001-pkvm-unmap-selfdeadlock/ISSUE.md) | kernel-defect | `klinux 6.6.103+ #3 @39ee2e725c12` → **reproduced** | root-caused | fix-proposed | yes | wedges-target |
+| 001 | [pkvm_unmap_guest() takes mmap_lock for write while stage2_unmap_vm() holds it for read](001-pkvm-unmap-selfdeadlock/ISSUE.md) | kernel-defect | `klinux 6.6.103+ #3 @39ee2e725c12` → **reproduced**<br>`klinux 6.6.103+ #4 @348c94763cc6` → **not-observed** | root-caused | fix-verified | yes | wedges-target |

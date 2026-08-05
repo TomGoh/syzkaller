@@ -6,13 +6,16 @@ class: kernel-defect
 signature: 'INFO: task hung in __unmap_stage2_range'
 hazard: wedges-target
 diagnosis: root-caused
-disposition: fix-proposed
+disposition: fix-verified
 repro: repro/repro-deadlock.c
 observations:
   - target: 'klinux 6.6.103+ #3 @39ee2e725c12'
     state: reproduced
     run: 2026-08-05-deadlock-repro
     evidence: evidence/2026-08-05-task-stack.txt
+  - target: 'klinux 6.6.103+ #4 @348c94763cc6'
+    state: not-observed
+    run: 2026-08-05-deadlock-fix-verify
 ---
 
 # 001 — `pkvm_unmap_guest()` self-deadlock on `mmap_lock`
@@ -49,7 +52,7 @@ These frame offsets are byte-identical to the hung tasks the 2026-07-31 campaign
 	write_lock(&kvm->mmu_lock);
 ```
 
-A task holding an rwsem for read cannot acquire it for write. This is an unconditional self-deadlock, not a race — there is no interleaving in which it succeeds.
+A task holding an rwsem for read cannot acquire it for write. There is no interleaving in which it succeeds, so this is a deadlock rather than a race — but it is a *self*-deadlock only when `current->mm == kvm->mm`, which is the normal case. `stage2_unmap_vm()` locks `current->mm` (`mmu.c:1182`) while `pkvm_unmap_guest()` locks `kvm->mm` (`mmu.c:323,339`). If the ioctl is issued from a task in a different mm — a forked child holding the inherited fd, or an fd passed over `SCM_RIGHTS` — those are two different rwsems and it does not deadlock.
 
 The existing code does release a lock around the sleeping call, but it releases `kvm->mmu_lock`, which is not the lock that blocks. The comment above it explains the `mmu_lock` release and does not mention `mmap_lock` at all.
 
@@ -68,7 +71,16 @@ A second `KVM_ARM_VCPU_INIT` on a vCPU that has already run, on a CPU without `A
 	}
 ```
 
-`stage2_unmap_vm()` has exactly one caller in the tree, this one. FWB-capable silicon takes the `icache_inval_all_pou()` branch and never reaches the defect, which is likely why it has gone unnoticed upstream. N90 and D3000 both lack FWB. The pinned-page requirement matters because `account_locked_vm()` returns early on a zero count.
+`stage2_unmap_vm()` has exactly one caller in the tree, this one. FWB-capable silicon takes the `icache_inval_all_pou()` branch and never reaches the defect, which is likely why it has gone unnoticed upstream. N90 and D3000 both lack FWB.
+
+Two further preconditions gate it, and both must hold:
+
+- **The host must be booted `kvm-arm.mode=protected`.** Otherwise `___unmap_stage2_range()` (`mmu.c:406-412`) takes the `kvm_pgtable_stage2_unmap()` branch, which never touches `account_locked_vm()`.
+- **The guest must NOT be a protected VM.** `__unmap_stage2_range()` (`mmu.c:420`) returns immediately when `is_protected_kvm_enabled() && kvm->arch.pkvm.enabled`, and `pkvm.enabled` is set only for `KVM_VM_TYPE_ARM_PROTECTED` (`pkvm.c:462-469`).
+
+So the single affected combination is a **plain `KVM_CREATE_VM` guest on a pKVM host** — which is what the reproducer creates. Such VMs still own pinned pages: every VM on a protected host faults through `pkvm_mem_abort()`, which charges at `mmu.c:1809` and inserts a ppage at `mmu.c:1844`.
+
+At least one pinned page must exist, but not for the reason an earlier version of this note gave. `account_locked_vm()`'s early return (`mm/util.c:551`) tests its *argument*, which here is `1 << ppage->order` and is never zero. The real reason a pageless VM is safe is that `for_ppage_node_in_range` (`mmu.c:347-350`) iterates zero times, so the call never happens.
 
 ## Reproduction
 
@@ -107,13 +119,28 @@ Two operational consequences follow. Blocked tasks are in `D` state and unkillab
 
 ## Fix status
 
-A fix exists on another lineage and is **not** applicable unchanged.
+**FIXED and verified** — `348c94763cc6` on klinux branch `pkvm-unmap-deadlock-fix`, *"KYLIN: KVM: arm64: pkvm: defer RLIMIT_MEMLOCK accounting out of mmap_lock"*, `+52/-7` across `mmu.c` and `kvm_host.h`. Verified on N90 by [2026-08-05-deadlock-fix-verify](../runs/2026-08-05-deadlock-fix-verify.md): the same unmodified binary that hung the board deterministically now passes 10 of 10, with the kernel differing from the failing one by the patch alone. checkpatch: 0 errors.
 
-`d7c317637aa2` — *"KYLIN: KVM: arm64: pkvm: defer RLIMIT_MEMLOCK accounting out of mmap_lock"*, on `futlab-fixes`, landed on `android/common` `2030/bug930`. It defers the decrement into a per-VM atomic (`pending_unaccount`) that each unmap path settles through `pkvm_flush_unaccount()` after its own locks are dropped. Its message records verification on D3000 and N90 at 6.6.30: the reproducer that hung every unpatched kernel returns 0 with it applied.
+The fix accumulates the count into a new per-VM atomic (`pending_unaccount`) and settles it in `pkvm_flush_unaccount()` from the three sites where every relevant lock has been dropped — `stage2_unmap_vm`, `kvm_uninit_stage2_mmu`, `kvm_arch_flush_shadow_memslot`. Removing the sleeping call also removed the reason to drop `mmu_lock`, which closed a second hole in the same loop: `for_ppage_node_in_range` caches the successor node across the body, and a concurrent `MEM_RELINQUISH` could `kfree` it inside the window the drop opened. A port that deferred the accounting but kept the drop would have fixed the deadlock and left the use-after-free.
 
-It does not cherry-pick into klinux. That patch rewrites `pkvm_unmap_range()`, which batches a single `cnt` for the whole range; klinux has refactored pinned pages into an interval tree where each page is unmapped by `pkvm_unmap_guest()`, so the accounting call sits **per-ppage** (`mmu.c:352-367`). The port is an adaptation, and it changes `struct kvm_protected_vm`, which shifts offsets in `struct kvm_arch` and therefore requires a full rebuild including the Rust nVHE bindings — an object-level compile test would not prove it.
+### Nothing upstream fixes this
 
-The defect was verified present in the kernel N90 is running, not only in the tree: `__unmap_stage2_range` in the built `vmlinux` disassembles with a direct `bl account_locked_vm`.
+Searched Android-Common and mainline before writing it. Two commits look like matches and are not:
+
+- `78adeb53eea1` *"Fix account_locked_mm() call in non-preemptible section"* (2024-05) — batches the accounting into `pkvm_unmap_range()` inside `write_unlock`/`write_lock`. Escapes `mmu_lock` only.
+- `246414094770` *"Don't do account_locked_vm() while atomic"* (2024-11) — per-page `write_unlock`/`account`/`write_lock`. Escapes `mmu_lock` only. **This tree already carried the equivalent**, adapted for huge pages; it is the code the deadlock was found in.
+
+Neither touches `mmap_lock`, and ACK `android15-6.6` still ships the bug at HEAD (2026-08-04). Mainline is immune only as a side effect of the v6.14 rework that moved guest stage-2 into EL2 (`fce886a60207` and its series) — new infrastructure, not a backportable fix. Also checked and irrelevant: `ed14b491ec76`/`9a13ca20af8d` (THP accounting arithmetic), `3ae13572d106` (THP reclaim with ballooning), `04512258010d` (charges reclaim against `kvm->mm` rather than `current->mm`).
+
+*Caveat on the search:* `lore.kernel.org` is behind a challenge that blocked automated queries, so an unmerged list posting could exist that was not seen. The merged state of mainline and ACK was verified from source.
+
+### Why our own sibling patch could not be cherry-picked
+
+`d7c317637aa2` on `futlab-fixes` fixes the identical defect on `android/common` `2030/bug930`, and klinux does not even share an object store with it. The two lineages descend from the *different* partial fixes above, so the defective statement lives in a different function, in a different unit, over a different data structure.
+
+Concretely: the sibling patch rewrites `pkvm_unmap_range()`, which batches a single `cnt` over a maple tree; klinux keeps pinned pages in an interval tree and un-accounts **per-ppage** inside `pkvm_unmap_guest()` in units of `1 << ppage->order` (`mmu.c:321-367`). The hunks have no matching context. What transferred is the design, and the field name, function name and comments were kept identical so the two remain recognisably the same fix if anyone reconciles them.
+
+Because the change adds a field to `struct kvm_protected_vm`, it shifts offsets in `struct kvm_arch` and is read at EL2, so it required a full rebuild including the Rust nVHE bindings — an object-level compile test would not have proven it.
 
 ## Residual hazard
 
