@@ -1,0 +1,35 @@
+Kylin V11
+### kernel: #4 SMP Wed Aug  5 11:28:51 +08 2026
+### Does the negative counter correspond to real memory loss?
+### 300 VM create/destroy cycles per arm, with drop_caches at every boundary to
+### remove the page-cache drift that made a plain MemFree comparison unusable.
+### Expected signal IF 2 pages per VM were lost: 300 * 8 KiB = 2400 kB per arm.
+
+round 1:  with dirty logging x300 delta=57260 kB   |   without x300 delta=-16144 kB
+round 2:  with dirty logging x300 delta=-54852 kB   |   without x300 delta=19588 kB
+
+### VERDICT: INCONCLUSIVE. Recorded so nobody repeats it.
+###
+### The deltas swing by +-55 MB in both directions, in both arms, even with
+### drop_caches at every boundary. The signal a two-page-per-VM loss would
+### produce is 2400 kB per arm -- an order of magnitude below that noise.
+### An earlier attempt without drop_caches (50 cycles per arm, three rounds)
+### produced two mutually contradictory repetitions and was discarded.
+###
+### All this measurement can honestly support is that there is no LARGE leak.
+### It cannot resolve two pages per VM, and no amount of repetition at this
+### noise level will.
+###
+### The question is settled by the code instead, which is both cheaper and
+### stronger -- the site that subtracts also frees:
+###
+###   arm.c:508-513   kvm_arch_vcpu_destroy()
+###       atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT, ...);
+###       free_hyp_memcache(&vcpu->arch.stage2_mc);
+###
+###   kvm_host.h:137-149  __free_hyp_memcache()
+###       while (mc->nr_pages) { p = pop_hyp_memcache(...); free_fn(p, ...); }
+###
+### Every page counted out at teardown is a page handed back. The subtraction
+### is correct; it is the matching addition that never happened, which is why
+### the residual is negative rather than positive.

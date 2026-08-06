@@ -117,7 +117,7 @@ kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
 
 `18446744073709543424` = `0xFFFFFFFFFFFFE000` = **−8192**,即 −2 页:该检查读的是有符号的 `atomic64_t` 却用 `%llu` 打印,而且文案假定是泄漏,实际方向相反。
 
-模式矩阵把它和本问题分开了:它在**两种**开启脏页日志的模式下都出现(包括 `KVM_RUN` 成功的那种),在 `nodirty` 下从不出现。所以它只与"开启脏页日志"相关,与大页无关,也不是 `-E2BIG` 失败的后果。它需要自己的编号;当前首选假设是:经 `handle_hyp_req_mem()`(`handle_exit.c:369`)topup 的页从不计入 `protected_hyp_mem`,而 `kvm_arch_vcpu_destroy()`(`arm.c:512`)却按 `stage2_mc.nr_pages` 全量减 —— **未经证实**。
+模式矩阵把它和本问题分开了:它在**两种**开启脏页日志的模式下都出现(包括 `KVM_RUN` 成功的那种),在 `nodirty` 下从不出现。所以它只与"开启脏页日志"相关,与大页无关,也不是 `-E2BIG` 失败的后果。它已单独立为 [issue 004](../004-hyp-donation-accounting-imbalance/ISSUE_zh.md),机制在那里定了下来:未记账的 topup 在 `mmu.c:1754`,就在本问题所失败的那个超级调用**上面两行**。
 
 这条线正是 2026-07-30 那次 OOM 调查列为最有希望、却记为 *"Unverified — no evidence gathered yet"* 的候选(`notes/pkvm/evidence/finding-oom-leak-and-mmu-topup-oops-2026-07-30/ROOT-CAUSE-ANALYSIS.md:221`)。现在它有确定性复现了。另注:那份文档称 `handle_hyp_req_mem()` "accounts them into `kvm->stat.protected_hyp_mem`" —— 按本树代码**并非如此**,这很可能就是线索当时断在那里的原因。
 

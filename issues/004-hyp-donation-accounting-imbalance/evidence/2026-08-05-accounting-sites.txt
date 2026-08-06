@@ -1,0 +1,57 @@
+# Where kvm->stat.protected_hyp_mem is added to, and where it is subtracted from.
+
+## Every site that tops up vcpu->arch.stage2_mc, and whether it accounts
+   mmu.c:1796   pkvm_mem_abort()                      -> ACCOUNTS (atomic64_add at mmu.c:1801)
+   mmu.c:1754   pkvm_relax_perms() logging_active     -> does NOT account
+   handle_exit.c:369  handle_hyp_req_mem()            -> does NOT account
+
+handle_exit.c:369:		return topup_hyp_memcache(&vcpu->arch.stage2_mc,
+mmu.c:1753:		struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
+mmu.c:1783:	struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
+
+## __topup_hyp_memcache() itself never accounts -- it only allocates and pushes
+static inline int __topup_hyp_memcache(struct kvm_hyp_memcache *mc,
+				       unsigned long min_pages,
+				       void *(*alloc_fn)(void *arg, unsigned long order),
+				       phys_addr_t (*to_pa)(void *virt),
+				       void *arg,
+				       unsigned long order)
+{
+	while (mc->nr_pages < min_pages) {
+		phys_addr_t *p = alloc_fn(arg, order);
+
+		if (!p)
+			return -ENOMEM;
+		push_hyp_memcache(mc, p, to_pa, order);
+	}
+
+	return 0;
+}
+
+
+## Every add / subtract of the counter
+guest.c:34:	STATS_DESC_ICOUNTER(VM, protected_hyp_mem),
+arm.c:263:	if (atomic64_read(&kvm->stat.protected_hyp_mem))
+arm.c:265:			atomic64_read(&kvm->stat.protected_hyp_mem));
+arm.c:512:					&vcpu->kvm->stat.protected_hyp_mem);
+pkvm.c:348:		     &host_kvm->stat.protected_hyp_mem);
+pkvm.c:401:	atomic64_add(pgd_sz, &host_kvm->stat.protected_hyp_mem);
+pkvm.c:431:	atomic64_sub(pgd_sz, &host_kvm->stat.protected_hyp_mem);
+mmu.c:1801:	atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_hyp_mem);
+
+## The unaccounted topup runs BEFORE the HVC that fails in issue 003,
+## which is why the imbalance appears whether or not that HVC succeeds.
+	if (logging_active) {
+		struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
+		int ret = topup_hyp_memcache(hyp_memcache,
+					     kvm_mmu_cache_min_pages(&kvm->arch.mmu), 0);
+
+		if (ret)
+			return ret;
+
+		ret = kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn);
+		if (ret)
+			return ret;
+
+		return 0;
+	}

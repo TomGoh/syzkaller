@@ -1,0 +1,152 @@
+# 004 —— hyp 捐赠泄漏检查坏了,而且是两个方向都坏
+
+English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 tracker 的权威记录;本文是等价中文版,不含 front-matter。
+
+每一个开启过脏页日志的 VM,在销毁时都会打印:
+
+```
+kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
+```
+
+读起来像是"有 18 EB 的客户机内存捐给了管理程序、再也没回来"。这个读法的**每一部分都是错的**:量是 8 KiB,符号是反的,没有内存丢失,而产生它的这个检查,恰恰是全树里唯一用来抓真正的 hyp 捐赠泄漏的东西。
+
+## 症状
+
+`arm.c:262-265`,位于 `kvm_arch_destroy_vm()` 末尾:
+
+```c
+	if (atomic64_read(&kvm->stat.protected_hyp_mem))
+		kvm_err("%lluB of donations to the nVHE hyp are missing\n",
+			atomic64_read(&kvm->stat.protected_hyp_mem));
+```
+
+`atomic64_read()` 返回有符号的 `s64`,却用 `%llu` 打印:
+
+```
+18446744073709543424  −  2^64  =  −8192 bytes  =  −2 页
+```
+
+所以计数器是**负两页**,而文案里的 "missing"(捐出去没还回来)描述的是**相反**的方向。真正的泄漏留下的是**正**残值。
+
+## 机制
+
+**置信度:已根因定位。** 失衡是实测的,触发条件由对照矩阵隔离,代码路径与之吻合。
+
+**这个计数器记的是宿主交给 EL2 的页。** 两处加:
+
+```
+mmu.c:1801   pkvm_mem_abort()        atomic64_add(nr_pages << PAGE_SHIFT, ...)  /* 它那次 topup 实际增加的量 */
+pkvm.c:401   __pkvm_create_hyp_vm()  atomic64_add(pgd_sz, ...)
+```
+
+两处减,而且都按**整个 memcache 的剩余量**减,不管这些页是从哪条路进来的:
+
+```
+arm.c:509    kvm_arch_vcpu_destroy()  atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT, ...)
+pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages << PAGE_SHIFT, ...)
+```
+
+**`__topup_hyp_memcache()` 自己从不记账**(`kvm_host.h:119-135`,它只负责分配和入栈),所以记账完全是调用方的责任。而往 `vcpu->arch.stage2_mc` 里 topup 的一共三处,只有一处做了:
+
+| 位置 | 上下文 | 记账 |
+| --- | --- | --- |
+| `mmu.c:1796` | `pkvm_mem_abort()`,普通缺页路径 | **有**,`mmu.c:1801` |
+| `mmu.c:1754` | `pkvm_relax_perms()` 的 `logging_active` 分支 | **无** |
+| `handle_exit.c:369` | `handle_hyp_req_mem()`,EL2 向宿主要内存 | **无** |
+
+从未记账的路进来、销毁时还留在 memcache 里的页,会被减掉却从未被加过。计数器就负了这么多页。
+
+**触发条件是隔离出来的,不是论证出来的。** 三种模式,每种 5 次(`../003-dirty-log-guest-no-huge-page-support/evidence/2026-08-05-mode-matrix.txt`):
+
+| 模式 | 脏页日志 | 大页 | `KVM_RUN` | 本消息 |
+| --- | --- | --- | --- | --- |
+| default | 开 | 2 MiB 块 | 失败(问题 003) | **有** |
+| `nohuge` | 开 | 强制 4 KiB | 成功 | **有** |
+| `nodirty` | 关 | 2 MiB 块 | 成功 | **无**,0/5 |
+
+唯一起作用的是"是否开启脏页日志"。页大小不影响,`KVM_RUN` 成败也不影响。
+
+最后一列正是指向 `mmu.c:1754` 的依据:它是 `logging_active` 分支**内部**的 topup,而且执行在问题 003 会失败的那个超级调用**之前** ——
+
+```c
+	if (logging_active) {
+		struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
+		int ret = topup_hyp_memcache(hyp_memcache,              /* mmu.c:1754 —— 未记账 */
+					     kvm_mmu_cache_min_pages(&kvm->arch.mmu), 0);
+		if (ret)
+			return ret;
+
+		ret = kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn);  /* 003 在这里失败 */
+```
+
+—— 这正是失衡在两种结局下都存在的原因。
+
+**有一步是推断而非实测:** 那两页来自 `mmu.c:1754` 而不是 `handle_exit.c:369`,是按排除法得到的 —— `:1754` 是唯一"仅在开启脏页日志时才会到达"的未记账 topup。给三个 topup 点各加一个计数器,或把 `stage2_mc.nr_pages` 暴露到 debugfs,就能坐实。
+
+## 触发条件
+
+`kvm-arm.mode=protected` 宿主上,任何普通 VM,跑过 vCPU 之后对 memslot 开启 `KVM_MEM_LOG_DIRTY_PAGES`。**不需要大页。**
+
+## 复现
+
+`repro/probe-dirtylog-thp.c` —— 与问题 003 是同一个程序,它的 `nohuge` 模式能干净地把本问题隔离出来:
+
+```
+./probe-dirtylog-thp nohuge     # KVM_RUN 成功,本消息照样出现
+./probe-dirtylog-thp nodirty    # 不开脏页日志,不出现
+```
+
+该消息由 `kvm_arch_destroy_vm()` 打印,也就是**进程退出之后**。程序返回后立刻读 `dmesg` 会间歇性漏掉 —— 见 run 记录,先前两次就是这样读的,并因此得出过错误结论。
+
+## 影响面
+
+**没有内存丢失,而且代码给出的依据比测量更硬。** 做减法的地方,正是把页还回去的地方:
+
+```c
+	atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT,   /* arm.c:509  */
+		     &vcpu->kvm->stat.protected_hyp_mem);
+	free_hyp_memcache(&vcpu->arch.stage2_mc);                   /* arm.c:511  */
+```
+
+而 `__free_hyp_memcache()` 会把 cache 里每一页弹出并释放(`kvm_host.h:137-149`)。**销毁时被减掉的每一页,都是被还回去的那一页。** 减法是对的,是与之配对的**加法**从未发生 —— 这正是残值为负而非为正的原因。
+
+直接测内存的尝试做了,但**分辨不了**,已记录在 `evidence/2026-08-05-memory-ab.txt` 里,免得后人重做:每组 300 次 VM 循环、每个边界都 `drop_caches`,`MemFree` 的增量在两组里都会向两个方向摆动 ±55 MB,而 2 页/VM 的损失只有 2400 kB —— **低一个数量级**。更早那次不带 `drop_caches` 的尝试,两次重复给出了互相矛盾的结果。这个测量最多只能支持"不存在**大规模**泄漏"。
+
+真正坏掉的是**泄漏探测器本身**,这也是它值得立案而不是当作 cosmetic 的原因:
+
+- **真从未记账的通道漏掉的内存,是看不见的。** `handle_hyp_req_mem()` 和脏页日志那次 topup 把页交给 EL2 而统计毫不知情。如果那些页真的没还回来,`protected_hyp_mem` 不会升高,这个检查会保持沉默。
+- **探测器现在天天喊狼来了。** 每个开过脏页日志的 VM 销毁都报一次骇人的、错误的 18 EB,真出事时没人会信。
+
+## 与其他问题的关系
+
+002、003、004 都在同一种输入上触发 —— 普通 VM、vCPU 跑过、然后开启脏页日志 —— 这也是它们被一起发现的原因。但它们**不是同一个缺陷**,而且是用矩阵**实验分开**的,不是靠论证:
+
+| | 问题 002 | 问题 003 | **问题 004** |
+| --- | --- | --- | --- |
+| 是什么 | 范围 TLB 刷新请求了 EL2 已停用的超级调用 | 脏页日志路径假定 4 KiB 映射 | 脏页日志的 topup 未记账 |
+| 需要脏页日志 | 是 | 是 | 是 |
+| 需要大页 | **否** | **是** | **否** |
+| `KVM_RUN` 成功时仍出现 | 是 | 不适用(它就是那个失败) | **是** |
+| 位置 | 宿主 `mmu.c:190` | EL2 `permissions.rs:147` | 宿主 `mmu.c:1754` |
+| 后果 | TLB 失效静默地从未执行 | 客户机无法恢复运行 | 一个计数器是错的 |
+
+`nohuge` 模式是判别器:`KVM_RUN` 成功,003 消失,而 002 与 004 照旧出现。`nodirty` 则三者全消。
+
+**003 与 004 是同一个函数里的邻居。** `pkvm_relax_perms()` 的 `logging_active` 分支同时包含两者:`:1754` 那次未记账的 topup(本问题),以及两行之后被 003 弄失败的那个超级调用。两者看起来是同一类疏忽 —— 一个分支没有得到它的兄弟们得到的处理 —— 但它们互相独立:修好任一个,另一个仍在。
+
+**两者都不是我们自己补丁的回归**,004 也不是 003 引起的。所有观测都在 `#4` 上,该构建含 001 的修复、不含 002 的修复。完整来龙去脉见 003 的"为什么现在才浮出来":真正暴露这一切的,是**验证 002 的需求** —— 它迫使我们写出本项目第一个"先跑 vCPU、再开脏页日志"的程序。
+
+**本树里的前情。** 2026-07-30 那次 OOM 调查把这条未被跟踪的 host→EL2 捐赠通道列为最有希望的剩余候选,并记为 *"Unverified — no evidence gathered yet"*(`notes/pkvm/evidence/finding-oom-leak-and-mmu-topup-oops-2026-07-30/ROOT-CAUSE-ANALYSIS.md:221`、`ROOT-CAUSE-CONFIRMED.md:274`)。本问题就是那条通道,而且有了确定性复现器 —— 但要注意它解决了什么、没解决什么:它证明该通道**存在且不记账**,但**并不解释**那次调查里 25.9 GiB 的残差(方向和量级都对不上)。另外那份文档称 `handle_hyp_req_mem()` 会 "accounts them into `kvm->stat.protected_hyp_mem`",按本树代码**并非如此**,这很可能就是线索当时断在那里的原因。
+
+## 修复状态
+
+未修。两处独立改动,**都在宿主侧,不涉及 EL2 ABI**,因此比 003 简单得多:
+
+1. **把 topup 记上账。** 在 `mmu.c:1754` 照 `mmu.c:1801` 的样子补 `atomic64_add`,`handle_exit.c:369` 同理。`pkvm_mem_abort()` 的写法是记录 topup 前后 `nr_pages` 的**增量**,而不是请求的最小值。
+2. **修好报告。** `arm.c:263-265` 应当按有符号打印,并区分两个方向:正残值是"捐出去没还回来",负残值是记账缺陷。把两者混为一谈,正是这条消息无法解读的原因。
+
+上游检索尚未做 —— 那是 issue workflow 的第 2 步,仍然欠着。
+
+## 残留风险
+
+只修报告不修记账,等于把消息静音、让探测器彻底失明。只修记账而不审计其余捐赠通道,则未被跟踪的仍然未被跟踪:`__pkvm_topup_hyp_alloc()`(`pkvm.c:1243`)topup 的是一个局部 memcache,同样不记账,而本复现器并未触及它。

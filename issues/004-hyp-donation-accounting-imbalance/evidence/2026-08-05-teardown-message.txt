@@ -1,0 +1,10 @@
+Kylin V11
+### The message itself, and the per-mode counts that isolate it (5 runs each).
+
+mode=default  donation_msgs=5
+[ 2369.707166] kvm [51957]: 18446744073709543424B of donations to the nVHE hyp are missing
+mode=nohuge  donation_msgs=5
+[ 2372.749149] kvm [52238]: 18446744073709543424B of donations to the nVHE hyp are missing
+mode=nodirty  donation_msgs=0
+
+### 18446744073709543424 - 2^64 = -8192 bytes = -2 pages

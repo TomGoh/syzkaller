@@ -13,7 +13,7 @@ enabled_syscalls: n/a
 duration: ~4m, 3 modes x 5 runs
 result: 'THP+dirty-logging fails KVM_RUN 5/5 with -E2BIG; 4K+dirty-logging 0/5; THP without dirty logging 0/5'
 ring: n/a
-observed: [2, 3]
+observed: [2, 3, 4]
 not_observed: []
 ---
 
@@ -39,7 +39,7 @@ Three separate conclusions come out of it:
 
 - **Issue 003 (`-E2BIG`) needs both huge pages and dirty logging.** Either one alone is fine.
 - **Issue 002's warning is keyed to enabling dirty logging alone** — 5/5 in both dirty-logging modes, 0 without, and unaffected by page size or by whether `KVM_RUN` then fails.
-- **The `donations … are missing` message is a third, independent thing.** It tracks dirty logging, not huge pages, and appears whether the second `KVM_RUN` succeeds or fails. It is *not* a consequence of the `-E2BIG` failure and needs its own issue id; see 003's "Co-observed" section.
+- **The `donations … are missing` message is a third, independent thing.** It tracks dirty logging, not huge pages, and appears whether the second `KVM_RUN` succeeds or fails. It is *not* a consequence of the `-E2BIG` failure — it is [issue 004](../004-hyp-donation-accounting-imbalance/ISSUE.md).
 
 ## Method trap: the teardown message needs a settle
 
