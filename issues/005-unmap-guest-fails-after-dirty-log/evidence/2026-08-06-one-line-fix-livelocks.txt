@@ -273,3 +273,44 @@ defensible from the code as read at the time; each was falsified in about ten
 minutes by the reproducer. Two of the three were wrong because a function had
 been read from the middle rather than from its signature -- the rule at the top
 of CLAUDE.md, and it cost three build-and-boot cycles to relearn.
+
+
+================================================================================
+8. Review corrections (2026-08-06, post-fix)
+================================================================================
+
+Two citation errors in the commit messages of this series, found in review and
+recorded here because the commits are on an unpushed Gerrit branch and were not
+rewritten for two nits:
+
+  * 24714fe308bb cites pgtable.c:721 for `attr |= prot & KVM_PTE_LEAF_ATTR_HI_SW;`.
+    The correct line is 723. (371 is the stage-1 equivalent, not this one.)
+
+  * cba248683e5c justifies putting the state into the split's prot as "the
+    entries a split creates are built from the prot handed in". Imprecise.
+    stage2_map_prefault_block() derives the SIBLING entries from block_pte via
+    kvm_init_valid_leaf_pte(), so their state comes from the block, not from
+    prot. The TARGET entry is generated from prot by
+    stage2_map_walker_try_leaf() -- but usually not written, because that write
+    is what the needs-update filter declines. So carrying the state in prot is
+    DEFENSIVE (it matters only if that write ever does land), not the mechanism
+    the split path depends on. The code comment has been corrected to say this;
+    the fix itself is unchanged and still correct.
+
+Two code defects were also found in the same review and fixed:
+
+  * c6c3a2503e4b -- 61173329e416 put the atomic64_add() after the error return,
+    so a partial OOM inside topup_hyp_memcache() leaves pages donated but
+    unaccounted and the counter goes negative again. __topup_hyp_memcache()
+    pushes one page at a time and bails on the first failed allocation
+    (kvm_host.h:126), keeping what it already pushed. Both pkvm_relax_perms()
+    and pkvm_mem_abort() now account before propagating; handle_hyp_req_mem()
+    already did, because upstream wrote it that way.
+
+  * 22f8b90f89c7 -- cba248683e5c let every non-(-E2BIG) probe result fall
+    through to relax_perms, so a -ENOENT from guest_get_valid_pte() would be
+    reported as relax_perms' error instead of its own. The probe's error is now
+    returned directly.
+
+Re-verified on #16 after both: 005 gives A=1 B=1 5/5, 003 passes in all three
+modes, and dmesg carries no WARNING at all.

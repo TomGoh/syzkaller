@@ -310,26 +310,39 @@ The removal is justified by a redesign, not a bug: *"Now that dirty logging for 
 >
 > No upstream port was needed after all. `stage2_map()` already splits, and `pkvm_call_hyp_nvhe_ppage()` already retries at order 0 when the host's `kvm_pinned_page` tree is coarser than the stage-2. The android16-6.12 split series remains the tidier long-term shape, but for convergence with ACK rather than necessity.
 
-Not fixed. **There is no patch to migrate** — the upstream remedy is a feature removal predicated on moving np-guest dirty logging into generic `user_mem_abort()`, which is a redesign of the whole np-guest memory path, not a hunk. So this one is ours to write.
+**Fixed** by klinux `cba248683e5c`, verified on `#15`. There was never a patch to migrate — upstream's remedy was to delete the hypercall once np-guest dirty logging moved into generic `user_mem_abort()` — so this one was written here.
 
-**Proposed fix — restore the annotation the map destroys.** `permissions.rs:202`, in `__pkvm_host_dirty_log_guest()`:
+**The fix — split with `stage2_map`, grant with `relax_perms`.** In `__pkvm_host_dirty_log_guest()`:
 
 ```rust
--            KVM_PGTABLE_PROT_RWX,
-+            pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+    // -E2BIG from the order-0 probe means the IPA is still inside a block.
+    if granule == -(E2BIG as i32) {
+        // Break the block. This call exists ONLY to split; it must not be
+        // what grants write access. The state still goes in the prot, so a
+        // page whose entry does get written is not left PKVM_PAGE_OWNED.
+        kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64, host_addr,
+                               pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+                               mc, 0)
+    }
+    // Always. relax_perms is a read-modify-write of the existing leaf, so it
+    // preserves the software state bits by construction and is not subject to
+    // the needs-update filter.
+    kvm_pgtable_stage2_relax_perms(&mut vm_ref.pgt, guest_addr, KVM_PGTABLE_PROT_RWX, 0)
 ```
 
-with `pkvm_mkstate` added to the `use crate::utils::{...}` list at `permissions.rs:28` and `PKVM_PAGE_SHARED_BORROWED` to the `consts` import.
+**The rule that makes it work: the mapping call must never be what grants write access.** `kvm_pgtable_stage2_map()` declines permissions-only updates to a guest PTE (`pgtable.c:961-975`) and the `-EAGAIN` it raises is swallowed into `0` by the walker (`pgtable.c:121-137`), so it reports success having written nothing. That is true for 4 KiB mappings *and* for blocks — see the three failed attempts below.
 
-`PKVM_PAGE_SHARED_BORROWED` is the correct value and not a guess: it is what `check_unshare()` verified the page held two statements earlier, the mapping's ownership is not meant to change (only its permissions and granularity), and it is exactly what `guest_complete_share()` writes for the same host→guest shared mapping at `guest.rs:1116`. `PKVM_PAGE_RESTRICTED_PROT` must *not* be added — it is derived from `prot != RWX`, and this mapping is full RWX.
+**Three designs were wrong before this one.** Recorded in full in `evidence/2026-08-06-one-line-fix-livelocks.txt`, and worth reading before touching this function:
 
-An alternative, closer to where upstream went, is to stop using `stage2_map` here at all and reach the same end through `kvm_pgtable_stage2_relax_perms()` as 6.12 does. That is the more future-proof shape, but it cannot break a block mapping, so it only becomes available once issue 003's huge-page problem is settled. The one-line fix is orthogonal to 003 and can land first.
+| attempt | design | outcome |
+| --- | --- | --- |
+| `#10` | add `pkvm_mkstate()` to the existing map | livelock — `stage2_map` declines permissions-only updates |
+| `#12` | fall back to `relax_perms` on `-EAGAIN` | never fires — the walker swallows `-EAGAIN` into `0` |
+| `#14` | pick the primitive by granule | livelock on blocks — `stage2_map_prefault_block()` compares a **physical** address against an **IPA**, so it pre-populates the entry it looks like it skips |
 
-**The confirmation gate is passed.** The rule here is that a fix does not get built on a code-read mechanism. It is no longer one: the before/after on the same page and the same hypercall is in `evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`, 5/5, together with the user-visible lost dirty page it predicts. **This patch can be written.**
+**No upstream port was needed.** `stage2_map()` already splits, and `pkvm_call_hyp_nvhe_ppage()` already retries at order 0 when the host's `kvm_pinned_page` tree is coarser than the stage-2. The android16-6.12 split series (`c8303029c094` and follow-ons) remains the tidier long-term shape, but for convergence with ACK rather than necessity.
 
-The one open verification is not a gate on the fix but a check of it: an **EL2 coverage capture** (arm the `pkvm_cov` ring, run `nohuge` and `nodirty`, diff the `.rs:line` sets) would show `host.rs:1722` in the failing arm only, reading the site directly instead of inferring it. The same capture on a patched kernel should show it gone. That remains the first time this project needs the ring to advance an issue rather than to measure throughput.
-
-**Regression test.** `repro/probe-dirtylog-twice.c nohuge` is the check to run after patching. The criterion is **`A=1` in round 3** and a re-write-protect returning `0` rather than `-EPERM` in the trace. Both fail today 5/5, so this is a real test rather than a tautology. Do *not* make `B=1` part of the criterion — the control page is tracked only 3/5 today for an unrelated and still unexplained reason (see the run record), so requiring it would produce false failures.
+**Regression test.** `repro/probe-dirtylog-twice.c nohuge` is the check to run after patching. The criterion is **`A=1` in round 3** and a re-write-protect returning `0` rather than `-EPERM` in the trace. Both failed 5/5 before `cba248683e5c` and pass 5/5 after, so this is a real test rather than a tautology. Do *not* make `B=1` part of the criterion — the control page is tracked only 3/5 today for an unrelated and still unexplained reason (see the run record), so requiring it would produce false failures.
 
 **Fixing this does not fix 003, and does not need 003 fixed first.** They are independent defects in the same handler: 003 is the order-0 lookup rejecting blocks, 005 is the map dropping the state. Both are inherited from `ee88afa47b55`.
 

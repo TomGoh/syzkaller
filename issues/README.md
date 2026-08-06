@@ -101,6 +101,10 @@ Read `pkg/report/linux.go` at that revision for the ignores that were compiled i
 
 Record at minimum: board, kernel build string and source commit, manager revision, config (copied verbatim into `runs/<run-id>/`), both filter sets, enabled-syscall count, duration, final stats, EL2 ring counters, and the issue IDs observed and not-observed.
 
+**A hung reproducer prints nothing — check `rc`, not output.** The reproducers here bound themselves with `alarm()` and `_exit(3)`, and `_exit()` does not flush stdio; piped output is block-buffered, so a program that hangs produces a **completely empty** result. That is visually identical to "the check passed and found nothing". On 2026-08-06 a verification run reported zeros across every column of its table and was nearly read as success — the kernel under test was actually livelocking every guest that enabled dirty logging. `stdbuf -o0` does not help, because nothing has been written yet. `rc=3` is the alarm; treat it as a failure, and make summary scripts print the exit status next to every result. See [runs/2026-08-06-fix-deploy-verify.md](runs/2026-08-06-fix-deploy-verify.md).
+
+**`/tmp` on the boards is tmpfs and is wiped by a reboot.** Re-copy test binaries after every deploy, or a stale run reports `rc=127` that looks like a crash.
+
 `LOST_IN_RING` belongs in every record. If the ring dropped PCs, "no new coverage" is an instrument artifact rather than a property of the target — the first methodology rule in `notes/pkvm/OPERATOR-RUNBOOK.md`.
 
 ## Reference trees — what may be compared against
