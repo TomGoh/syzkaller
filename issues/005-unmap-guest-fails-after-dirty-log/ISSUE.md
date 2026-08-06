@@ -329,6 +329,54 @@ The one open verification is not a gate on the fix but a check of it: an **EL2 c
 
 **Fixing this does not fix 003, and does not need 003 fixed first.** They are independent defects in the same handler: 003 is the order-0 lookup rejecting blocks, 005 is the map dropping the state. Both are inherited from `ee88afa47b55`.
 
+### The fix, concretely
+
+**Untested.** Two code-derived designs for this function have already been wrong on hardware, so this one is a hypothesis until `probe-dirtylog-twice.c` says otherwise. What is different this time is that the failure mode of each branch is now known rather than assumed.
+
+The primitive has to be chosen by the current granule, because the two cases fail in opposite ways:
+
+```rust
+    ret = checked_tx.check_unshare();
+    if ret != 0 { /* unlock */ return ret; }
+
+    // Probe the granule. This is the same call issue 003 removed, but used as a
+    // discriminator rather than as a gate -- -E2BIG now selects a path instead
+    // of failing the hypercall.
+    let mut phys: u64 = 0;
+    let mut pte: kvm_pte_t = 0;
+    let r = ptr_wrapper!(vm).guest_get_valid_pte(&mut phys, guest_addr, 0, &mut pte);
+
+    ret = if r == 0 {
+        // Already PAGE_SIZE: this is a permissions-only change, which
+        // stage2_map() refuses (and whose -EAGAIN the walker then swallows into
+        // 0). relax_perms is the designated path, and being a read-modify-write
+        // of the existing leaf it preserves the software state bits by
+        // construction -- so nothing has to be written back.
+        kvm_pgtable_stage2_relax_perms(&mut vm_ref.pgt, guest_addr,
+                                       KVM_PGTABLE_PROT_RWX, 0)
+    } else if r == -(E2BIG as i32) {
+        // Block mapping: stage2_map() splits it. The split leaves the target
+        // page's entry invalid (stage2_map_walk_table_pre() skips the caller's
+        // range), so old_is_counted is false, the needs-update filter does not
+        // apply, and the mapping installs. Because that entry is brand new, the
+        // state must be written explicitly here.
+        kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64, host_addr,
+                               pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+                               mc, 0)
+    } else {
+        r
+    };
+```
+
+**Why each branch is expected to hold.**
+
+- The 4 KiB branch is the one that livelocked, and `relax_perms` is exactly what `pgtable.c:961-975` tells the caller to use instead. It is also already proven at EL2 — `__pkvm_host_relax_guest_perms()` is the non-logging sibling and works today.
+- The block branch is **already running on hardware**. `#13`'s default THP mode passes 5/5, and that path is precisely `stage2_map(PAGE_SIZE)` over a block. The only change is adding the state to the prot, which matters *because* the post-split entry is fresh and would otherwise be written as `PKVM_PAGE_OWNED`.
+
+**What this does not need.** No `__pkvm_host_split_guest` port, no hyp-request plumbing, no host-side `kvm_pinned_page` surgery. `stage2_map` already splits, and `pkvm_call_hyp_nvhe_ppage()`'s `-E2BIG` retry already copes with the host's tree being coarser than the stage-2 — which is not speculation, it is what `#13` is doing right now. The upstream android16-6.12 split series remains the tidier long-term shape, and the reason to prefer it is convergence with ACK, not necessity.
+
+**The check.** `repro/probe-dirtylog-twice.c nohuge` must give `A=1` in round 3 with the re-write-protect returning `0`, and `repro/probe-dirtylog-thp.c` must still pass in all three modes — the second half matters because the block branch is the one currently working and must not regress. Verify `rc`, not just output: these programs print nothing at all when they hang.
+
 ## Residual hazard
 
 Because 003 hides this, any measurement of 005's frequency taken on a `#4`-like kernel is a lower bound, and any campaign that never enables dirty logging will never see it at all. The syzkaller campaigns to date fall in that second category — the signature does not appear in the 2026-07-31 or 2026-08-05 console logs.

@@ -126,12 +126,44 @@ to the relax_perms path when the map declines:
                                              KVM_PGTABLE_PROT_RWX, 0);
     }
 
-Still livelocks, identically. Why that fallback does not take effect was NOT
-established -- it is not simply that -EAGAIN fails to propagate, since
-kvm_pgtable_stage2_map() returns kvm_pgtable_walk()'s result directly with no
-retry loop (pgtable.c:1236-1238). Left as an open question rather than guessed
-at; the next attempt should instrument the host-side return value of the
-hypercall before changing more code.
+Still livelocks, identically.
+
+RESOLVED (same day, by reading the walker rather than guessing). The fallback
+never fires because `ret` is not -EAGAIN -- it is 0:
+
+  /* pgtable.c:121-137 */
+  static bool kvm_pgtable_walk_continue(const struct kvm_pgtable_walker *walker, int r)
+  {
+          /*
+           * Visitor callbacks return EAGAIN when the conditions that led to a
+           * fault are no longer reflected in the page tables due to a race ...
+           * Ignore the return code altogether for walkers outside a fault
+           * handler (e.g. write protecting a range of memory) ...
+           */
+          if (r == -EAGAIN)
+                  return !(walker->flags & KVM_PGTABLE_WALK_HANDLE_FAULT);
+          return !r;
+  }
+
+  /* pgtable.c:189-190, 205-209 -- __kvm_pgtable_visit() */
+  if (!kvm_pgtable_walk_continue(data->walker, ret))
+          goto out;
+  ...
+  out:
+          if (kvm_pgtable_walk_continue(data->walker, ret))
+                  return 0;              <<<< the -EAGAIN is swallowed here
+          return ret;
+
+-EAGAIN reaches the caller ONLY if the walker carries
+KVM_PGTABLE_WALK_HANDLE_FAULT. __pkvm_host_dirty_log_guest() passes flags = 0,
+so the walk returns 0. The hypercall reports success, the host resumes the
+guest, and nothing was written. That is the livelock, exactly.
+
+Note that simply adding KVM_PGTABLE_WALK_HANDLE_FAULT does NOT fix it either.
+-EAGAIN there means "a race changed the tables under us, re-enter the guest and
+try again", and user_mem_abort() implements it as such. Here the condition is
+not a race and does not change on retry, so the loop just becomes visible
+instead of silent. The primitive has to change.
 
 
 ================================================================================

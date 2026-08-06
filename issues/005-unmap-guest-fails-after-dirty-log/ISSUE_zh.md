@@ -298,6 +298,50 @@ int __pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)
 
 **修这个不等于修了 003,也不需要先修 003。** 它们是同一个处理函数里两个独立的缺陷:003 是那次 order 0 查表拒绝块映射,005 是那次映射把状态丢掉。两者都继承自 `ee88afa47b55`。
 
+### 具体怎么修
+
+**未经验证。** 这个函数已经有两个从代码推出来的设计在硬件上翻车了,所以在 `probe-dirtylog-twice.c` 说话之前,下面仍然只是假设。这次不同的地方在于:两个分支各自的失败模式现在是**已知**的,而不是假定的。
+
+原语必须按当前粒度来选,因为两种情形的失败方向正好相反:
+
+```rust
+    ret = checked_tx.check_unshare();
+    if ret != 0 { /* 解锁 */ return ret; }
+
+    // 探测粒度。这就是 003 删掉的那次调用,但这里用作**判别器**而不是关卡 ——
+    // -E2BIG 现在用来选择路径,而不是让整个超级调用失败。
+    let mut phys: u64 = 0;
+    let mut pte: kvm_pte_t = 0;
+    let r = ptr_wrapper!(vm).guest_get_valid_pte(&mut phys, guest_addr, 0, &mut pte);
+
+    ret = if r == 0 {
+        // 已经是 PAGE_SIZE:这是一次纯权限放宽,而 stage2_map() 拒绝这种更新
+        // (且它的 -EAGAIN 会被 walker 吞成 0)。relax_perms 才是指定路径,
+        // 而且它是对现有叶子的读改写,软件状态位天然保留 —— 无需回写。
+        kvm_pgtable_stage2_relax_perms(&mut vm_ref.pgt, guest_addr,
+                                       KVM_PGTABLE_PROT_RWX, 0)
+    } else if r == -(E2BIG as i32) {
+        // 块映射:stage2_map() 会把块拆开。拆块时目标页那一项被留空(无效),
+        // 因为 stage2_map_walk_table_pre() 跳过调用方的范围,于是 old_is_counted
+        // 为假、needs-update 过滤不生效,映射照常写入。也正因为那是全新的一项,
+        // 状态位必须在这里显式写回。
+        kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64, host_addr,
+                               pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+                               mc, 0)
+    } else {
+        r
+    };
+```
+
+**为什么两个分支各自站得住。**
+
+- 4 KiB 那支正是死循环的那一支,而 `relax_perms` 恰恰是 `pgtable.c:961-975` 让调用方改用的东西。它在 EL2 也已被证明可用 —— `__pkvm_host_relax_guest_perms()` 就是非日志那一支的兄弟,今天在正常工作。
+- 块映射那一支**已经在硬件上跑着**。`#13` 的默认 THP 模式 5/5 通过,走的正是"对块做 `stage2_map(PAGE_SIZE)`"。唯一的改动是给 prot 加上状态位 —— 而这恰恰是必要的,因为拆块之后目标项是全新的,否则会被写成 `PKVM_PAGE_OWNED`。
+
+**这套修法不需要什么。** 不需要移植 `__pkvm_host_split_guest`,不需要 hyp request 管道,不需要动宿主的 `kvm_pinned_page` 树。`stage2_map` 本来就会拆块,而 `pkvm_call_hyp_nvhe_ppage()` 的 `-E2BIG` 重试本来就能应付"宿主的树比 stage-2 粗" —— 这不是推测,`#13` 此刻正在这么跑。上游 android16-6.12 的拆块系列仍然是更整洁的长期形态,但选它的理由是与 ACK 收敛,不是必需。
+
+**判据。** `repro/probe-dirtylog-twice.c nohuge` 的 round 3 必须给出 `A=1`、且重新写保护返回 `0`;同时 `repro/probe-dirtylog-thp.c` 三种模式都必须仍然通过 —— 后半条很重要,因为块映射那一支是目前唯一正常的,不能被改坏。看 `rc`,别只看输出:这些程序挂死时一个字都不打印。
+
 ## 残留风险
 
 因为 003 遮着它,任何在 `#4` 这类内核上测得的 005 频率都只是**下界**;而任何不开启脏页日志的测试永远看不到它。迄今为止的 syzkaller 测试都属于后者 —— 2026-07-31 与 2026-08-05 两轮的控制台日志里都没有这个签名。
