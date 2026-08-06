@@ -1,0 +1,53 @@
+# Upstream comparison for issue 003 — ACK android15-6.6 vs klinux
+# Read with: git show aosp/android15-6.6:<path>   (kernel-refs/ack)
+
+## 1. Upstream's EL2 handler takes pfn from the host and does NO granule lookup
+##    arch/arm64/kvm/hyp/nvhe/mem_protect.c:2771
+int __pkvm_dirty_log(struct pkvm_hyp_vcpu *hyp_vcpu, u64 pfn, u64 gfn)
+{
+	struct pkvm_hyp_vm *vm = pkvm_hyp_vcpu_to_hyp_vm(hyp_vcpu);
+	u64 guest_addr = hyp_pfn_to_phys(gfn);
+	u64 host_addr = hyp_pfn_to_phys(pfn);
+	struct pkvm_mem_transition share = {
+	host_lock_component();
+	guest_lock_component(vm);
+
+	ret = check_unshare(&checked_tx);
+	if (ret)
+		goto unlock;
+
+	ret = kvm_pgtable_stage2_map(&vm->pgt, guest_addr, PAGE_SIZE,
+				     host_addr, KVM_PGTABLE_PROT_RWX,
+				     &hyp_vcpu->vcpu.arch.stage2_mc,
+				     0);
+unlock:
+	guest_unlock_component(vm);
+
+## 2. klinux renamed it, dropped pfn, and re-derives host_addr with a 4 KiB-only lookup
+##    arch/arm64/kvm/hyp/xhypervisor/src/mem_protect/permissions.rs:135,147
+pub fn __pkvm_host_dirty_log_guest(gfn: u64, vcpu: *mut pkvm_hyp_vcpu) -> i32 {
+    let mut hyp_vcpu_ref = ptr_wrapper!(vcpu);
+
+    let mut ret =  ptr_wrapper!(vm).guest_get_valid_pte(&mut host_addr, guest_addr, 0, &mut _pte);
+    if ret != 0 {
+        guest_unlock_component(vm);
+        host_unlock_component();
+        return ret;
+    }
+
+## 3. Upstream has a whole block-splitting mechanism that klinux does not have at all
+##    grep -rn 'split_guest' klinux/arch/arm64/  ->  no matches
+##    ACK 6.6 mmu.c:1912-1916 (note the comment), handle_exit.c:366
+/*
+ * Splitting is only expected on the back of a relinquish guest HVC in the pKVM case, while
+ * pkvm_pgtable_stage2_split() can be called with dirty logging.
+ */
+int __pkvm_pgtable_stage2_split(struct kvm_vcpu *vcpu, phys_addr_t ipa, size_t size)
+{
+static int handle_hyp_req_split(struct kvm_vcpu *vcpu, struct kvm_hyp_req *req)
+{
+	return __pkvm_pgtable_stage2_split(vcpu, req->split.guest_ipa, req->split.size);
+}
+
+## 4. Both trees have huge-page guest support -- struct kvm_pinned_page carries order/pins
+##    so upstream is NOT simply 'a tree without huge pages'.

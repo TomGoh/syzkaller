@@ -2,6 +2,8 @@
 
 English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 tracker 的权威记录;本文是等价中文版,不含 front-matter。
 
+> **本文所有行号以 `klinux @348c94763cc6`(`#4`)为准** —— 即所有观测所在的构建,可用 `git show 348c94763cc6:<path>` 复核。早前版本引用的是工作树,而工作树带着 002 的修复、`mmu.c` 整体下移 5 行。
+
 每一个开启过脏页日志的 VM,在销毁时都会打印:
 
 ```
@@ -12,7 +14,7 @@ kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
 
 ## 症状
 
-`arm.c:262-265`,位于 `kvm_arch_destroy_vm()` 末尾:
+`arm.c:263-265`,位于 `kvm_arch_destroy_vm()` 末尾:
 
 ```c
 	if (atomic64_read(&kvm->stat.protected_hyp_mem))
@@ -32,29 +34,36 @@ kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
 
 **置信度:已根因定位。** 失衡是实测的,触发条件由对照矩阵隔离,代码路径与之吻合。
 
-**这个计数器记的是宿主交给 EL2 的页。** 两处加:
+**这个计数器记的是宿主交给 EL2 的页。** 三处加、四处减:
 
 ```
-mmu.c:1801   pkvm_mem_abort()        atomic64_add(nr_pages << PAGE_SHIFT, ...)  /* 它那次 topup 实际增加的量 */
-pkvm.c:401   __pkvm_create_hyp_vm()  atomic64_add(pgd_sz, ...)
+加   mmu.c:1796     pkvm_mem_abort()          它那次 topup 实际增加的量
+加   pkvm.c:401     __pkvm_create_hyp_vm()    pgd_sz
+加   alloc.rs:1648  hyp_alloc_account()       EL2 侧分配        (C 对应:nvhe/alloc.c:626)
+
+减   arm.c:511      kvm_arch_vcpu_destroy()   stage2_mc.nr_pages 全量
+减   pkvm.c:347     pkvm_destroy_hyp_vm()     stage2_teardown_mc.nr_pages 全量
+减   pkvm.c:431     __pkvm_create_hyp_vm()    pgd_sz,建 VM 失败时的回滚
+减   alloc.rs:1729  hyp_free_account()        EL2 侧释放        (C 对应:nvhe/alloc.c:661)
 ```
 
-两处减,而且都按**整个 memcache 的剩余量**减,不管这些页是从哪条路进来的:
+其中两对是**自平衡**的 —— pgd 的加/回滚,以及 EL2 分配器自己的加/释放 —— 都不参与失衡。早前版本只列了两加两减;结论不变,但枚举不全,原因是漏掉的那两对都跨两行,单行 grep 看不见。
 
-```
-arm.c:509    kvm_arch_vcpu_destroy()  atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT, ...)
-pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages << PAGE_SHIFT, ...)
-```
+**两处销毁时的减法都按整个 memcache 的剩余量来**,不管这些页从哪条路进来。造成伤害的正是这一半。
 
 **`__topup_hyp_memcache()` 自己从不记账**(`kvm_host.h:119-135`,它只负责分配和入栈),所以记账完全是调用方的责任。而往 `vcpu->arch.stage2_mc` 里 topup 的一共三处,只有一处做了:
 
 | 位置 | 上下文 | 记账 |
 | --- | --- | --- |
-| `mmu.c:1796` | `pkvm_mem_abort()`,普通缺页路径 | **有**,`mmu.c:1801` |
-| `mmu.c:1754` | `pkvm_relax_perms()` 的 `logging_active` 分支 | **无** |
+| `mmu.c:1791` | `pkvm_mem_abort()`,普通缺页路径 | **有**,`mmu.c:1796` |
+| `mmu.c:1749` | `pkvm_relax_perms()` 的 `logging_active` 分支 | **无** |
 | `handle_exit.c:369` | `handle_hyp_req_mem()`,EL2 向宿主要内存 | **无** |
 
-从未记账的路进来、销毁时还留在 memcache 里的页,会被减掉却从未被加过。计数器就负了这么多页。
+从未记账的路进来的页,会被减掉却从未被加过,计数器就负了这么多。
+
+注意前提条件比早前版本写的“销毁时还留在 memcache 里”更弱:被 EL2 **消费掉**的页同样会让它变负 —— 那些页在销毁时经 `stage2_teardown_mc` 回流,并在 `pkvm.c:347` 被减掉。两种情形下减法都真实发生,而加法从未发生。
+
+**量级是可预测的,不只是被观测到的。** `kvm_mmu_cache_min_pages(mmu)` 就是 `kvm_stage2_levels(mmu) - 1`(`stage2_pgtable.h:31`),而 logging 分支那次 topup 要的正是这个数。本板 40 位 IPA 对应三级 stage-2,于是它等于 **2** —— 与实测的 −8192 字节精确吻合。这把第一版留下的一个开放问题关掉了。
 
 **触发条件是隔离出来的,不是论证出来的。** 三种模式,每种 5 次(`../003-dirty-log-guest-no-huge-page-support/evidence/2026-08-05-mode-matrix.txt`):
 
@@ -64,14 +73,16 @@ pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages <
 | `nohuge` | 开 | 强制 4 KiB | 成功 | **有** |
 | `nodirty` | 关 | 2 MiB 块 | 成功 | **无**,0/5 |
 
-唯一起作用的是"是否开启脏页日志"。页大小不影响,`KVM_RUN` 成败也不影响。
+页大小不影响,`KVM_RUN` 成败也不影响。
 
-最后一列正是指向 `mmu.c:1754` 的依据:它是 `logging_active` 分支**内部**的 topup,而且执行在问题 003 会失败的那个超级调用**之前** ——
+**但"开启脏页日志"这个触发条件写得太松了。** 15 次逐次相关给出 13/15 `-E2BIG` 与 13/15 teardown 消息,且完全重合;那两次客户机没有缺页的运行,两者都没出现。消息真正需要的是**脏页日志的缺页路径被执行** —— 这反而强化了因果判断,因为 `mmu.c:1749` 正在那条路径上。
+
+最后一列正是指向 `mmu.c:1749` 的依据:它是 `logging_active` 分支**内部**的 topup,而且执行在问题 003 会失败的那个超级调用**之前** ——
 
 ```c
 	if (logging_active) {
 		struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
-		int ret = topup_hyp_memcache(hyp_memcache,              /* mmu.c:1754 —— 未记账 */
+		int ret = topup_hyp_memcache(hyp_memcache,              /* mmu.c:1749 —— 未记账 */
 					     kvm_mmu_cache_min_pages(&kvm->arch.mmu), 0);
 		if (ret)
 			return ret;
@@ -81,7 +92,7 @@ pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages <
 
 —— 这正是失衡在两种结局下都存在的原因。
 
-**有一步是推断而非实测:** 那两页来自 `mmu.c:1754` 而不是 `handle_exit.c:369`,是按排除法得到的 —— `:1754` 是唯一"仅在开启脏页日志时才会到达"的未记账 topup。给三个 topup 点各加一个计数器,或把 `stage2_mc.nr_pages` 暴露到 debugfs,就能坐实。
+**有一步是推断而非实测:** 那两页来自 `mmu.c:1749` 而不是 `handle_exit.c:369`,是按排除法得到的 —— `:1749` 是唯一"仅在开启脏页日志时才会到达"的未记账 topup。给三个 topup 点各加一个计数器,或把 `stage2_mc.nr_pages` 暴露到 debugfs,就能坐实。
 
 ## 触发条件
 
@@ -103,9 +114,9 @@ pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages <
 **没有内存丢失,而且代码给出的依据比测量更硬。** 做减法的地方,正是把页还回去的地方:
 
 ```c
-	atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT,   /* arm.c:509  */
+	atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT,   /* arm.c:511  */
 		     &vcpu->kvm->stat.protected_hyp_mem);
-	free_hyp_memcache(&vcpu->arch.stage2_mc);                   /* arm.c:511  */
+	free_hyp_memcache(&vcpu->arch.stage2_mc);                   /* arm.c:513  */
 ```
 
 而 `__free_hyp_memcache()` 会把 cache 里每一页弹出并释放(`kvm_host.h:137-149`)。**销毁时被减掉的每一页,都是被还回去的那一页。** 减法是对的,是与之配对的**加法**从未发生 —— 这正是残值为负而非为正的原因。
@@ -127,12 +138,12 @@ pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages <
 | 需要脏页日志 | 是 | 是 | 是 |
 | 需要大页 | **否** | **是** | **否** |
 | `KVM_RUN` 成功时仍出现 | 是 | 不适用(它就是那个失败) | **是** |
-| 位置 | 宿主 `mmu.c:190` | EL2 `permissions.rs:147` | 宿主 `mmu.c:1754` |
+| 位置 | 宿主 `mmu.c:190` | EL2 `permissions.rs:147` | 宿主 `mmu.c:1749` |
 | 后果 | TLB 失效静默地从未执行 | 客户机无法恢复运行 | 一个计数器是错的 |
 
 `nohuge` 模式是判别器:`KVM_RUN` 成功,003 消失,而 002 与 004 照旧出现。`nodirty` 则三者全消。
 
-**003 与 004 是同一个函数里的邻居。** `pkvm_relax_perms()` 的 `logging_active` 分支同时包含两者:`:1754` 那次未记账的 topup(本问题),以及两行之后被 003 弄失败的那个超级调用。两者看起来是同一类疏忽 —— 一个分支没有得到它的兄弟们得到的处理 —— 但它们互相独立:修好任一个,另一个仍在。
+**003 与 004 是同一个函数里的邻居。** `pkvm_relax_perms()` 的 `logging_active` 分支同时包含两者:`:1749` 那次未记账的 topup(本问题),以及六行之后被 003 弄失败的那个超级调用。两者看起来是同一类疏忽 —— 一个分支没有得到它的兄弟们得到的处理 —— 但它们互相独立:修好任一个,另一个仍在。
 
 **两者都不是我们自己补丁的回归**,004 也不是 003 引起的。所有观测都在 `#4` 上,该构建含 001 的修复、不含 002 的修复。完整来龙去脉见 003 的"为什么现在才浮出来":真正暴露这一切的,是**验证 002 的需求** —— 它迫使我们写出本项目第一个"先跑 vCPU、再开脏页日志"的程序。
 
@@ -140,12 +151,50 @@ pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages <
 
 ## 修复状态
 
-未修。两处独立改动,**都在宿主侧,不涉及 EL2 ABI**,因此比 003 简单得多:
+未修。上游检索**现在做了**,对象是 `kernel-refs/ack` 的三个分支(`aosp/android15-6.6`、`android16-6.12`、`android17-6.18`),证据在 `evidence/2026-08-05-upstream-ack.txt`。答案按部分而不同 —— 本问题其实是三个来源各异的缺陷:
 
-1. **把 topup 记上账。** 在 `mmu.c:1754` 照 `mmu.c:1801` 的样子补 `atomic64_add`,`handle_exit.c:369` 同理。`pkvm_mem_abort()` 的写法是记录 topup 前后 `nr_pages` 的**增量**,而不是请求的最小值。
-2. **修好报告。** `arm.c:263-265` 应当按有符号打印,并区分两个方向:正残值是"捐出去没还回来",负残值是记账缺陷。把两者混为一谈,正是这条消息无法解读的原因。
+### (a) `handle_hyp_req_mem()` —— klinux **删掉了**上游的记账
 
-上游检索尚未做 —— 那是 issue workflow 的第 2 步,仍然欠着。
+上游带着这里缺失的那段代码:
+
+```c
+/* ACK android15-6.6, arch/arm64/kvm/handle_exit.c:344-352 */
+	case REQ_MEM_DEST_VCPU_MEMCACHE:
+		nr_pages = vcpu->arch.stage2_mc.nr_pages;
+		ret = topup_hyp_memcache(&vcpu->arch.stage2_mc, req->mem.nr_pages, 0);
+		nr_pages = vcpu->arch.stage2_mc.nr_pages - nr_pages;
+		atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_hyp_mem);
+		atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_pgtable_mem);
+		return ret;
+
+/* klinux @348c94763cc6, arch/arm64/kvm/handle_exit.c:365-371 */
+	case REQ_MEM_DEST_VCPU_MEMCACHE:
+		return topup_hyp_memcache(&vcpu->arch.stage2_mc, req->mem.nr_pages, 0);
+```
+
+增量计算和两个 add 一起被删。`protected_pgtable_mem` 在 `klinux/arch/arm64/` 全树都不存在 —— 第二个统计跟着一起没了。**这是有精确上游参照的 klinux 回归,修法就是把上游那段恢复回来。**
+
+### (b) `%llu` 打印有符号 —— **上游**缺陷,三个分支全未修
+
+三个 ACK 分支里逐字相同,最新的也一样:
+
+```
+aosp/android15-6.6   arm.c:235
+aosp/android16-6.12  arm.c:267
+aosp/android17-6.18  arm.c:284
+	kvm_err("%lluB of donations to the nVHE hyp are missing\n",
+		atomic64_read(&kvm->stat.protected_hyp_mem));
+```
+
+没有可 backport 的东西,修法是本地的;而且这一条**值得报给上游**:按有符号打印,并区分两个方向 —— 正残值是"捐出去没还回来",负残值是记账缺陷。把两者混为一谈,正是这条消息无法解读的原因。
+
+### (c) logging 分支的 topup —— **上游同样未记账**
+
+ACK 6.6 在自己的 `mmu.c:1670` 有一模一样的缺口:`logging_active` 的 topup 之后直接就是超级调用,没有 `atomic64_add`。上游在这一点上**自相矛盾**,因为两百行之后的拆块路径(`mmu.c:1931-1938`)是记账的。所以这一半是继承来的、上游未修,本地修掉就意味着与上游产生偏差 —— 照 `pkvm_mem_abort()` 的 `nr_pages` 增量写法来。
+
+### 动手顺序
+
+(a) 最便宜,而且是唯一有上游答案可抄的;(b) 两行;(c) 才是真正消掉那 −2 页的,最好和 (a) 一起做,免得记账只恢复一半。三者都不碰 EL2 ABI,这也是它整体比 003 简单得多的原因。
 
 ## 残留风险
 

@@ -19,6 +19,8 @@ observations:
 
 中文版本:[ISSUE_zh.md](ISSUE_zh.md)
 
+> **Line numbers in this document are on `klinux @348c94763cc6` (`#4`)**, the build every observation was made on — read them with `git show 348c94763cc6:<path>`. An earlier revision cited the working tree, which carries the issue 002 fix and is +5 lines through `mmu.c`.
+
 Every VM that enables dirty logging prints this at teardown:
 
 ```
@@ -29,7 +31,7 @@ It reads as *18 exabytes of guest memory were donated to the hypervisor and neve
 
 ## Symptom
 
-`arm.c:262-265`, at the end of `kvm_arch_destroy_vm()`:
+`arm.c:263-265`, at the end of `kvm_arch_destroy_vm()`:
 
 ```c
 	if (atomic64_read(&kvm->stat.protected_hyp_mem))
@@ -49,29 +51,36 @@ So the counter is **negative by two pages**, and the message's wording — "miss
 
 **Confidence: root-caused.** The imbalance is measured, its trigger is isolated by a controlled matrix, and the code path accounts for it.
 
-**The counter tracks pages the host has handed to EL2.** Two sites add:
+**The counter tracks pages the host has handed to EL2.** Three sites add and four subtract:
 
 ```
-mmu.c:1801   pkvm_mem_abort()        atomic64_add(nr_pages << PAGE_SHIFT, ...)  /* what its topup consumed */
-pkvm.c:401   __pkvm_create_hyp_vm()  atomic64_add(pgd_sz, ...)
+add   mmu.c:1796     pkvm_mem_abort()          what its own topup consumed
+add   pkvm.c:401     __pkvm_create_hyp_vm()    pgd_sz
+add   alloc.rs:1648  hyp_alloc_account()       EL2-side allocation   (C mirror: nvhe/alloc.c:626)
+
+sub   arm.c:511      kvm_arch_vcpu_destroy()   the whole of stage2_mc.nr_pages
+sub   pkvm.c:347     pkvm_destroy_hyp_vm()     the whole of stage2_teardown_mc.nr_pages
+sub   pkvm.c:431     __pkvm_create_hyp_vm()    pgd_sz, on the create-failure rollback
+sub   alloc.rs:1729  hyp_free_account()        EL2-side free         (C mirror: nvhe/alloc.c:661)
 ```
 
-Two sites subtract, and both subtract **the entire remaining memcache**, regardless of which path put pages in it:
+Two of those are self-balancing pairs — the pgd add/rollback, and the EL2 allocator's own add/free — and neither participates in the imbalance. An earlier revision listed only two adds and two subs; the conclusion is unchanged, but the enumeration was incomplete because both missed pairs span two source lines and a single-line `grep` for `atomic64_add.*protected_hyp_mem` does not see them.
 
-```
-arm.c:509    kvm_arch_vcpu_destroy()  atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT, ...)
-pkvm.c:347   pkvm_destroy_hyp_vm()    atomic64_sub(stage2_teardown_mc.nr_pages << PAGE_SHIFT, ...)
-```
+**The two teardown subtractions take the entire remaining memcache**, regardless of which path put pages into it. That is the half of the asymmetry that does the damage.
 
 **`__topup_hyp_memcache()` never accounts** (`kvm_host.h:119-135` — it only allocates and pushes), so accounting is entirely the caller's job. Exactly three sites top up `vcpu->arch.stage2_mc`, and only one of them does it:
 
 | site | context | accounts? |
 | --- | --- | --- |
-| `mmu.c:1796` | `pkvm_mem_abort()`, the ordinary fault path | **yes**, `mmu.c:1801` |
-| `mmu.c:1754` | `pkvm_relax_perms()`, the `logging_active` branch | **no** |
+| `mmu.c:1791` | `pkvm_mem_abort()`, the ordinary fault path | **yes**, `mmu.c:1796` |
+| `mmu.c:1749` | `pkvm_relax_perms()`, the `logging_active` branch | **no** |
 | `handle_exit.c:369` | `handle_hyp_req_mem()`, EL2 asking the host for memory | **no** |
 
-Pages that enter through an unaccounted path and are still in the memcache at destroy are subtracted without ever having been added. The counter goes negative by exactly that many pages.
+Pages that enter through an unaccounted path are subtracted without ever having been added, and the counter goes negative by exactly that many.
+
+Note the precondition is weaker than "still in the memcache at destroy", which an earlier revision claimed. Pages EL2 *consumed* go negative too: they come back at teardown through `stage2_teardown_mc` and are subtracted there (`pkvm.c:347`). Either way the subtraction is real and the addition never happened.
+
+**The magnitude is predicted, not just observed.** `kvm_mmu_cache_min_pages(mmu)` is `kvm_stage2_levels(mmu) - 1` (`stage2_pgtable.h:31`), and the logging topup asks for exactly that. With this board's 40-bit IPA giving three stage-2 levels, it is **2** — matching the measured −8192 bytes exactly. That closes what the first revision left as an open question.
 
 **The trigger is isolated, not argued.** Three modes, five runs each (`../003-dirty-log-guest-no-huge-page-support/evidence/2026-08-05-mode-matrix.txt`):
 
@@ -81,14 +90,16 @@ Pages that enter through an unaccounted path and are still in the memcache at de
 | `nohuge` | on | forced 4 KiB | succeeds | **yes** |
 | `nodirty` | off | 2 MiB block | succeeds | **no**, 0/5 |
 
-Enabling dirty logging is the only thing that matters. Page size does not, and neither does whether `KVM_RUN` then fails.
+Page size does not matter, and neither does whether `KVM_RUN` then fails.
 
-That last column is what points at `mmu.c:1754` specifically: it is the topup **inside** the `logging_active` branch, and it runs *before* the hypercall that issue 003 makes fail —
+**But "enabling dirty logging" is too loose a trigger**, as an earlier revision put it. Per-run correlation over 15 runs gives 13/15 `-E2BIG` and 13/15 teardown messages, coinciding exactly; the two runs in which the guest did not fault produced neither. What the message actually requires is that the **logging fault path executes** — which strengthens the causal claim, because that path is precisely where `mmu.c:1749` sits.
+
+That last column is what points at `mmu.c:1749` specifically: it is the topup **inside** the `logging_active` branch, and it runs *before* the hypercall that issue 003 makes fail —
 
 ```c
 	if (logging_active) {
 		struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
-		int ret = topup_hyp_memcache(hyp_memcache,              /* mmu.c:1754 — unaccounted */
+		int ret = topup_hyp_memcache(hyp_memcache,              /* mmu.c:1749 — unaccounted */
 					     kvm_mmu_cache_min_pages(&kvm->arch.mmu), 0);
 		if (ret)
 			return ret;
@@ -98,7 +109,7 @@ That last column is what points at `mmu.c:1754` specifically: it is the topup **
 
 — which is exactly why the imbalance survives both outcomes.
 
-**One step is inference, not measurement:** that the two pages come from `mmu.c:1754` rather than from `handle_exit.c:369` is by elimination — `:1754` is the only unaccounted topup that is *reached only when dirty logging is on*. Instrumenting the three topup sites with counters, or exposing `stage2_mc.nr_pages` through debugfs, would settle it.
+**One step is inference, not measurement:** that the two pages come from `mmu.c:1749` rather than from `handle_exit.c:369` is by elimination — `:1749` is the only unaccounted topup that is *reached only when dirty logging is on*. Instrumenting the three topup sites with counters, or exposing `stage2_mc.nr_pages` through debugfs, would settle it.
 
 ## Trigger
 
@@ -120,9 +131,9 @@ The message is printed from `kvm_arch_destroy_vm()`, i.e. **after the process ex
 **No memory is lost, and the code settles that more firmly than a measurement could.** The site that subtracts is the site that frees:
 
 ```c
-	atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT,   /* arm.c:509  */
+	atomic64_sub(vcpu->arch.stage2_mc.nr_pages << PAGE_SHIFT,   /* arm.c:511  */
 		     &vcpu->kvm->stat.protected_hyp_mem);
-	free_hyp_memcache(&vcpu->arch.stage2_mc);                   /* arm.c:511  */
+	free_hyp_memcache(&vcpu->arch.stage2_mc);                   /* arm.c:513  */
 ```
 
 and `__free_hyp_memcache()` pops and frees every page in the cache (`kvm_host.h:137-149`). Every page counted out at teardown is a page handed back. The subtraction is correct; it is the matching *addition* that never happened, which is exactly why the residual is negative rather than positive.
@@ -144,12 +155,12 @@ All three of 002, 003 and 004 fire on the same input — an ordinary VM whose vC
 | needs dirty logging | yes | yes | yes |
 | needs huge pages | **no** | **yes** | **no** |
 | survives `KVM_RUN` succeeding | yes | n/a (it *is* the failure) | **yes** |
-| where | host, `mmu.c:190` | EL2, `permissions.rs:147` | host, `mmu.c:1754` |
+| where | host, `mmu.c:190` | EL2, `permissions.rs:147` | host, `mmu.c:1749` |
 | effect | TLB invalidation silently never runs | guest cannot resume | a counter is wrong |
 
 `nohuge` mode is the discriminator: `KVM_RUN` succeeds, so issue 003 is absent, and 002 and 004 both still appear. `nodirty` removes all three.
 
-**003 and 004 are neighbours in the same function.** `pkvm_relax_perms()`'s `logging_active` branch contains both: the unaccounted topup at `:1754` (this issue) and, two lines later, the hypercall that 003 makes fail. Both look like the same omission — a branch written without the treatment its siblings received — but they are independent: fixing either leaves the other.
+**003 and 004 are neighbours in the same function.** `pkvm_relax_perms()`'s `logging_active` branch contains both: the unaccounted topup at `:1749` (this issue) and, six lines later, the hypercall that 003 makes fail. Both look like the same omission — a branch written without the treatment its siblings received — but they are independent: fixing either leaves the other.
 
 **Neither is a regression from our own patches**, and 004 is not caused by 003. Every observation is on `#4`, which carries the issue 001 fix and not the 002 fix. See 003's "Why this surfaced only now" for the full account: what exposed all of this was the requirement to *verify* 002, which forced writing the first program in this project to run a vCPU and then enable dirty logging.
 
@@ -157,12 +168,50 @@ All three of 002, 003 and 004 fire on the same input — an ordinary VM whose vC
 
 ## Fix status
 
-Not fixed. Two independent changes, both host-side only — no EL2 ABI is involved, which makes this substantially simpler than 003:
+Not fixed. Upstream **has** been searched now, against `kernel-refs/ack` (`aosp/android15-6.6`, `android16-6.12`, `android17-6.18`); evidence in `evidence/2026-08-05-upstream-ack.txt`. The answer differs per part, so this issue is three defects with three different provenances:
 
-1. **Account the topups.** Add the `atomic64_add` at `mmu.c:1754` mirroring `mmu.c:1801`, and at `handle_exit.c:369`. The pattern at `pkvm_mem_abort()` is to record the *increase* in `nr_pages` across the topup, not the requested minimum.
-2. **Fix the report.** `arm.c:263-265` should print the signed value, and distinguish the two directions: a positive residual is memory donated and never returned, a negative one is an accounting bug. Conflating them is what made this message unreadable.
+### (a) `handle_hyp_req_mem()` — klinux **deleted** upstream's accounting
 
-Upstream has not been searched for either yet — that is step 2 of the issue workflow and is still outstanding.
+Upstream carries exactly the code that is missing here:
+
+```c
+/* ACK android15-6.6, arch/arm64/kvm/handle_exit.c:344-352 */
+	case REQ_MEM_DEST_VCPU_MEMCACHE:
+		nr_pages = vcpu->arch.stage2_mc.nr_pages;
+		ret = topup_hyp_memcache(&vcpu->arch.stage2_mc, req->mem.nr_pages, 0);
+		nr_pages = vcpu->arch.stage2_mc.nr_pages - nr_pages;
+		atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_hyp_mem);
+		atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_pgtable_mem);
+		return ret;
+
+/* klinux @348c94763cc6, arch/arm64/kvm/handle_exit.c:365-371 */
+	case REQ_MEM_DEST_VCPU_MEMCACHE:
+		return topup_hyp_memcache(&vcpu->arch.stage2_mc, req->mem.nr_pages, 0);
+```
+
+The delta computation and both adds were dropped. `protected_pgtable_mem` does not exist anywhere in `klinux/arch/arm64/` — the second stat went with it. **This is a klinux regression with an exact upstream reference; the fix is to restore the upstream form.**
+
+### (b) The `%llu`-on-signed report — an **upstream** defect, unfixed everywhere
+
+Byte-identical in all three ACK branches, including the newest:
+
+```
+aosp/android15-6.6   arm.c:235
+aosp/android16-6.12  arm.c:267
+aosp/android17-6.18  arm.c:284
+	kvm_err("%lluB of donations to the nVHE hyp are missing\n",
+		atomic64_read(&kvm->stat.protected_hyp_mem));
+```
+
+Nothing to backport. The fix is local, and this one is **worth reporting upstream**: print the signed value, and distinguish the directions — a positive residual is memory donated and never returned, a negative one is an accounting bug. Conflating them is what made this message unreadable.
+
+### (c) The logging-branch topup — **upstream is also unaccounted**
+
+ACK 6.6 has the same gap at its own `mmu.c:1670`: the `logging_active` topup is followed straight by the hypercall, with no `atomic64_add`. Upstream is inconsistent with itself here, since the block-splitting path two hundred lines below (`mmu.c:1931-1938`) *does* account its topup. So this half is inherited and unfixed upstream, and fixing it locally means diverging — mirror `pkvm_mem_abort()`'s `nr_pages`-delta pattern.
+
+### Order of work
+
+(a) is the cheapest and the only one with an upstream answer to copy. (b) is two lines. (c) is the one that actually removes the −2 pages, and is best done together with (a) so the accounting is complete rather than half-restored. None of the three touches the EL2 ABI, which makes all of this substantially simpler than 003.
 
 ## Residual hazard
 

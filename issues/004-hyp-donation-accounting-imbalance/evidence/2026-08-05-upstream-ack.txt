@@ -1,0 +1,55 @@
+# Upstream comparison for issue 004 — ACK vs klinux, three separate defects
+# Read with: git show aosp/<branch>:<path>   (kernel-refs/ack)
+
+########## (a) handle_hyp_req_mem: klinux DELETED upstream's accounting ##########
+--- upstream ACK android15-6.6, arch/arm64/kvm/handle_exit.c:341-353
+	switch (req->mem.dest) {
+	case REQ_MEM_DEST_HYP_ALLOC:
+		return __pkvm_topup_hyp_alloc(req->mem.nr_pages);
+	case REQ_MEM_DEST_VCPU_MEMCACHE:
+		nr_pages = vcpu->arch.stage2_mc.nr_pages;
+		ret = topup_hyp_memcache(&vcpu->arch.stage2_mc,
+					 req->mem.nr_pages, 0);
+		nr_pages = vcpu->arch.stage2_mc.nr_pages - nr_pages;
+		atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_hyp_mem);
+		atomic64_add(nr_pages << PAGE_SHIFT, &kvm->stat.protected_pgtable_mem);
+
+		return ret;
+	};
+--- klinux @348c94763cc6, arch/arm64/kvm/handle_exit.c:365-371
+	switch (req->mem.dest) {
+	case REQ_MEM_DEST_HYP_ALLOC:
+		return __pkvm_topup_hyp_alloc(req->mem.nr_pages);
+	case REQ_MEM_DEST_VCPU_MEMCACHE:
+		return topup_hyp_memcache(&vcpu->arch.stage2_mc,
+					  req->mem.nr_pages, 0);
+	};
+--- note: protected_pgtable_mem does not exist anywhere in klinux/arch/arm64/
+
+########## (b) the %llu-on-signed print: UPSTREAM bug, unfixed in all three ##########
+--- aosp/android15-6.6 arch/arm64/kvm/arm.c: 235:		kvm_err("%lluB of donations to the nVHE hyp are missing\n",
+--- aosp/android16-6.12 arch/arm64/kvm/arm.c: 267:		kvm_err("%lluB of donations to the nVHE hyp are missing\n",
+--- aosp/android17-6.18 arch/arm64/kvm/arm.c: 284:		kvm_err("%lluB of donations to the nVHE hyp are missing\n",
+
+########## (c) the logging-branch topup: upstream is ALSO unaccounted ##########
+--- upstream ACK android15-6.6, arch/arm64/kvm/mmu.c:1668-1678 (no atomic64_add after the topup)
+	if (logging_active) {
+		struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
+		int ret = topup_hyp_memcache(hyp_memcache,
+					     kvm_mmu_cache_min_pages(kvm), 0);
+
+		if (ret)
+			return ret;
+
+		return kvm_call_hyp_nvhe(__pkvm_dirty_log, pfn, gfn);
+	}
+
+--- for contrast, upstream DOES account the split topup, mmu.c:1931-1938
+	if (!hyp_memcache->nr_pages) {
+		ret = topup_hyp_memcache(hyp_memcache, 1, 0);
+		if (ret)
+			return -ENOMEM;
+
+		atomic64_add(PAGE_SIZE, &kvm->stat.protected_hyp_mem);
+		atomic64_add(PAGE_SIZE, &kvm->stat.protected_pgtable_mem);
+	}
