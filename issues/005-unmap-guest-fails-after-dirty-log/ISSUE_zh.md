@@ -101,7 +101,48 @@ handle___pkvm_host_unmap_guest        hyp_main.rs:1094
 
 另外注意 `host.rs:1720` 在比较前**已经把 `PKVM_PAGE_RESTRICTED_PROT` 掩掉了**,所以那一位是被容忍的,不匹配必然发生在基础状态上。
 
-**究竟是哪一处触发,没有实测,而且从 EL1 根本测不到。** 两处都在管理程序内部、在 `hvc` 之后。kretprobe 之所以奏效,是因为 `pkvm_call_hyp_nvhe_ppage()` 是宿主代码;**kprobe 无法跨越异常级**。当年定下问题 002 的手法(在 WARN 处读寄存器)和定下这一半的手法(在边界挂探针),撞的是同一堵墙。
+### 成因:那次重新映射把状态写没了
+
+**置信度:两棵树的完整代码阅读;尚未在硬件上确认。** 引文与细节见 `evidence/2026-08-06-upstream-provenance.txt`。
+
+pKVM 把一页的归属状态存**在 stage-2 PTE 里**,占用它的两个软件位,并且和权限装在同一个字里传递:
+
+```c
+enum pkvm_page_state {
+	PKVM_PAGE_OWNED           = 0ULL,
+	PKVM_PAGE_SHARED_OWNED    = BIT(0),
+	PKVM_PAGE_SHARED_BORROWED = BIT(1),
+};
+#define PKVM_PAGE_STATE_PROT_MASK  (KVM_PGTABLE_PROT_SW0 | KVM_PGTABLE_PROT_SW1)
+```
+
+所以一个不带状态的 prot 字**并不表示"维持原样"**,它会被解读成 `PKVM_PAGE_OWNED`。这就让写入客户机 PTE 的两种方式产生了决定性的差别:
+
+| | 对软件状态位的影响 |
+| --- | --- |
+| `kvm_pgtable_stage2_map(..., prot, ...)` | 按 `prot` **重建**一条全新 PTE —— 状态变成 `prot` 里携带的值 |
+| `kvm_pgtable_stage2_relax_perms(..., prot, ...)` | 对现有叶子做读改写 —— 状态**原封不动** |
+
+`relax_perms` 只会置 `S2AP_R`/`S2AP_W` 和清 `XN`(`pgtable.c:1617-1640`),碰不到软件位。而脏页日志处理函数用的是另一个,并且传的是**裸** prot:
+
+```rust
+	kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64,
+			       host_addr,
+			       KVM_PGTABLE_PROT_RWX,        /* permissions.rs:202 —— 不带状态 */
+			       ... stage2_mc ..., 0)
+```
+
+于是一次成功的脏页日志,留下的是一条有效、全 RWX、而状态标注为 `PKVM_PAGE_OWNED` 的客户机 PTE —— 而就在两条语句之前,`check_unshare()` 刚刚验证过它是 `PKVM_PAGE_SHARED_BORROWED`。**这个处理函数先校验了那个标注,然后把它覆盖掉了。**
+
+这是遗漏而非某种有意的约定,由同一个 crate 自己坐实:`guest_complete_share()` 写的是**完全相同**的 host→guest 共享映射,而它写对了 —— `let prot = pkvm_mkstate(perms, PKVM_PAGE_SHARED_BORROWED);`(`guest.rs:1116`)。`pkvm_mkstate()` 就在 `utils.rs:401`。
+
+**这个机制明确指向站点 A**,并且预言了具体取值:`state == PKVM_PAGE_OWNED == 0`,而期望值是 `BIT(1)`,于是返回 `-EPERM` —— 正是实测到的那个码。它同时解释了为什么触发的不是**宿主侧**那个检查(站点 B):脏页日志处理函数只动客户机页表,宿主那份 `PKVM_PAGE_SHARED_OWNED` 记录仍然完好。
+
+它也顺带排除了审阅提出的 `guest_ack_unshare()` 线索:那条回退是改用 `SHARED_BORROWED | RESTRICTED_PROT` 重试(`guest.rs:1072-1089`),仍然不等于 `0`,救不了这种情况。
+
+**究竟是哪一处触发,仍然没有实测,而且从 EL1 根本测不到。** 两处都在管理程序内部、在 `hvc` 之后。kretprobe 之所以奏效,是因为 `pkvm_call_hyp_nvhe_ppage()` 是宿主代码;**kprobe 无法跨越异常级**。当年定下问题 002 的手法(在 WARN 处读寄存器)和定下这一半的手法(在边界挂探针),撞的是同一堵墙。
+
+**但这个机制给出了一条从 EL1 *够得着* 的验证。** 如果状态真的被清零了,那么对同一页的**第二次**脏页日志调用也必然失败 —— `check_unshare()` → `guest_ack_unshare()` → `__guest_check_page_state_range(..., PKVM_PAGE_SHARED_BORROWED)` 会读到 `PKVM_PAGE_OWNED`,在做任何映射**之前**就返回 `-EPERM`。而这次调用是可以触发的:把该页重新写保护(`KVM_CLEAR_DIRTY_LOG`,或第二轮 `KVM_GET_DIRTY_LOG`)后再写一次即可。`nohuge` 模式下问题 003 是沉默的,所以第二轮里 `KVM_RUN` 失败只可能是这个原因。一个用户态小测试就能定案,完全不需要 EL2 工具;见"修复状态"。
 
 ## 复现
 
@@ -120,6 +161,18 @@ aarch64-linux-gnu-gcc -O2 -static -o probe-dirtylog-thp repro/probe-dirtylog-thp
 
 unmap 走查在失败处中止。`stage2_apply_range()` 返回第一个错误,所以该范围内**位于失败点之后的固定页不会被 unmap、不会被解除固定、也不会被记账** —— 而这是一个正在被销毁的 VM。这是否构成真正的泄漏,取决于随后的 `__pkvm_finalize_teardown_vm` 与 `drain_hyp_pool` 能回收多少,尚未核查。
 
+还有第二个更窄的后果,是代码能直接定下来的。`__pkvm_host_unshare_guest()` 在检查失败时,是在它的两项副作用**之前**就返回的(`permissions.rs:739-777`):
+
+```rust
+	let ret = __check_host_unshare_guest(vm, &mut phys, ipa, order);
+	if ret != 0 { ...解锁...; return ret; }                 /* <-- 走的是这条 */
+
+	kvm_pgtable_stage2_unmap(&mut vm_ref.pgt, ipa, PAGE_SIZE)          /* 被跳过 */
+	__host_set_page_state_range(phys, PAGE_SIZE << order, PKVM_PAGE_OWNED)  /* 被跳过 */
+```
+
+所以那个在脏页日志期间被客户机写过的页,既保留着一条活的客户机 stage-2 映射,**宿主**对它的记录也仍然停在 `PKVM_PAGE_SHARED_OWNED` 而没有回到 `PKVM_PAGE_OWNED` —— 而这个 VM 已经不存在了。之后是否有别的东西把它收回,正是上面 `__pkvm_finalize_teardown_vm` 那个问题。
+
 本问题没有做内存损失测量。问题 004 的教训适用:`MemFree` 在这个量级上被噪声主导,与其称量机器,不如去追销毁路径的代码。
 
 ## 与其他问题的关系
@@ -132,6 +185,8 @@ unmap 走查在失败处中止。`stage2_apply_range()` 返回第一个错误,�
 | 需要大页 | 否 | **是** | 否 | **否 —— 恰恰相反** |
 | 需要脏页日志调用**成功** | 否 | 不适用 | 否 | **是** |
 | 位置 | 宿主 `mmu.c:190` | EL2 `permissions.rs:147` | 宿主 `mmu.c:1749` | EL2 unmap,经 `mmu.c:325` |
+| 来源 | 上游,且上游**已修** | 继承自 `ee88afa47b55` | 三分,见 004 | 继承自 `ee88afa47b55` |
+| 可迁移补丁 | 有(`fce886a60207`) | 无 —— 上游把功能删了 | 部分 | **无** —— 同一次删除 |
 
 **它们构成一条互相遮蔽的链**,这正是现在就立案的现实理由:
 
@@ -140,13 +195,67 @@ unmap 走查在失败处中止。`stage2_apply_range()` 返回第一个错误,�
 
 因此按顺序修复是在**揭示**而不是在解决:修好 002,003 变成 100%;修好 003,**005 会在每一次带脏页日志的销毁中出现**。谁合入 003 的补丁之后看到这条告警,应当把它读作"遮蔽被揭开",而不是回归。
 
+## 上游
+
+2026-08-06 检索,覆盖 `aosp/android15-6.6`、`aosp/android16-6.12`、`aosp/android17-6.18` 与 `torvalds/master`。完整记录见 `evidence/2026-08-06-upstream-provenance.txt`。
+
+**这个缺陷是从 ACK 原样继承来的 —— klinux 没有引入任何东西。** EL2 处理函数是随着创造它的那笔提交一起到来的:
+
+```c
+/* ACK ee88afa47b55, 2024-04-03, Vincent Donnefort
+   "ANDROID: KVM: arm64: Huge page support for pKVM guest relax perm" */
+int __pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)
+{
+	ret = __check_host_unshare_guest(vm, &phys, ipa, 0);
+	if (ret)
+		goto unlock;
+
+	ret = kvm_pgtable_stage2_map(&vm->pgt, ipa, PAGE_SIZE,
+				     phys, KVM_PGTABLE_PROT_RWX,   /* <-- 裸 prot */
+				     &vcpu->vcpu.arch.stage2_mc, 0);
+```
+
+和 klinux 的 Rust 是同一个 `(gfn, vcpu)` 签名、同一个硬编码 order 0、同一个裸 prot。而那笔提交的**宿主侧**改动,就是 klinux 的 `mmu.c:1749/1755/1762`,逐行相同,连 `logging_active` 分支都一样。
+
+**上游另一套脏页日志设计同样有这个问题。** `android15-6.6` 带的是另一个处理函数 `__pkvm_dirty_log(hyp_vcpu, pfn, gfn)`(`mem_protect.c:2771`),它结尾也是 `kvm_pgtable_stage2_map(..., KVM_PGTABLE_PROT_RWX, ...)`。两套设计都会把状态丢掉。
+
+**上游从未修复它。上游是把这个功能删了。**
+
+| 提交 | 日期 | 对这一行做了什么 |
+| --- | --- | --- |
+| `ee88afa47b55` | 2024-04-03 | 引入它,裸 prot |
+| `6a3d47d01594` | 2025-01-28 | *"Make `__pkvm_host_dirty_log_guest()` upstream-friendly"* —— 重排了**正是这次调用**、改了检查函数名,**裸 prot 原样保留** |
+| `6e3ff69cb190` | 2025-01-28 | *"Remove `__pkvm_host_dirty_log_guest()`"* —— 43 行删除,纯移除 |
+
+移除的理由是重新设计,不是修 bug:*"Now that dirty logging for no-guests is done from `user_mem_abort()` with the standard KVM logic, the hypercall is unused."* 从 6.12 起,活下来的 `__pkvm_host_relax_perms_guest()` 用 `kvm_pgtable_stage2_relax_perms()` 做同一件事,而它动不了状态位 —— 所以 6.12、6.18 和 mainline 是**结构上免疫**,而不是被打了补丁。用 `git log --grep` 在两条 ACK 线上搜 `dirty log|dirty_log|mkstate|page state`,搜不到任何修复。
+
+`6a3d47d01594` 值得单独记一笔:一次重写了这次调用、却没看见问题的清理提交。
+
 ## 修复状态
 
-未修,而且诊断还不足以提出修法。错误码现在已经知道了;剩下的是**两处 EL2 检查中究竟是哪一处**触发,而这**从 EL1 回答不了**。
+未修。**没有可迁移的补丁** —— 上游的解法是删功能,而删功能的前提是把 np-guest 脏页日志整体挪进通用的 `user_mem_abort()`,那是对整条 np-guest 内存路径的重新设计,不是一个 hunk。所以这个得我们自己写。
 
-因此下一步是一次 **EL2 覆盖率捕获**,而这套工具本项目已经有了:武装 `pkvm_cov` ring,分别跑 `nohuge` 和 `nodirty`,对 `.rs:line` 覆盖集合取差。只在失败那一侧出现的,是 `host.rs:1722` 还是 `___host_check_page_state_range()` 里的比较,就是那个站点。这正是这个 ring 当初被造出来的用途,也是本 tracker 里第一次需要它来**推进**问题、而不只是用来测吞吐。
+**建议的修法 —— 把那次映射抹掉的标注补回去。** `permissions.rs:202`,`__pkvm_host_dirty_log_guest()` 内:
 
-**本问题的上游检索尚未做。** 需要注意的是,检索会被 003 已经确立的事实所塑造:`__pkvm_host_dirty_log_guest` 在上游**根本不存在** —— ACK 用的是 `__pkvm_dirty_log(pfn, gfn)`,而且会事先把块拆开 —— 所以这条告警所抱怨的那个状态,在上游可能压根不会出现。若如此,005 会和 003 一样属于本地缺陷而非继承缺陷;但这一点尚未核实。
+```rust
+-            KVM_PGTABLE_PROT_RWX,
++            pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+```
+
+同时把 `pkvm_mkstate` 加进 `permissions.rs:28` 的 `use crate::utils::{...}`,把 `PKVM_PAGE_SHARED_BORROWED` 加进 consts 的引入。
+
+`PKVM_PAGE_SHARED_BORROWED` 是正确取值,不是猜的:它就是两条语句之前 `check_unshare()` 刚验证过的那个状态;这次映射本来就不打算改变归属(只改权限和粒度);而且 `guest_complete_share()` 为**同一种** host→guest 共享映射写的正是它(`guest.rs:1116`)。**不能**顺手加上 `PKVM_PAGE_RESTRICTED_PROT` —— 那一位是由 `prot != RWX` 推导出来的,而这次映射是全 RWX。
+
+另一条更贴近上游走向的路,是干脆不在这里用 `stage2_map`,改走 6.12 的 `kvm_pgtable_stage2_relax_perms()`。那个形状更抗未来,但它**拆不开块映射**,所以要等问题 003 的大页问题先解决才谈得上。而这个一行修复与 003 正交,可以先落。
+
+**打补丁之前要先确认。** 上面的机制是两棵树的完整代码阅读,不是硬件结果,而本 tracker 的规矩是不在这种结论上直接建补丁。有两条路可以收口,先便宜的:
+
+1. **从用户态跑第二轮脏页日志。** 如果状态真被清零,对同一页的第二次 `__pkvm_host_dirty_log_guest` 必然在 `check_unshare()` 里以 `-EPERM` 失败,而且是在做任何映射**之前**。把该页重新写保护(`KVM_CLEAR_DIRTY_LOG`,或带 manual-protect 的第二轮 `KVM_GET_DIRTY_LOG`)后再写一次即可;`nohuge` 模式下 003 是沉默的,所以那里 `KVM_RUN` 失败只可能是这个。不需要任何 EL2 工具,给 `repro/probe-dirtylog-thp.c` 加一段就行。
+2. **EL2 覆盖率捕获。** 武装 `pkvm_cov` ring,分别跑 `nohuge` 和 `nodirty`,对 `.rs:line` 集合取差。站点 A(`host.rs:1722`)只在失败那一侧出现,即为直接确认,同时排除 `___host_check_page_state_range()`。
+
+先跑第 1 条;第 2 条仍然是决定性的那条,也仍然是本 tracker 里第一次需要这个 ring 来**推进**问题、而不只是用来测吞吐。
+
+**修这个不等于修了 003,也不需要先修 003。** 它们是同一个处理函数里两个独立的缺陷:003 是那次 order 0 查表拒绝块映射,005 是那次映射把状态丢掉。两者都继承自 `ee88afa47b55`。
 
 ## 残留风险
 

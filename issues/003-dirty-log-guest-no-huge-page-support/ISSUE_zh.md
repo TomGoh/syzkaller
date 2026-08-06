@@ -143,9 +143,19 @@ kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
 
 ## 修复状态
 
-未修。**上游没有可 backport 的补丁,因为上游根本没有这个缺陷** —— 它有一套 klinux 删掉了的机制。证据:`evidence/2026-08-05-upstream-ack66.txt`,取自 `kernel-refs/ack`。
+未修。**上游没有可 backport 的补丁**,但理由不是最初记在这里的那个 —— 见紧接着的更正。证据:`evidence/2026-08-05-upstream-ack66.txt` 与 `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-06-upstream-provenance.txt`,均取自 `kernel-refs/ack`。
 
-**上游的 EL2 处理函数不需要 order,因为宿主把 `pfn` 直接给了它:**
+> **更正(2026-08-06):这个缺陷是从 ACK 继承的,不是 klinux 引入的。**
+>
+> 本节原先写的是"klinux 把上游的处理函数改了名、丢掉了 `pfn`"。这是错的,错因是当初只拿 `android15-6.6` 做比较,而那并不是 klinux 所继承的那条线。ACK 提交 **`ee88afa47b55`**(2024-04-03,*"Huge page support for pKVM guest relax perm"*)引入的正是 `__pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)` —— 与 klinux 完全相同的签名 —— 它通过 `__check_host_unshare_guest(vm, &phys, ipa, 0)` 在 EL2 侧反查地址,**order 硬编码为 0**。而 `-E2BIG` 粒度检查在那笔提交时就已经在 `guest_get_valid_pte()` 里了。那笔提交的宿主侧改动,就是 klinux 的 `mmu.c:1749/1755/1762`,逐行相同。
+>
+> 所以 klinux 既没有改名也没有丢掉 `pfn`:它带的就是 ACK 自己的设计,连缺陷一起。上游对它做的处置是**删掉** —— `6e3ff69cb190`(2025-01-28),在 np-guest 脏页日志被挪进通用 `user_mem_abort()` 之后。
+>
+> 核查时顺带发现的拆块系列(`c8303029c094`、`024d995fb`、`8d4b47fe9`、`b052adb82`,2025-05 至 2025-12)**不是**这条路径的修复:它们是在该超级调用被删除之后才落的,而且 `8d4b47fe9` 自己写明,它处理的是 relinquish 路径上客户机**共享**类调用方的 `-E2BIG`。
+>
+> 原分析中站得住的是下面这部分:`android15-6.6` 带的是**另一个**处理函数,它从宿主拿 `pfn`,因而根本不会在 order 0 上走表。那仍然是一个真实的、很小的、可以照抄的设计 —— 只是它属于上游的另一条线,而不能用来证明 klinux 弄坏了什么。
+
+**`android15-6.6` 的 EL2 处理函数不需要 order,因为宿主把 `pfn` 直接给了它:**
 
 ```c
 /* ACK android15-6.6, arch/arm64/kvm/hyp/nvhe/mem_protect.c:2771 */
@@ -156,9 +166,9 @@ int __pkvm_dirty_log(struct pkvm_hyp_vcpu *hyp_vcpu, u64 pfn, u64 gfn)
 	ret = kvm_pgtable_stage2_map(&vm->pgt, guest_addr, PAGE_SIZE, host_addr, ...);
 ```
 
-klinux 把它改名为 `__pkvm_host_dirty_log_guest(gfn)`、**丢掉了 `pfn`**,于是不得不在 EL2 侧走一遍客户机页表去反查 `host_addr` —— 那次只认 4 KiB 的 `guest_get_valid_pte(..., 0, ...)` 就是这么来的。
+klinux 的处理函数是 `__pkvm_host_dirty_log_guest(gfn)`,它没有 `pfn`,于是不得不在 EL2 侧走一遍客户机页表去反查 `host_addr` —— 那次只认 4 KiB 的 `guest_get_valid_pte(..., 0, ...)` 就是这么来的。按上面的更正,这个形状是 `ee88afa47b55` 的,不是 klinux 的;`android15-6.6` 只是走了另一条路。
 
-**而且上游会先把块拆开,靠的是 klinux 完全没有的一套机制:**
+**而且那条线会先把块拆开,靠的是 klinux 完全没有的一套机制:**
 
 | 组件 | ACK `android15-6.6` | klinux |
 | --- | --- | --- |
@@ -171,12 +181,13 @@ klinux 把它改名为 `__pkvm_host_dirty_log_guest(gfn)`、**丢掉了 `pfn`**,
 
 注意上游**并不是**"一棵没有大页的树":两边的 `struct kvm_pinned_page` 都带 `order` 和 `pins`。
 
-所以修复是一次**恢复**,有两种形状:
+所以修复是本地工作,有三种形状:
 
-1. **照上游做** —— 把拆块链恢复(`handle_hyp_req_split` + `__pkvm_pgtable_stage2_split` + `__pkvm_host_split_guest` 超级调用),让块根本到不了脏页日志路径。改动最大;但与上游完全一致,若将来要与 ACK 对账,这一点很值钱。
+0. **照搬 `android15-6.6` 的处理函数签名** —— 由宿主把 `pfn` 传进来,像 `__pkvm_dirty_log(hyp_vcpu, pfn, gfn)` 那样,EL2 就再也不会在 order 0 上走客户机页表,粒度检查根本不会被问到。三者中最小,而且是照抄在跑的上游代码、不是发明 —— 只不过来自兄弟分支,而非 klinux 自己的祖先。注意它**解决不了问题 005**,那个处理函数同样有 005。
+1. **完整照 `android15-6.6` 做** —— 把拆块链补上(`handle_hyp_req_split` + `__pkvm_pgtable_stage2_split` + `__pkvm_host_split_guest` 超级调用),让块根本到不了脏页日志路径。改动最大;但与上游完全一致,若将来要与 ACK 对账,这一点很值钱。
 2. **照本树的兄弟做** —— 给脏页日志的超级调用补一个 `order` 参数(和 `__pkvm_host_wrprotect_guest` 一样),让 EL2 侧按 `PAGE_SIZE << order` 映射,并通过 `pkvm_call_hyp_nvhe_ppage()` 配一个 `__pkvm_dirty_log_call(pfn, gfn, order, args)` 回调走。改动更小、更局部,而且"块已经被拆过"的情形由重试分支免费兜住。
 
-形状 2 补丁更小;形状 1 能阻止本树继续偏离 ACK。无论哪种,这都是**有上游参照的本地工作**,不是 cherry-pick。
+形状 0 最小,而且是直接照抄一个在跑的上游设计;形状 2 最贴合本树的写法;形状 1 能阻止本树继续偏离 ACK。三者都不是 cherry-pick —— klinux 自己的祖先 `ee88afa47b55` 就带着这个缺陷,而继承了它的那条分支选择了删功能而不是修它。
 
 ## 残留风险
 

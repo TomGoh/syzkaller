@@ -160,9 +160,19 @@ The order matters for anyone reading the tracker later: **002 does not cause 003
 
 ## Fix status
 
-Not fixed. **There is nothing upstream to backport, because upstream does not have this defect** — it has a mechanism klinux deleted. Evidence: `evidence/2026-08-05-upstream-ack66.txt`, read from `kernel-refs/ack`.
+Not fixed. **There is nothing upstream to backport**, but the reason is not the one first recorded here — see the correction immediately below. Evidence: `evidence/2026-08-05-upstream-ack66.txt` and `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-06-upstream-provenance.txt`, both read from `kernel-refs/ack`.
 
-**Upstream's EL2 handler needs no order, because the host gives it the `pfn`:**
+> **Correction (2026-08-06): this defect is inherited from ACK, not introduced by klinux.**
+>
+> This section originally said klinux renamed upstream's handler and dropped its `pfn` argument. That is wrong, and it was wrong because the comparison was made against `android15-6.6` alone, which is not the line klinux descends from. ACK commit **`ee88afa47b55`** (2024-04-03, *"Huge page support for pKVM guest relax perm"*) introduces `__pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)` — klinux's exact signature — which re-derives the address at EL2 through `__check_host_unshare_guest(vm, &phys, ipa, 0)` with **the order hardcoded to 0**. The `-E2BIG` granule check was already in `guest_get_valid_pte()` at that commit. That commit's host-side hunk is klinux's `mmu.c:1749/1755/1762` line for line.
+>
+> So klinux neither renamed the handler nor dropped the `pfn`: it carries ACK's own design, defect included. What upstream did with it was **delete it** — `6e3ff69cb190` (2025-01-28), once np-guest dirty logging moved to generic `user_mem_abort()` handling.
+>
+> The split series found while checking this (`c8303029c094`, `024d995fb`, `8d4b47fe9`, `b052adb82`, 2025-05 … 2025-12) is **not** a fix for this path: it landed after the hypercall was already removed, and `8d4b47fe9` states it handles `-E2BIG` for the guest *sharing* callers on the relinquish path.
+>
+> What survives from the original analysis is the part below: `android15-6.6` carries a **different** handler that takes the `pfn` from the host and therefore never walks at order 0. That remains a real, small design to copy — it is just an alternative upstream design rather than proof that klinux broke something.
+
+**The `android15-6.6` handler needs no order, because the host gives it the `pfn`:**
 
 ```c
 /* ACK android15-6.6, arch/arm64/kvm/hyp/nvhe/mem_protect.c:2771 */
@@ -173,9 +183,9 @@ int __pkvm_dirty_log(struct pkvm_hyp_vcpu *hyp_vcpu, u64 pfn, u64 gfn)
 	ret = kvm_pgtable_stage2_map(&vm->pgt, guest_addr, PAGE_SIZE, host_addr, ...);
 ```
 
-klinux renamed it to `__pkvm_host_dirty_log_guest(gfn)`, **dropped the `pfn`**, and therefore had to re-derive `host_addr` at EL2 by walking the guest page table — which is where the 4 KiB-only `guest_get_valid_pte(..., 0, ...)` lookup came from.
+klinux's handler is `__pkvm_host_dirty_log_guest(gfn)`, which has no `pfn` and therefore has to re-derive `host_addr` at EL2 by walking the guest page table — which is where the 4 KiB-only `guest_get_valid_pte(..., 0, ...)` lookup comes from. Per the correction above, that shape is `ee88afa47b55`'s, not klinux's; `android15-6.6` simply took a different route.
 
-**And upstream splits the block first, through machinery klinux does not have at all:**
+**And that line splits the block first, through machinery klinux does not have at all:**
 
 | component | ACK `android15-6.6` | klinux |
 | --- | --- | --- |
@@ -188,12 +198,13 @@ Upstream's comment above that function says it outright: *"`pkvm_pgtable_stage2_
 
 Note that upstream is **not** simply a tree without huge pages: `struct kvm_pinned_page` carries `order` and `pins` in both trees.
 
-So the fix is a restoration, with two possible shapes:
+So the fix is local work, with three possible shapes:
 
-1. **Follow upstream** — restore the split path (`handle_hyp_req_split` + `__pkvm_pgtable_stage2_split` + the `__pkvm_host_split_guest` hypercall), so blocks never reach the dirty-log path. Largest change; matches upstream exactly, which matters if this tree is ever reconciled.
+0. **Adopt the `android15-6.6` handler signature** — pass the `pfn` from the host, as `__pkvm_dirty_log(hyp_vcpu, pfn, gfn)` does, so EL2 never walks the guest table at order 0 and the granule check is never consulted. Smallest of the three, and it is real upstream code rather than an invention — just from the sibling branch rather than from klinux's own ancestor. Note it does **not** address issue 005, which that handler also has.
+1. **Follow `android15-6.6` fully** — add the split path (`handle_hyp_req_split` + `__pkvm_pgtable_stage2_split` + the `__pkvm_host_split_guest` hypercall), so blocks never reach the dirty-log path. Largest change; matches upstream exactly, which matters if this tree is ever reconciled.
 2. **Follow the siblings in this tree** — give the dirty-log hypercall an `order` argument like `__pkvm_host_wrprotect_guest` has, teach the EL2 handler to map `PAGE_SIZE << order`, and route the call through `pkvm_call_hyp_nvhe_ppage()` with a `__pkvm_dirty_log_call(pfn, gfn, order, args)` callback. Smaller, local, and the retry arm then handles an already-split block for free.
 
-Shape 2 is the smaller patch; shape 1 is the one that stops this tree drifting further from ACK. Either way this is **local work with an upstream reference**, not a cherry-pick.
+Shape 0 is the smallest and is a straight copy of a shipping upstream design; shape 2 is the most idiomatic for this tree; shape 1 is the one that stops this tree drifting further from ACK. None of them is a cherry-pick — klinux's own ancestor `ee88afa47b55` has the defect, and the branch that inherited it deleted the feature rather than fixing it.
 
 ## Residual hazard
 

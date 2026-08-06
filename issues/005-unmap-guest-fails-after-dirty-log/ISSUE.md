@@ -118,7 +118,48 @@ the second returning `-EPERM` from `___host_check_page_state_range()` when the *
 
 Note that `host.rs:1720` already masks `PKVM_PAGE_RESTRICTED_PROT` out before comparing, so that particular bit is tolerated; the mismatch has to be in the base state.
 
-**Which of the two fires is not measured, and cannot be from EL1.** Both sites are inside the hypervisor, past the `hvc`. The kretprobe worked because `pkvm_call_hyp_nvhe_ppage()` is host code; **kprobes cannot cross the exception level**. The technique that settled issue 002 (read a register at the WARN) and the one that settled this half (probe the boundary) stop at the same wall.
+### The cause: the re-map writes the state away
+
+**Confidence: full code read of both trees; not yet confirmed on hardware.** Details and quotations in `evidence/2026-08-06-upstream-provenance.txt`.
+
+pKVM keeps a page's ownership state **inside the stage-2 PTE**, in its two software bits, and carries it around in the same word as the permissions:
+
+```c
+enum pkvm_page_state {
+	PKVM_PAGE_OWNED           = 0ULL,
+	PKVM_PAGE_SHARED_OWNED    = BIT(0),
+	PKVM_PAGE_SHARED_BORROWED = BIT(1),
+};
+#define PKVM_PAGE_STATE_PROT_MASK  (KVM_PGTABLE_PROT_SW0 | KVM_PGTABLE_PROT_SW1)
+```
+
+A prot word carrying no state therefore does not mean *unchanged* — it decodes as `PKVM_PAGE_OWNED`. Which makes the two ways of writing a guest PTE behave very differently:
+
+| | effect on the SW state bits |
+| --- | --- |
+| `kvm_pgtable_stage2_map(..., prot, ...)` | builds a **fresh** PTE from `prot` — state becomes whatever `prot` carries |
+| `kvm_pgtable_stage2_relax_perms(..., prot, ...)` | read-modify-write of the existing leaf — **state survives** |
+
+`relax_perms` only ever sets `S2AP_R`/`S2AP_W` and clears `XN` (`pgtable.c:1617-1640`), so it cannot disturb them. The dirty-log handler uses the other one, with a **bare** prot:
+
+```rust
+	kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64,
+			       host_addr,
+			       KVM_PGTABLE_PROT_RWX,        /* permissions.rs:202 — no state */
+			       ... stage2_mc ..., 0)
+```
+
+So a successful dirty log leaves the guest PTE valid, fully RWX, and annotated `PKVM_PAGE_OWNED` — after `check_unshare()` has just finished verifying it was `PKVM_PAGE_SHARED_BORROWED`. **The handler validates the annotation and then overwrites it.**
+
+That the omission is an omission, and not a deliberate convention, is settled by the same crate: `guest_complete_share()` writes the identical host→guest shared mapping and does it correctly, `let prot = pkvm_mkstate(perms, PKVM_PAGE_SHARED_BORROWED);` (`guest.rs:1116`). `pkvm_mkstate()` is right there at `utils.rs:401`.
+
+**This predicts site A specifically**, and predicts the value: `state == PKVM_PAGE_OWNED == 0`, against an expected `BIT(1)`, giving `-EPERM` — the code that was measured. It also explains why the *host*-side check (site B) is not the one that fires: the dirty-log handler only touches the guest page table, so the host's `PKVM_PAGE_SHARED_OWNED` record is still intact.
+
+It also disposes of the `guest_ack_unshare()` lead raised in review. That fallback retries with `SHARED_BORROWED | RESTRICTED_PROT` (`guest.rs:1072-1089`), which is still not `0`, so it cannot cover this case.
+
+**Which of the two fires is still not measured, and cannot be from EL1.** Both sites are inside the hypervisor, past the `hvc`. The kretprobe worked because `pkvm_call_hyp_nvhe_ppage()` is host code; **kprobes cannot cross the exception level**. The technique that settled issue 002 (read a register at the WARN) and the one that settled this half (probe the boundary) stop at the same wall.
+
+**But the mechanism now offers a confirmation that *is* reachable from EL1.** If the state is genuinely zeroed, then a **second** dirty-log call on the same page must fail too — `check_unshare()` → `guest_ack_unshare()` → `__guest_check_page_state_range(..., PKVM_PAGE_SHARED_BORROWED)` would find `PKVM_PAGE_OWNED` and return `-EPERM` *before* any mapping happens. That call is reachable by write-protecting the page again (`KVM_CLEAR_DIRTY_LOG`, or a second `KVM_GET_DIRTY_LOG` round) and writing to it once more. In `nohuge` mode issue 003 is silent, so a failing `KVM_RUN` on the second round could only be this. A one-page userspace test decides it without any EL2 tooling; see Fix status.
 
 ## Reproduction
 
@@ -137,6 +178,18 @@ The warning is emitted at process exit, through `exit_mmap`. Read `dmesg` after 
 
 The unmap walk aborts where it fails. `stage2_apply_range()` returns the first error, so any pinned pages after that point in the range are not unmapped, not unpinned, and not accounted — for a VM that is being destroyed. Whether that is a real leak depends on what `__pkvm_finalize_teardown_vm` and `drain_hyp_pool` recover afterwards, which has not been checked.
 
+There is a second, narrower consequence that the code does settle. `__pkvm_host_unshare_guest()` returns on the failed check *before* both of its effects (`permissions.rs:739-777`):
+
+```rust
+	let ret = __check_host_unshare_guest(vm, &mut phys, ipa, order);
+	if ret != 0 { ...unlock...; return ret; }          /* <-- taken */
+
+	kvm_pgtable_stage2_unmap(&mut vm_ref.pgt, ipa, PAGE_SIZE)          /* skipped */
+	__host_set_page_state_range(phys, PAGE_SIZE << order, PKVM_PAGE_OWNED)  /* skipped */
+```
+
+So the page the guest wrote to under dirty logging keeps a live guest stage-2 mapping, and the **host's** record of it stays `PKVM_PAGE_SHARED_OWNED` instead of returning to `PKVM_PAGE_OWNED`, for a VM that no longer exists. Whether anything later reclaims it is exactly the `__pkvm_finalize_teardown_vm` question above.
+
 No memory-loss measurement has been attempted for this issue. The lesson from issue 004 applies: `MemFree` at this scale is dominated by noise, so the question is better settled by following the teardown code than by weighing the machine.
 
 ## Relationship to the other issues
@@ -149,6 +202,8 @@ All four fire on the same input — an ordinary VM whose vCPU has run, then dirt
 | needs huge pages | no | **yes** | no | **no — the opposite** |
 | needs the dirty-log call to *succeed* | no | n/a | no | **yes** |
 | where | host `mmu.c:190` | EL2 `permissions.rs:147` | host `mmu.c:1749` | EL2 unmap, via `mmu.c:325` |
+| provenance | upstream, **fixed** upstream | inherited `ee88afa47b55` | mixed — see 004 | inherited `ee88afa47b55` |
+| migratable patch | yes (`fce886a60207`) | no — upstream deleted the feature | partly | **no** — same deletion |
 
 **They mask each other in a chain**, which is the practical reason to file this now:
 
@@ -157,13 +212,67 @@ All four fire on the same input — an ordinary VM whose vCPU has run, then dirt
 
 Fixing them in order therefore *reveals* rather than resolves: fix 002 and 003 goes to 100 %; fix 003 and **005 appears on every dirty-logging teardown**. Anyone who lands the 003 patch and then sees this warning should read it as an unmasking, not a regression.
 
+## Upstream
+
+Searched 2026-08-06 across `aosp/android15-6.6`, `aosp/android16-6.12`, `aosp/android17-6.18` and `torvalds/master`. Full transcript in `evidence/2026-08-06-upstream-provenance.txt`.
+
+**This defect is inherited from ACK verbatim — klinux introduced nothing.** The EL2 handler arrives with the commit that created it:
+
+```c
+/* ACK ee88afa47b55, 2024-04-03, Vincent Donnefort
+   "ANDROID: KVM: arm64: Huge page support for pKVM guest relax perm" */
+int __pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)
+{
+	ret = __check_host_unshare_guest(vm, &phys, ipa, 0);
+	if (ret)
+		goto unlock;
+
+	ret = kvm_pgtable_stage2_map(&vm->pgt, ipa, PAGE_SIZE,
+				     phys, KVM_PGTABLE_PROT_RWX,   /* <-- bare prot */
+				     &vcpu->vcpu.arch.stage2_mc, 0);
+```
+
+Same `(gfn, vcpu)` signature as klinux's Rust, same hardcoded order 0, same bare prot. That commit's *host*-side hunk is klinux's `mmu.c:1749/1755/1762` line for line, `logging_active` branch and all.
+
+**The other upstream dirty-log design has it too.** `android15-6.6` carries a different handler, `__pkvm_dirty_log(hyp_vcpu, pfn, gfn)` at `mem_protect.c:2771` — and it also finishes with `kvm_pgtable_stage2_map(..., KVM_PGTABLE_PROT_RWX, ...)`. Both designs drop the state.
+
+**Upstream never fixed it. It deleted the feature.**
+
+| commit | date | what it did to this line |
+| --- | --- | --- |
+| `ee88afa47b55` | 2024-04-03 | introduced it, bare prot |
+| `6a3d47d01594` | 2025-01-28 | *"Make `__pkvm_host_dirty_log_guest()` upstream-friendly"* — reflowed the exact call, renamed the check, **kept the bare prot** |
+| `6e3ff69cb190` | 2025-01-28 | *"Remove `__pkvm_host_dirty_log_guest()`"* — 43 deletions, pure removal |
+
+The removal is justified by a redesign, not a bug: *"Now that dirty logging for no-guests is done from `user_mem_abort()` with the standard KVM logic, the hypercall is unused."* From 6.12 onward the surviving `__pkvm_host_relax_perms_guest()` does the same job through `kvm_pgtable_stage2_relax_perms()`, which cannot disturb the state bits — so 6.12, 6.18 and mainline are structurally immune rather than patched. `git log --grep` over both ACK lines for `dirty log|dirty_log|mkstate|page state` turns up no fix.
+
+`6a3d47d01594` is worth noting for what it is: a cleanup that rewrote this call and did not see it.
+
 ## Fix status
 
-Not fixed, and not diagnosed far enough to propose one. The error code is now known; what remains is which of the two EL2 checks produced it, and that **cannot be answered from EL1**.
+Not fixed. **There is no patch to migrate** — the upstream remedy is a feature removal predicated on moving np-guest dirty logging into generic `user_mem_abort()`, which is a redesign of the whole np-guest memory path, not a hunk. So this one is ours to write.
 
-The next step is therefore an **EL2 coverage capture**, and the tooling already exists in this project: arm the `pkvm_cov` ring, run `nohuge` and `nodirty`, and take the set difference of the `.rs:line` coverage. Whichever of `host.rs:1722` or the `___host_check_page_state_range()` comparison appears only in the failing arm is the site. That is what the ring was built for, and it is the first time an issue here has needed it to progress rather than to measure throughput.
+**Proposed fix — restore the annotation the map destroys.** `permissions.rs:202`, in `__pkvm_host_dirty_log_guest()`:
 
-**Upstream has not been searched for this one yet.** Note that the search will be shaped by what issue 003 already established: `__pkvm_host_dirty_log_guest` does not exist upstream at all — ACK uses `__pkvm_dirty_log(pfn, gfn)` and splits blocks beforehand — so the state this warning complains about may simply never arise there. That would make 005, like 003, local rather than inherited; it is not yet checked.
+```rust
+-            KVM_PGTABLE_PROT_RWX,
++            pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+```
+
+with `pkvm_mkstate` added to the `use crate::utils::{...}` list at `permissions.rs:28` and `PKVM_PAGE_SHARED_BORROWED` to the `consts` import.
+
+`PKVM_PAGE_SHARED_BORROWED` is the correct value and not a guess: it is what `check_unshare()` verified the page held two statements earlier, the mapping's ownership is not meant to change (only its permissions and granularity), and it is exactly what `guest_complete_share()` writes for the same host→guest shared mapping at `guest.rs:1116`. `PKVM_PAGE_RESTRICTED_PROT` must *not* be added — it is derived from `prot != RWX`, and this mapping is full RWX.
+
+An alternative, closer to where upstream went, is to stop using `stage2_map` here at all and reach the same end through `kvm_pgtable_stage2_relax_perms()` as 6.12 does. That is the more future-proof shape, but it cannot break a block mapping, so it only becomes available once issue 003's huge-page problem is settled. The one-line fix is orthogonal to 003 and can land first.
+
+**Confirm before patching.** The mechanism above is a full code read of both trees, not a hardware result, and the tracker's rule is that a fix does not get built on that. Two ways to close it, cheapest first:
+
+1. **A second dirty-logging round, from userspace.** If the state is really zeroed, a second `__pkvm_host_dirty_log_guest` on the same page must fail in `check_unshare()` with `-EPERM` *before* mapping anything. Write-protect the page again (`KVM_CLEAR_DIRTY_LOG`, or a second `KVM_GET_DIRTY_LOG` round with manual-protect) and write to it once more; in `nohuge` mode issue 003 is silent, so a failing `KVM_RUN` there can only be this. No EL2 tooling, one extension to `repro/probe-dirtylog-thp.c`.
+2. **EL2 coverage capture.** Arm the `pkvm_cov` ring, run `nohuge` and `nodirty`, diff the `.rs:line` sets. Site A (`host.rs:1722`) appearing only in the failing arm confirms it directly and rules out `___host_check_page_state_range()`.
+
+Test 1 is the one to run first; test 2 remains the definitive one and is still the first time this project has needed the ring to advance an issue rather than to measure throughput.
+
+**Fixing this does not fix 003, and does not need 003 fixed first.** They are independent defects in the same handler: 003 is the order-0 lookup rejecting blocks, 005 is the map dropping the state. Both are inherited from `ee88afa47b55`.
 
 ## Residual hazard
 

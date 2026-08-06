@@ -1,0 +1,264 @@
+Issue 005 — upstream provenance and fix search
+Date: 2026-08-06
+Trees: /home/jose/kernel-refs/ack   (aosp/android15-6.6, aosp/android16-6.12, aosp/android17-6.18)
+       /home/jose/kernel-refs/linux (torvalds/master)
+Method: `git show <ref>:<path>` and `git log --grep` only. No working tree was consulted;
+        no comparison was made against common-stage2mvp or ksrc-pkvmfix.
+
+VERDICT: the defect is INHERITED from ACK, verbatim. Upstream never fixed it —
+         it deleted the feature that carries it. No patch is migratable.
+
+
+================================================================================
+1. The mechanism, read out of both trees
+================================================================================
+
+Page state in pKVM lives in the stage-2 PTE's two software bits.
+
+  /* ACK android15-6.6 : arch/arm64/kvm/hyp/include/nvhe/memory.h:19 */
+  enum pkvm_page_state {
+          PKVM_PAGE_OWNED                 = 0ULL,
+          PKVM_PAGE_SHARED_OWNED          = BIT(0),
+          PKVM_PAGE_SHARED_BORROWED       = BIT(1),
+          ...
+          PKVM_PAGE_RESTRICTED_PROT       = BIT(4),   /* derived, not stored */
+  };
+  #define PKVM_PAGE_STATE_PROT_MASK (KVM_PGTABLE_PROT_SW0 | KVM_PGTABLE_PROT_SW1)
+
+  static inline enum kvm_pgtable_prot pkvm_mkstate(prot, state)   /* memory.h:39 */
+  static inline enum pkvm_page_state pkvm_getstate(prot)          /* memory.h:48 */
+
+State is therefore carried IN the prot word. A prot word with no state set
+decodes as PKVM_PAGE_OWNED (0), not as "unchanged".
+
+  /* ACK android15-6.6 : mem_protect.c:1393 */
+  static enum pkvm_page_state guest_get_page_state(kvm_pte_t pte, u64 addr)
+  {
+          ...
+          prot = kvm_pgtable_stage2_pte_prot(pte);
+          if (kvm_pte_valid(pte) && ((prot & KVM_PGTABLE_PROT_RWX) != KVM_PGTABLE_PROT_RWX))
+                  state = PKVM_PAGE_RESTRICTED_PROT;
+          return state | pkvm_getstate(prot);
+  }
+
+The two ways of writing a guest PTE differ decisively:
+
+  kvm_pgtable_stage2_map(..., prot, ...)        builds a FRESH pte from `prot`
+                                                -> SW bits = whatever prot carries
+  kvm_pgtable_stage2_relax_perms(..., prot,...) read-modify-write of the existing leaf
+                                                -> SW bits UNTOUCHED
+
+  /* klinux 348c94763cc6 : arch/arm64/kvm/hyp/pgtable.c:1617 */
+  int kvm_pgtable_stage2_relax_perms(...)
+  {
+          kvm_pte_t set = 0, clr = 0;
+          if (prot & KVM_PGTABLE_PROT_R) set |= KVM_PTE_LEAF_ATTR_LO_S2_S2AP_R;
+          if (prot & KVM_PGTABLE_PROT_W) set |= KVM_PTE_LEAF_ATTR_LO_S2_S2AP_W;
+          if (prot & KVM_PGTABLE_PROT_X) clr |= KVM_PTE_LEAF_ATTR_HI_S2_XN;
+          ret = stage2_update_leaf_attrs(pgt, addr, 1, set, clr, NULL, &level, flags);
+                                        ^^^^ only S2AP_R/W and XN. SW bits survive.
+  }
+
+The correct idiom is used elsewhere in the very same files:
+
+  /* ACK android15-6.6 : mem_protect.c:1483  guest_complete_share() */
+  prot = pkvm_mkstate(perms, PKVM_PAGE_SHARED_BORROWED);
+  return kvm_pgtable_stage2_map(&vm->pgt, addr, size, phys, prot, mc, 0);
+
+  /* klinux : mem_protect/guest.rs:1116  guest_complete_share() */
+  let prot = pkvm_mkstate(perms, PKVM_PAGE_SHARED_BORROWED);
+
+The dirty-log handler does NOT use it — in either tree.
+
+
+================================================================================
+2. klinux's EL2 handler is a faithful translation of ACK's C
+================================================================================
+
+  /* ACK, commit ee88afa47b55 (2024-04-03), arch/arm64/kvm/hyp/nvhe/mem_protect.c */
+  int __pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)
+  {
+          ...
+          ret = __check_host_unshare_guest(vm, &phys, ipa, 0);
+          if (ret)
+                  goto unlock;
+
+          ret = kvm_pgtable_stage2_map(&vm->pgt, ipa, PAGE_SIZE,
+                                       phys, KVM_PGTABLE_PROT_RWX,     <<<< bare prot
+                                       &vcpu->vcpu.arch.stage2_mc,
+                                       0);
+  unlock: ...
+  }
+
+  /* klinux 348c94763cc6 : xhypervisor/src/mem_protect/permissions.rs:135 */
+  pub fn __pkvm_host_dirty_log_guest(gfn: u64, vcpu: *mut pkvm_hyp_vcpu) -> i32 {
+          ...
+          let mut ret = ptr_wrapper!(vm).guest_get_valid_pte(&mut host_addr, guest_addr, 0, &mut _pte);
+          ...
+          ret = checked_tx.check_unshare();
+          ...
+          kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64,
+                                 host_addr,
+                                 KVM_PGTABLE_PROT_RWX,                 <<<< bare prot
+                                 &mut hyp_vcpu_ref.vcpu.arch.__bindgen_anon_1.stage2_mc ..., 0)
+  }
+
+Same signature `(gfn, vcpu)`, same hardcoded order 0, same bare KVM_PGTABLE_PROT_RWX.
+(klinux splits ACK's __check_host_unshare_guest() into an explicit guest_get_valid_pte()
+plus the transition-framework check_unshare(); both validate, neither restores state.)
+
+The host side is identical too — ee88afa47's arch/arm64/kvm/mmu.c hunk is klinux's
+mmu.c:1749/1755/1762 line for line:
+
+          if (logging_active) {
+                  struct kvm_hyp_memcache *hyp_memcache = &vcpu->arch.stage2_mc;
+                  int ret = topup_hyp_memcache(hyp_memcache,
+                                               kvm_mmu_cache_min_pages(&kvm->arch.mmu), 0);
+                  if (ret)
+                          return ret;
+                  ret = kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn);
+                  ...
+          }
+          return pkvm_call_hyp_nvhe_ppage(ppage, __pkvm_relax_perms_call, (void *)prot, false);
+
+So klinux introduced nothing here. (This also bears on issue 003 — see section 5.)
+
+
+================================================================================
+3. The consumer of the state, also inherited verbatim
+================================================================================
+
+  /* ACK android15-6.6 : mem_protect.c:2678 */
+  static int __check_host_unshare_guest_order(struct pkvm_hyp_vm *vm, u64 pfn,
+                                              u64 guest_addr, u8 order)
+  {
+          ret = guest_get_valid_pte(vm, pfn, guest_addr, order, &pte);
+          if (ret) return ret;
+          state = guest_get_page_state(pte, guest_addr) & ~PKVM_PAGE_RESTRICTED_PROT;
+          if (state != PKVM_PAGE_SHARED_BORROWED)
+                  return -EPERM;                                       <<<< site A
+          return __host_check_page_state_range(host_addr, PAGE_SIZE << order,
+                                               PKVM_PAGE_SHARED_OWNED); <<<< site B
+  }
+
+klinux's host.rs:1706-1729 is the same function with the same two -EPERM sites,
+including the ~PKVM_PAGE_RESTRICTED_PROT mask. Reached from the unmap:
+
+  handle___pkvm_host_unmap_guest -> __pkvm_host_unshare_guest -> __check_host_unshare_guest
+
+ACK 6.6 routes it the same way: hyp-main.c:1016 handle___pkvm_host_unmap_guest()
+calls __pkvm_host_unshare_guest() at hyp-main.c:1032, and the host reaches it from
+arch/arm64/kvm/mmu.c:312. No host-side rescue exists in either tree.
+
+Predicted value at site A after a successful dirty log: state == PKVM_PAGE_OWNED (0),
+because the fresh PTE carries no SW bits. 0 != PKVM_PAGE_SHARED_BORROWED (BIT(1)) -> -EPERM.
+That matches the measured return exactly (evidence/2026-08-05-kretprobe-el2-return.txt).
+
+Note that guest_ack_unshare()'s -EPERM fallback (mem_protect.c:1444, klinux guest.rs:1072)
+CANNOT rescue this: it retries with SHARED_BORROWED | RESTRICTED_PROT, which is still
+not 0. That closes the lead raised in review.
+
+
+================================================================================
+4. Fix search — every ACK line and mainline
+================================================================================
+
+Hypercall enums (arch/arm64/include/asm/kvm_asm.h):
+
+  android15-6.6    __pkvm_host_unmap_guest, __pkvm_relax_perms, __pkvm_wrprotect,
+                   __pkvm_dirty_log, __pkvm_host_split_guest
+  android16-6.12   __pkvm_host_unshare_guest, __pkvm_host_relax_perms_guest,
+                   __pkvm_host_wrprotect_guest, __pkvm_host_split_guest     [no dirty log]
+  android17-6.18   same as 6.12                                             [no dirty log]
+  torvalds/master  __pkvm_host_unshare_guest, __pkvm_host_relax_perms_guest,
+                   __pkvm_host_wrprotect_guest                              [no dirty log]
+
+android15-6.6 carries a DIFFERENT dirty-log handler, and it has the same defect:
+
+  /* ACK android15-6.6 : mem_protect.c:2771 */
+  int __pkvm_dirty_log(struct pkvm_hyp_vcpu *hyp_vcpu, u64 pfn, u64 gfn)
+  {
+          ...
+          ret = check_unshare(&checked_tx);
+          if (ret) goto unlock;
+          ret = kvm_pgtable_stage2_map(&vm->pgt, guest_addr, PAGE_SIZE,
+                                       host_addr, KVM_PGTABLE_PROT_RWX,     <<<< bare prot
+                                       &hyp_vcpu->vcpu.arch.stage2_mc, 0);
+  }
+
+So BOTH upstream dirty-log designs drop the page state. Neither was ever fixed.
+
+Commit history (`git log --grep`, both branches):
+
+  ee88afa47b55  2024-04-03  Vincent Donnefort
+      ANDROID: KVM: arm64: Huge page support for pKVM guest relax perm
+      -> INTRODUCES __pkvm_host_dirty_log_guest() with the bare-RWX map.
+         This is the commit klinux carries.
+
+  6a3d47d01594  2025-01-28  Quentin Perret
+      ANDROID: KVM: arm64: Make __pkvm_host_dirty_log_guest() upstream-friendly
+      -> renames __check_host_unshare_guest() to __check_host_shared_guest()
+         and reflows the function. The bare KVM_PGTABLE_PROT_RWX is KEPT:
+
+           -       ret = __check_host_unshare_guest(vm, &phys, ipa, 0);
+           -       ret = kvm_pgtable_stage2_map(&vm->pgt, ipa, PAGE_SIZE,
+           -                                    phys, KVM_PGTABLE_PROT_RWX, ...);
+           +       ret = __check_host_shared_guest(vm, &phys, ipa, 0);
+           +       if (!ret) {
+           +               ret = kvm_pgtable_stage2_map(&vm->pgt, ipa, PAGE_SIZE, phys,
+           +                                            KVM_PGTABLE_PROT_RWX, ...);
+           +       }
+
+         A cleanup that touched the exact line and did not notice.
+
+  6e3ff69cb190  2025-01-28  Quentin Perret
+      ANDROID: KVM: arm64: Remove __pkvm_host_dirty_log_guest()
+      "Now that dirty logging for no-guests is done from user_mem_abort() with
+       the standard KVM logic, the __pkvm_host_dirty_log_guest() hypercall is
+       unused. Remove it."
+      4 files changed, 43 deletions(-). Pure removal — kvm_asm.h, mem_protect.h,
+      hyp-main.c, mem_protect.c.
+
+Searches that returned nothing:
+  git log --grep='dirty log|dirty_log|DIRTY_LOG'  aosp/android15-6.6   -> no hits
+  git log --grep='mkstate|page state'             both branches        -> no relevant hits
+
+Why the newer design cannot have the defect: the surviving hypercall
+__pkvm_host_relax_perms_guest() (6.12 mem_protect.c:2263) uses
+kvm_pgtable_stage2_relax_perms(), which is a read-modify-write and preserves the
+SW bits. Nothing in 6.12/6.18/mainline rewrites a shared guest PTE from a bare prot.
+
+CONCLUSION: there is no patch to migrate. The upstream "fix" is the deletion of the
+feature, and the deletion is predicated on np-guest dirty logging having moved to
+generic user_mem_abort() handling — a redesign, not a hunk.
+
+
+================================================================================
+5. Collateral finding: this corrects issue 003's provenance claim
+================================================================================
+
+003's Fix status currently says klinux "renamed it to __pkvm_host_dirty_log_guest(gfn),
+dropped the pfn, and therefore had to re-derive host_addr at EL2". That is wrong.
+ee88afa47b55 shows the (gfn, vcpu) signature, the EL2-side re-derivation and the
+hardcoded order 0 are ACK's own, introduced upstream on 2024-04-03. The -E2BIG
+granule check was already present in guest_get_valid_pte() at that commit:
+
+  /* ee88afa47b55:arch/arm64/kvm/hyp/nvhe/mem_protect.c:1745 */
+  if (order && size != PMD_SIZE)          return -EINVAL;
+  WARN_ON(kvm_pgtable_get_leaf(&vm->pgt, ipa, pte, &level));
+  if (kvm_granule_size(level) != size)    return -E2BIG;
+
+So issue 003's defect is inherited from ee88afa47b55 as well, not introduced by klinux.
+
+What remains true in 003 is the substantive half: android15-6.6 carries an alternative
+design, __pkvm_dirty_log(pfn, gfn), which takes the pfn from the host and therefore
+never walks the guest table at order 0 — so that line does not have 003's defect. That
+is a real, small, migratable design to copy.
+
+The split series (c8303029c094 "Add host_split_guest for pKVM" 2025-05-22,
+024d995fb "Add hyp request SPLIT" 2025-05-22, 8d4b47fe9 "Emit split request on
+mem_protect -E2BIG" 2025-11-06, b052adb82 "Add missing memcache refill in
+host_split_guest" 2025-12-15) is NOT a fix for the dirty-log path: it landed after
+the dirty-log hypercall was already removed (2025-01-28), and 8d4b47fe9 states it
+handles -E2BIG for the guest *sharing* callers (guest_share_host, guest_share_ffa_page,
+guest_share_hyp_page) on the relinquish path.
