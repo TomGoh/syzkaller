@@ -161,27 +161,24 @@ func ctorLinux(cfg *config) (reporterImpl, []string, error) {
 	// this banner, so the filter must live here, not in the ssh invocation.
 	ctx.ignores = append(ctx.ignores,
 		regexp.MustCompile(`WARNING: connection is not using a post-quantum key exchange algorithm`))
-	// The pKVM EL2 hypervisor returns a non-success SMCCC status for
-	// __kvm_flush_vm_context during VMID-generation rollover (~every 13k VM
-	// create/destroys), tripping the host WARN_ON in kvm_call_hyp_nvhe at
-	// arch/arm64/kvm/vmid.c. It is a KNOWN, non-fatal, cumulative-state finding
-	// handed to the kernel owner; on a long fuzzing run the fuzzer would otherwise
-	// re-flag it as a crash every few minutes and needlessly churn the target.
-	// Ignore it here so the campaign keeps running; the EL2-side fix is tracked
-	// separately. Scoped to the vmid.c WARN so other kvm_arm_vmid_update bugs
-	// still surface.
-	ctx.ignores = append(ctx.ignores,
-		regexp.MustCompile(`WARNING:.* at arch/arm64/kvm/vmid\.c:\d+ kvm_arm_vmid_update`))
-	// Same class, different path: the EL2 __kvm_tlb_flush_vmid handler returns a
-	// non-success SMCCC status, tripping WARN_ON in kvm_call_hyp at
-	// arch/arm64/kvm/hyp/pgtable.c:639 (kvm_tlb_flush_vmid_range). Found + banked
-	// (notes/pkvm/evidence/finding-tlb-flush-vmid-warn-2026-07-29) when the generic
-	// KVM target was enabled; the broadened Stage A/B campaign re-triggers it every
-	// few seconds, and treating it as a crash tears the VM down each time, crippling
-	// throughput. Ignore it (post-banking) so the campaign runs; scoped to this WARN
-	// so other pgtable.c bugs still surface. EL2-side fix tracked separately.
-	ctx.ignores = append(ctx.ignores,
-		regexp.MustCompile(`WARNING:.* at arch/arm64/kvm/hyp/pgtable\.c:\d+ kvm_tlb_flush_vmid_range`))
+	// NOTE: all pKVM/arm64 KVM WARN ignores have been REMOVED deliberately.
+	//
+	// Three used to live here: vmid.c kvm_arm_vmid_update (VMID-rollover, EL2
+	// returns non-success for __kvm_flush_vm_context), hyp/pgtable.c
+	// kvm_tlb_flush_vmid_range (issue 002, now FIXED in klinux 3608223e5012 and
+	// verified on #13), and arch_timer.c kvm_timer_update_irq (generic arm64-KVM,
+	// fixed upstream by 38d7aacca092 which this vendor kernel lacks).
+	//
+	// They were calibrated against a kernel that carried five defects we have since
+	// fixed and verified.  Re-baselining with nothing hidden is the point of the
+	// campaign: a WARN that still fires is either a regression of a fix we rely on,
+	// or a finding the old filters were masking.  The cost is throughput -- each
+	// WARN is treated as a crash and tears the instance down -- and that cost is
+	// accepted on purpose.  Re-add a SCOPED ignore only after banking a finding.
+	//
+	// The ssh banner filter above stays: it is ssh CLIENT chatter merged into the
+	// console by the isolated backend, not kernel output, and matching it as an
+	// oops is a false crash with no diagnostic value whatsoever.
 	return ctx, suppressions, nil
 }
 
