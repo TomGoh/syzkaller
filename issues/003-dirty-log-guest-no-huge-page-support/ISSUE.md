@@ -6,13 +6,16 @@ class: kernel-defect
 signature: 'KVM_RUN returns -E2BIG after KVM_MEM_LOG_DIRTY_PAGES is enabled'
 hazard: none
 diagnosis: root-caused
-disposition: fix-proposed
+disposition: fix-verified
 repro: repro/probe-dirtylog-thp.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
     state: reproduced
     run: 2026-08-05-dirtylog-e2big
     evidence: evidence/2026-08-05-mode-matrix.txt
+  - target: 'klinux 6.6.103+ #13 @24714fe308bb'
+    state: not-observed
+    run: 2026-08-06-fix-deploy-verify
 ---
 
 # 003 — dirty logging is unusable for a huge-page-backed guest
@@ -159,6 +162,8 @@ There is, separately, a real sense in which **fixing 002 will unmask 003 on hard
 The order matters for anyone reading the tracker later: **002 does not cause 003, and 003 is not a regression from either of our patches.** 003 is pre-existing klinux behaviour that a new input shape reached for the first time, and 002's fix makes reaching it deterministic rather than incidental.
 
 ## Fix status
+
+> **Verified on hardware 2026-08-06** (`#13`, klinux `889bd261c945`, run [2026-08-06-fix-deploy-verify](../runs/2026-08-06-fix-deploy-verify.md)): default THP mode gives `second KVM_RUN ret=0` **5/5**, where `#4` returned `-1/E2BIG` in 22 of 25. `nohuge` and `nodirty` also pass. Fixing this is also what unblocked the verification of issue 002.
 
 > **A fix is committed in klinux as `889bd261c945`** (shape 0 below): the host now passes the faulting page's `pfn`, so EL2 never walks the guest table at order 0. Compile-tested only — `disposition: fix-proposed`, not verified. The check is `repro/probe-dirtylog-thp.c` in its **default** THP mode resuming instead of returning `-E2BIG`.
 

@@ -6,13 +6,16 @@ class: kernel-defect
 signature: 'donations to the nVHE hyp are missing'
 hazard: none
 diagnosis: root-caused
-disposition: fix-proposed
+disposition: fix-verified
 repro: repro/probe-dirtylog-thp.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
     state: reproduced
     run: 2026-08-05-dirtylog-e2big
     evidence: evidence/2026-08-05-teardown-message.txt
+  - target: 'klinux 6.6.103+ #13 @24714fe308bb'
+    state: not-observed
+    run: 2026-08-06-fix-deploy-verify
 ---
 
 # 004 — the hyp-donation leak check is broken, in both directions
@@ -167,6 +170,8 @@ All three of 002, 003 and 004 fire on the same input — an ordinary VM whose vC
 **Prior art in this tree.** The 2026-07-30 OOM investigation named the untracked host→EL2 donation channel as its most promising remaining candidate and recorded it as *"Unverified — no evidence gathered yet"* (`notes/pkvm/evidence/finding-oom-leak-and-mmu-topup-oops-2026-07-30/ROOT-CAUSE-ANALYSIS.md:221`, `ROOT-CAUSE-CONFIRMED.md:274`). This issue is that channel, with a deterministic reproducer — but note what it does and does not settle: it proves the channel exists and does not account, and it explicitly does **not** explain that investigation's 25.9 GiB residual, whose direction and magnitude are both wrong for this. That document also states `handle_hyp_req_mem()` "accounts them into `kvm->stat.protected_hyp_mem`"; by the code in this tree it does not, which may be why the thread stopped there.
 
 ## Fix status
+
+> **Verified on hardware 2026-08-06** (`#13`, klinux `61173329e416` + `f8ac14623978`, run [2026-08-06-fix-deploy-verify](../runs/2026-08-06-fix-deploy-verify.md)): after five THP dirty-logging runs plus a `probe-dirtylog-twice` run, `dmesg` carries **no** donation message in either wording. The check only prints on a non-zero residual, so zero messages means the accounting balances.
 
 > **Fixes are committed in klinux as `61173329e416`** (parts a and c — restore the two missing `atomic64_add()` calls) **and `f8ac14623978`** (part b — print the residual signed and say which direction). Compile-tested only — `disposition: fix-proposed`, not verified. The check is that the teardown message stops appearing at all.
 

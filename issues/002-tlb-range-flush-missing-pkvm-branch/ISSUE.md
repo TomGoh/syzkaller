@@ -6,7 +6,7 @@ class: kernel-defect
 signature: 'WARNING in kvm_tlb_flush_vmid_range'
 hazard: none
 diagnosis: root-caused
-disposition: fix-proposed
+disposition: fix-verified
 repro: repro/repro-tlbflush-warn.c
 observations:
   - target: 'klinux 6.6.103+ #3 @39ee2e725c12'
@@ -17,6 +17,9 @@ observations:
     state: reproduced
     run: 2026-08-05-tlb-warn-repro
     evidence: evidence/2026-08-05-repro-warn-kernel4.txt
+  - target: 'klinux 6.6.103+ #13 @24714fe308bb'
+    state: not-observed
+    run: 2026-08-06-fix-deploy-verify
 ---
 
 # 002 — the range TLB flush asks EL2 for a hypercall EL2 has retired
@@ -111,6 +114,8 @@ Nothing surfaces the failure, either: `kvm_arch_flush_remote_tlbs_range()` retur
 For the campaign itself the cost is throughput and blindness: the signature is in the manager's compiled-in ignore list, so a run produces hundreds of these in `dmesg` while reporting a clean bill of health.
 
 ## Fix status
+
+> **Verified on hardware 2026-08-06** (`#13`, run [2026-08-06-fix-deploy-verify](../runs/2026-08-06-fix-deploy-verify.md)). The `pgtable.c:654` warning is gone, and the criterion this issue asked for is met: a vCPU that has run, dirty logging enabled, and a subsequent guest write landing in the dirty bitmap (`after round2: A(page 16)=1`). That check only became possible once issue **003** was fixed — before that the guest could not survive enabling dirty logging at all, so 003 was the blocker on verifying 002, not the other way round.
 
 **Fix committed, not yet verified at runtime** — `3608223e5012` on klinux branch `pkvm-tlb-flush-range-fix` (based on the branch carrying issue 001's fix), *"KYLIN: KVM: arm64: pkvm: route range TLB flush through the VM handle"*, `+7/-2` in `mmu.c`. `mmu.o` compiles clean; checkpatch reports 0 errors, 0 warnings.
 

@@ -6,7 +6,7 @@ class: kernel-defect
 signature: 'WARNING in __unmap_stage2_range'
 hazard: none
 diagnosis: root-caused
-disposition: fix-proposed
+disposition: open
 repro: repro/probe-dirtylog-twice.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
@@ -17,6 +17,10 @@ observations:
     state: reproduced
     run: 2026-08-06-dirtylog-reprotect-confirm
     evidence: evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt
+  - target: 'klinux 6.6.103+ #13 @24714fe308bb'
+    state: reproduced
+    run: 2026-08-06-fix-deploy-verify
+    evidence: evidence/2026-08-06-one-line-fix-livelocks.txt
 ---
 
 # 005 — the guest unmap fails at teardown, but only after dirty logging worked
@@ -294,9 +298,15 @@ The removal is justified by a redesign, not a bug: *"Now that dirty logging for 
 
 ## Fix status
 
-> **A fix is committed in klinux as `cfaadd217ab6`**: `pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED)` at the remap. Compile-tested only — `disposition: fix-proposed`, not verified. The check is the regression test below.
+> **The one-line fix was tried on hardware and is WRONG. Reverted in klinux as `24714fe308bb`; back to `disposition: open`.** Evidence: `evidence/2026-08-06-one-line-fix-livelocks.txt`, run [2026-08-06-fix-deploy-verify](../runs/2026-08-06-fix-deploy-verify.md).
+>
+> Writing the state back with `pkvm_mkstate()` turns this issue's silent corruption into an **unrecoverable guest hang**. `kvm_pgtable_stage2_map()` refuses permissions-only updates to a guest PTE by design (`pgtable.c:961-975`, `stage2_pte_needs_update()` tests `(old ^ new) & ~KVM_PTE_LEAF_ATTR_S2_PERMS`), returns `-EAGAIN`, and `user_mem_abort()` turns that into "resume the guest" — so the same store faults forever. Measured: **39962 guest aborts in three seconds**, 39961 returning 1.
+>
+> Which means: **this handler has only ever worked because it corrupts the page state.** The corruption is the only reason the new PTE differs from the old by more than permissions, and therefore the only reason the mapping is ever installed. Repairing the state without replacing the primitive removes the thing that was making it work.
+>
+> A correct fix must be **split-then-relax**, as upstream android16-6.12 does (`__pkvm_host_split_guest()` + `__pkvm_host_relax_perms_guest()`, with `__pkvm_host_dirty_log_guest()` deleted in `6e3ff69cb190`). `kvm_pgtable_stage2_relax_perms()` preserves the software bits by construction and is not subject to the filter, but it cannot break a block, and dirty logging needs `PAGE_SIZE` granularity. That is a redesign, not a hunk — see the sizing below.
 
-Fixed locally as above. **There was no patch to migrate** — the upstream remedy is a feature removal predicated on moving np-guest dirty logging into generic `user_mem_abort()`, which is a redesign of the whole np-guest memory path, not a hunk. So this one is ours to write.
+Not fixed. **There is no patch to migrate** — the upstream remedy is a feature removal predicated on moving np-guest dirty logging into generic `user_mem_abort()`, which is a redesign of the whole np-guest memory path, not a hunk. So this one is ours to write.
 
 **Proposed fix — restore the annotation the map destroys.** `permissions.rs:202`, in `__pkvm_host_dirty_log_guest()`:
 

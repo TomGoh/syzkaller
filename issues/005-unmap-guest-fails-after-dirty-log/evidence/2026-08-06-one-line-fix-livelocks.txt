@@ -1,0 +1,169 @@
+Issue 005 — the one-line fix was tried on hardware and is WRONG
+Date: 2026-08-06
+Board: N90 (10.42.27.17), Kylin V11, kvm-arm.mode=protected
+Kernels: #4  baseline (no fixes)
+         #10 003-fix + 004-fix + 005-fix(pkvm_mkstate)          -> dirty logging LIVELOCKS
+         #11 003-fix + 004-fix, 005 hunk reverted (bisect)      -> everything works
+         #12 as #10 plus a relax_perms fallback on -EAGAIN      -> still LIVELOCKS
+         #13 003-fix + 004-fix, 005 reverted with rationale     -> restored state
+
+VERDICT: writing the page state back with pkvm_mkstate() at the existing
+kvm_pgtable_stage2_map() call is not a fix. It converts issue 005's silent
+corruption into an unrecoverable guest hang. 005 is back to `open`.
+
+
+================================================================================
+1. What was deployed and what happened
+================================================================================
+
+#10 carried the fix proposed in this issue:
+
+  -   KVM_PGTABLE_PROT_RWX,
+  +   pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED),
+
+Every reproducer that enables dirty logging then hung. No output, no dmesg, no
+Oops -- the process sat in state R inside KVM_RUN until its alarm() fired:
+
+  mode[default] STUCK  state=R
+    [<0>] kvm_release_pfn_clean+0x2c/0x100
+    [<0>] kvm_handle_guest_abort+0x67c/0x1108
+    ...
+    [<0>] kvm_arch_vcpu_ioctl_run+0x884/0x8f8
+  mode[nodirty] finished rc=0          <- the only mode without dirty logging
+  mode[nohuge]  STUCK  state=R
+
+Quantified with a kretprobe on kvm_handle_guest_abort:
+
+  guest_abort events in 3 seconds: 39962
+  return values: 39961 x ret=1, 1 x ret=0
+
+ret=1 is "handled, resume the guest". So the fault was being accepted and
+re-taken forever: an infinite stage-2 fault loop, not a deadlock.
+
+
+================================================================================
+2. Why -- the kernel documents this exact refusal
+================================================================================
+
+  /* arch/arm64/kvm/hyp/pgtable.c:961-975, stage2_map_walker_try_leaf() */
+  old_is_counted = pte_ops->pte_is_counted_cb(ctx->old, ctx->level);
+  if (old_is_counted) {
+          /*
+           * Skip updating a guest PTE if we are trying to recreate the
+           * exact same mapping or change only the access permissions.
+           * Instead, the vCPU will exit one more time from the guest if
+           * still needed and then go through the path of relaxing
+           * permissions. This applies only to guest PTEs; ...
+           */
+          if (!stage2_pte_needs_update(pgt, ctx->old, new))
+                  return -EAGAIN;
+  }
+
+  /* pgtable.c:760-771 */
+  static bool stage2_pte_needs_update(struct kvm_pgtable *pgt, kvm_pte_t old, kvm_pte_t new)
+  {
+          ...
+          return ((old ^ new) & (~KVM_PTE_LEAF_ATTR_S2_PERMS));
+  }
+
+The discriminator is "do old and new differ ANYWHERE OUTSIDE the S2 permission
+bits". The page-state bits live outside them, and stage2_set_prot_attr() carries
+them through verbatim (`attr |= prot & KVM_PTE_LEAF_ATTR_HI_SW;`, pgtable.c:721).
+
+  #4  (bare prot):  old SW = SHARED_BORROWED, new SW = 0
+                    -> differ outside perms -> update proceeds -> "works"
+  #10 (mkstate):    old SW = new SW = SHARED_BORROWED
+                    -> differ ONLY in S2AP_W -> -EAGAIN -> nothing written
+
+and the host converts that error into "retry":
+
+  /* mmu.c, end of user_mem_abort() */
+  return ret != -EAGAIN ? ret : 0;
+
+0 means "resume the guest", the guest re-executes the same store, faults again,
+and the logging branch calls the same hypercall again. Forever.
+
+**So the dirty-log handler has only ever functioned because it corrupts the page
+state.** The corruption is what makes the new PTE differ from the old one by
+more than permissions, which is the only reason the mapping is ever installed.
+Repairing the state without replacing the primitive removes the very thing that
+was making the write land.
+
+
+================================================================================
+3. The bisect that proves it, and clears issue 003
+================================================================================
+
+#11 = #10 with only the pkvm_mkstate() hunk reverted. Same 003 fix, same 004
+fixes, same board, same reproducers:
+
+  === nohuge ===
+  first  KVM_RUN ret=0 errno=0 exit=6
+  second KVM_RUN ret=0 errno=0 (-) exit=6        rc=0
+  === default (THP) ===
+  first  KVM_RUN ret=0 errno=0 exit=6
+  second KVM_RUN ret=0 errno=0 (-) exit=6        rc=0
+  === nodirty ===
+  ...                                            rc=0
+
+Two conclusions:
+
+  * The livelock is caused by the 005 hunk alone. Nothing else in the series.
+  * **Issue 003 is fixed and verified.** On #4 the default THP mode returned
+    -1/E2BIG; on #11 it returns 0 and the guest resumes. That is the criterion
+    003 was filed with.
+
+
+================================================================================
+4. The obvious follow-up also fails
+================================================================================
+
+#12 kept pkvm_mkstate() and added what the kernel comment suggests -- fall back
+to the relax_perms path when the map declines:
+
+    if ret == -(EAGAIN as i32) {
+        ret = kvm_pgtable_stage2_relax_perms(&vm->pgt, guest_addr,
+                                             KVM_PGTABLE_PROT_RWX, 0);
+    }
+
+Still livelocks, identically. Why that fallback does not take effect was NOT
+established -- it is not simply that -EAGAIN fails to propagate, since
+kvm_pgtable_stage2_map() returns kvm_pgtable_walk()'s result directly with no
+retry loop (pgtable.c:1236-1238). Left as an open question rather than guessed
+at; the next attempt should instrument the host-side return value of the
+hypercall before changing more code.
+
+
+================================================================================
+5. What a real fix has to look like
+================================================================================
+
+The primitive is wrong, not the argument. A permissions-only change to a guest
+PTE must go through kvm_pgtable_stage2_relax_perms(), which is a read-modify-
+write of the existing leaf (sets S2AP_R/W, clears XN) and therefore preserves
+the software bits by construction and is not subject to the needs-update filter.
+
+But relax_perms cannot break a block, and dirty logging needs PAGE_SIZE
+granularity -- relaxing a whole 2 MiB block would make 512 pages writable while
+only one is marked dirty, which is the same class of silent loss this issue is
+about.
+
+So the correct shape is split-then-relax, which is exactly what upstream moved
+to: ACK android16-6.12 does the job with __pkvm_host_split_guest() followed by
+__pkvm_host_relax_perms_guest(), and deleted __pkvm_host_dirty_log_guest()
+entirely (6e3ff69cb190). The split machinery klinux lacks is c8303029c094 +
+024d995fb + b052adb82; its EL2 half is ~50 lines of C that would need
+translating into Rust, its host half ~110 lines of C, plus a pgtable.c hunk that
+is a straight cherry-pick.
+
+That is a redesign, not a hunk, and it should be sized and scheduled as one.
+
+
+================================================================================
+6. Board state left behind
+================================================================================
+
+N90 runs #13: issue 003 fixed, issue 004 fixed, issue 005 reverted with the
+above reasoning recorded in a comment at the call site so the next person does
+not repeat the one-liner. The known-good #4 image remains on the board at
+/boot/ostree/kylin-*/vmlinuz-6.6.103+.knowngood-4.
