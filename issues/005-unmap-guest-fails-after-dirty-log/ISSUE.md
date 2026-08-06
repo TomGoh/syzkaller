@@ -67,7 +67,7 @@ Three modes, five runs each, on `#4` (`evidence/2026-08-05-mode-matrix-and-insta
 
 ## Mechanism
 
-**Confidence: hypothesis.** Which call fails is established; *why* it fails is not.
+**Confidence: hypothesis.** Which call fails, and with what error, are both measured. *Why EL2 refuses* is not — and cannot be reached with the instruments used so far.
 
 **What fails is the EL2 guest-unmap hypercall.** `pkvm_unmap_range()`, `___unmap_stage2_range()` and `stage2_apply_range()` are all inlined into `__unmap_stage2_range()`, so the warning's `brk` is reached directly from the failing call (`evidence/2026-08-05-warn-site-disasm.txt`):
 
@@ -78,22 +78,47 @@ Three modes, five runs each, on `#4` (`evidence/2026-08-05-mode-matrix-and-insta
 0x8d0  b    +0x268  ->  brk at +0x26c     /* the WARN */
 ```
 
-**The error code is not recoverable from the register dump**, and this is worth stating because the same technique settled issue 002. `w0` holds it at `0x8c8`, but the SanCov call at `0x8cc` clobbers `x0` before the `brk` — the `#4` dump duly shows `x0 : 0`. Getting the value needs a kretprobe on `pkvm_call_hyp_nvhe_ppage()` or a temporary `WARN_ONCE` printing `err`.
+**It is not the inner range check.** `pkvm_unmap_range()` has its own `WARN_ON(end < ppage->ipa + (PAGE_SIZE << ppage->order))` at `mmu.c:364`, which would have printed separately. It appears in no capture — `nohuge` produces exactly two warnings, `pgtable.c:654` and `mmu.c:456` — so the error genuinely comes back from EL2 rather than from the host's own walk.
 
-**It is not the inner range check.** `pkvm_unmap_range()` has its own `WARN_ON(end < ppage->ipa + (PAGE_SIZE << ppage->order))` at `mmu.c:364`, which would have printed separately. It did not appear in any capture, so the error came back from EL2 rather than from the host's own walk.
+**The error code is `-1`, measured.** A kretprobe on `pkvm_call_hyp_nvhe_ppage()` — EL1 host code, so reachable — over three runs per mode (`evidence/2026-08-05-kretprobe-el2-return.txt`):
 
-**Candidate error paths.** `pkvm_call_hyp_nvhe_ppage()` (`pkvm.c:240-296`) absorbs most failures, so only four returns can reach the caller:
+| mode | returns | values |
+| --- | --- | --- |
+| default | 9 | all `0` |
+| `nohuge` | 21 | 18 × `0`, **3 × `4294967295`** — one per run |
+| `nodirty` | 6 | all `0` |
 
-| return | condition |
-| --- | --- |
-| `-EINVAL` `pkvm.c:263` | EL2 said `-E2BIG` while `order == 0` — "something is really wrong" |
-| `-EINVAL` `pkvm.c:272` | EL2 said `-ENOENT` for a page whose `order` is 0 — "not supposed to lose track of a PAGE_SIZE pinned page" |
-| `-EINVAL` `pkvm.c:281` | `page_size > size` |
-| `err` `pkvm.c:293` | any other EL2 error, verbatim |
+`4294967295` is `0xFFFFFFFF`, i.e. `-1` as a 32-bit `int`. `EPERM` is 1 and no other errno is (`EINVAL` 22, `ENOENT` 2, `E2BIG` 7, `ENOMEM` 12), so the value is **`-EPERM`**. The anti-correlation therefore holds at the return-value level and not merely at the warning level: `default` produces **zero** non-zero returns.
 
-**Why the anti-correlation is suggestive.** In `nohuge` the pages are 4 KiB, so `ppage->order == 0` — and both of the first two rows are exactly the arms that turn a *recoverable* EL2 answer into a hard `-EINVAL` when the order is already zero. In `default` mode the same EL2 answer would be retried or fallen through. That is a plausible reading of why the warning tracks the page size, but it is **not established**: it assumes the EL2 error is `-E2BIG` or `-ENOENT`, which is exactly the value that could not be read.
+Two method notes worth keeping. The register dump could not have given this — `w0` holds the error at the `cbz`, but the SanCov call before the `brk` clobbers `x0`, and the `#4` dump duly shows `x0 : 0`. And a first attempt at the probe recorded nothing in all three modes because `tracing_on` was `0`; the probe installs and enables without complaint and silently records nothing.
 
-**What the successful dirty-logging call leaves behind.** When it works, `__pkvm_host_dirty_log_guest` runs `check_unshare()` and then re-maps the page `KVM_PGTABLE_PROT_RWX` (`permissions.rs:135-211`). So it mutates EL2 page state and the guest stage-2 entry, and the later unmap of that same page is what fails. When issue 003 aborts the call with `-E2BIG`, none of that mutation happens — which is the shape of the masking, and the reason this could not have been seen before.
+**That refutes this issue's first hypothesis.** `pkvm_call_hyp_nvhe_ppage()` (`pkvm.c:240-296`) absorbs most failures; only four returns reach the caller — three `-EINVAL` arms at `pkvm.c:263`, `:272` and `:281`, and `return err` at `:293`. An earlier revision argued that the first two — the arms that fire when EL2 answers `-E2BIG` or `-ENOENT` while `order == 0` — explained why the warning tracks page size. They do not. `-EPERM` is neither of those values, so the failure takes `pkvm.c:293` and passes the EL2 error through verbatim. **The page-size correlation therefore still wants an explanation**, and it is no longer available from the host side.
+
+**Leading hypothesis: a page-state mismatch in the unshare check.** The unmap is an unshare at EL2 —
+
+```
+handle___pkvm_host_unmap_guest        hyp_main.rs:1094
+  → __pkvm_host_unshare_guest         permissions.rs:739
+    → __check_host_unshare_guest      permissions.rs:747  →  host.rs:1706
+```
+
+— and that check has exactly two `-EPERM` returns, both comparing page state:
+
+```rust
+	let state = guest_get_page_state(pte, ipa) & !PKVM_PAGE_RESTRICTED_PROT;
+	if state != PKVM_PAGE_SHARED_BORROWED {
+		return -(EPERM as i32);                                  /* host.rs:1722 */
+	}
+	...
+	__host_check_page_state_range(phys_value, PAGE_SIZE << order,
+				      PKVM_PAGE_SHARED_OWNED)            /* host.rs:1728 */
+```
+
+the second returning `-EPERM` from `___host_check_page_state_range()` when the *host* state disagrees. Both are exactly the state that a successful `__pkvm_host_dirty_log_guest` mutates: it runs `check_unshare()` and then re-maps the page `KVM_PGTABLE_PROT_RWX` (`permissions.rs:135-211`). When issue 003 aborts that call with `-E2BIG`, none of the mutation happens — which is the shape of the masking.
+
+Note that `host.rs:1720` already masks `PKVM_PAGE_RESTRICTED_PROT` out before comparing, so that particular bit is tolerated; the mismatch has to be in the base state.
+
+**Which of the two fires is not measured, and cannot be from EL1.** Both sites are inside the hypervisor, past the `hvc`. The kretprobe worked because `pkvm_call_hyp_nvhe_ppage()` is host code; **kprobes cannot cross the exception level**. The technique that settled issue 002 (read a register at the WARN) and the one that settled this half (probe the boundary) stop at the same wall.
 
 ## Reproduction
 
@@ -134,7 +159,9 @@ Fixing them in order therefore *reveals* rather than resolves: fix 002 and 003 g
 
 ## Fix status
 
-Not fixed, and not diagnosed far enough to propose one. The next step is the error code, which is one kretprobe away.
+Not fixed, and not diagnosed far enough to propose one. The error code is now known; what remains is which of the two EL2 checks produced it, and that **cannot be answered from EL1**.
+
+The next step is therefore an **EL2 coverage capture**, and the tooling already exists in this project: arm the `pkvm_cov` ring, run `nohuge` and `nodirty`, and take the set difference of the `.rs:line` coverage. Whichever of `host.rs:1722` or the `___host_check_page_state_range()` comparison appears only in the failing arm is the site. That is what the ring was built for, and it is the first time an issue here has needed it to progress rather than to measure throughput.
 
 **Upstream has not been searched for this one yet.** Note that the search will be shaped by what issue 003 already established: `__pkvm_host_dirty_log_guest` does not exist upstream at all — ACK uses `__pkvm_dirty_log(pfn, gfn)` and splits blocks beforehand — so the state this warning complains about may simply never arise there. That would make 005, like 003, local rather than inherited; it is not yet checked.
 

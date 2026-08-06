@@ -1,0 +1,17 @@
+Kylin V11
+### kernel: #4 SMP Wed Aug  5 11:28:51 +08 2026;  tracing_on was: 0
+### probe installed: r16:kprobes/ppage_ret pkvm_call_hyp_nvhe_ppage ret=$retval:s64
+mode=default  total_returns=9  nonzero=0  values:       9 ret=0 
+mode=nohuge  total_returns=21  nonzero=0  values:      18 ret=0       3 ret=4294967295 
+mode=nodirty  total_returns=6  nonzero=0  values:       6 ret=0 
+### cleaned up; kprobe_events now: []
+
+### 4294967295 = 0xFFFFFFFF = -1 as a 32-bit int. EPERM is 1, and no other errno
+### is 1 (EINVAL 22, ENOENT 2, E2BIG 7, ENOMEM 12), so -1 is -EPERM uniquely.
+###
+### METHOD TRAP: the first attempt recorded 0 events in all three modes because
+### /sys/kernel/debug/tracing/tracing_on was 0. The probe installs and enables
+### without complaint; nothing is recorded. Always set tracing_on.
+###
+### The kretprobe reaches pkvm_call_hyp_nvhe_ppage because that is EL1 host code.
+### Nothing past the hvc is reachable this way -- kprobes cannot cross to EL2.

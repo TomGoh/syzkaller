@@ -37,6 +37,24 @@ Full capture in `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-05-mo
 
 The captured register dump carries `x24 = 0x0000010000000000` = 2^40. `kvm_uninit_stage2_mmu()` calls the unmap with `size = BIT(VTCR_EL2_IPA(...))`, so that register is the IPA span — **independent confirmation that this board's IPA is 40 bits**, which is the input to issue 004's magnitude closure (`kvm_mmu_cache_min_pages()` = levels − 1 = 2, matching the measured −2 pages). That number had come from the colleague's reading of the journal; it now also falls out of a register this project captured.
 
+## Follow-up: the error code, measured
+
+The issue was filed saying the value was "one kretprobe away". It was, and the probe was then run here:
+
+```
+r:ppage_ret pkvm_call_hyp_nvhe_ppage ret=$retval:s64
+
+default   9 returns   all 0
+nohuge   21 returns   18 x 0,  3 x 4294967295   (= 0xFFFFFFFF = -1, one per run)
+nodirty   6 returns   all 0
+```
+
+`-1` is `-EPERM`, uniquely among errnos. So the anti-correlation holds at the return-value level too: `default` produces zero non-zero returns. Captured in `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-05-kretprobe-el2-return.txt`; probes removed and `tracing_on` restored afterwards.
+
+**Trap:** the first attempt recorded 0 events in all three modes because `tracing_on` was `0`. The probe installs and enables without any complaint and silently records nothing. Check `tracing_on` before believing an empty trace.
+
+**Boundary:** this reached `pkvm_call_hyp_nvhe_ppage()` because it is EL1 host code. Nothing past the `hvc` is reachable this way — kprobes cannot cross the exception level, so which EL2 site produced the `-EPERM` needs EL2-side instrumentation.
+
 ## Method
 
 Counts taken after a three-second `dmesg -w` settle, because both this warning and issue 004's message are emitted at process exit — the `mmu.c:456` warning arrives via `exit_mmap → __mmu_notifier_release`. Reading `dmesg` synchronously after the program returns misses them intermittently; see [2026-08-05-dirtylog-e2big](2026-08-05-dirtylog-e2big.md) for how that produced a wrong conclusion earlier.
