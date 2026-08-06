@@ -1,0 +1,46 @@
+Kylin V11
+### kernel: #4 SMP Wed Aug  5 11:28:51 +08 2026
+### 5 runs per mode, 3s settle before counting (teardown-time printk)
+mode=default  E2BIG=5/5  unmap_warn=0  donation=5  tlb_warn=5
+mode=nohuge  E2BIG=0/5  unmap_warn=5  donation=5  tlb_warn=5
+mode=nodirty  E2BIG=0/5  unmap_warn=0  donation=0  tlb_warn=0
+
+### one full instance of the new warning
+[ 8400.786894] WARNING: CPU: 7 PID: 94783 at arch/arm64/kvm/mmu.c:456 __unmap_stage2_range+0x26c/0x2b8
+[ 8400.787052]  sm4_ce_cipher vivaldi_fmap ftd330_drm_dc serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 8400.787070] CPU: 7 PID: 94783 Comm: probe3 Tainted: G        W         ------- ----  6.6.103+ #4
+[ 8400.787076] Source Version: 39ee2e725c122bbee2cc1cec1956a23db2670543
+[ 8400.787079] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 8400.787083] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 8400.787089] pc : __unmap_stage2_range+0x26c/0x2b8
+[ 8400.787095] lr : __unmap_stage2_range+0x26c/0x2b8
+[ 8400.787102] sp : ffff0021c35f7a00
+[ 8400.787104] x29: ffff0021c35f7a00 x28: ffff002146b93140 x27: 0000000000001000
+[ 8400.787113] x26: 0000000000000001 x25: 000000007fffffff x24: 0000010000000000
+[ 8400.787122] x23: ffff0020a390c9e0 x22: ffff0020a390c9e0 x21: 0000000000000000
+[ 8400.787130] x20: 0000000040000000 x19: 0000000080000000 x18: 0000000000000000
+[ 8400.787139] x17: 0000000000000000 x16: fffffe004519ac20 x15: 0000000000000000
+[ 8400.787147] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000024
+[ 8400.787156] x11: 0000000000000000 x10: ffff002080002700 x9 : ffff80008006e434
+[ 8400.787164] x8 : ffff002146b93f80 x7 : 000000000006efae x6 : fffffe00451ae4c0
+[ 8400.787172] x5 : ffff80267e12b000 x4 : 0000000000000000 x3 : 0000000000000000
+[ 8400.787181] x2 : 0000000000000000 x1 : ffff002080889400 x0 : 0000000000000000
+[ 8400.787189] Call trace:
+[ 8400.787191]  __unmap_stage2_range+0x26c/0x2b8
+[ 8400.787198]  kvm_uninit_stage2_mmu+0x6c/0xe0
+[ 8400.787205]  kvm_arch_flush_shadow_all+0x20/0x30
+[ 8400.787212]  kvm_mmu_notifier_release+0x38/0x98
+[ 8400.787218]  __mmu_notifier_release+0x90/0x2b0
+[ 8400.787225]  exit_mmap+0x46c/0x4c8
+[ 8400.787231]  __mmput+0x48/0x1e8
+[ 8400.787238]  mmput+0x70/0xb0
+[ 8400.787244]  do_exit+0x388/0xcb0
+[ 8400.787250]  do_group_exit+0x44/0xc0
+[ 8400.787256]  __arm64_sys_exit_group+0x28/0x30
+[ 8400.787262]  invoke_syscall.constprop.0+0x74/0x170
+[ 8400.787269]  el0_svc_common.constprop.0+0x108/0x138
+[ 8400.787276]  do_el0_svc+0x2c/0x40
+[ 8400.787282]  el0_svc+0x20/0xb0
+[ 8400.787287]  el0t_64_sync_handler+0x118/0x128
+[ 8400.787293]  el0t_64_sync+0x14c/0x150
+[ 8400.787298] ---[ end trace 0000000000000000 ]---

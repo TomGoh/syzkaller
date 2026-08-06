@@ -1,0 +1,38 @@
+# Which call fails, and why the error code is not in the register dump.
+# vmlinux: /home/jose/klinux (6.6.103+ #5). __unmap_stage2_range is unchanged
+# between #4 and #5 -- the issue 002 fix touches a different function -- and the
+# reported size /0x2b8 matches, so offsets are valid for the #4 dump.
+
+## Function base ffff8000800706e0, so the reported +0x26c is ffff80008007094c.
+
+ffff80008007088c:	aa1503e0 	mov	x0, x21
+ffff800080070890:	aa1903e2 	mov	x2, x25
+ffff800080070894:	97ffff55 	bl	ffff8000800705e8 <kvm_pinned_pages_iter_next>
+ffff800080070898:	f9401381 	ldr	x1, [x28, #32]
+ffff80008007089c:	aa0003f5 	mov	x21, x0
+ffff8000800708a0:	3940c780 	ldrb	w0, [x28, #49]
+ffff8000800708a4:	9ac02360 	lsl	x0, x27, x0
+ffff8000800708a8:	8b010000 	add	x0, x0, x1
+ffff8000800708ac:	eb00027f 	cmp	x19, x0
+ffff8000800708b0:	54000483 	b.cc	ffff800080070940 <__unmap_stage2_range+0x260>  // b.lo, b.ul, b.last
+ffff8000800708b4:	94071419 	bl	ffff800080235918 <__sanitizer_cov_trace_pc>
+ffff8000800708b8:	a94807e2 	ldp	x2, x1, [sp, #128]
+ffff8000800708bc:	aa1c03e0 	mov	x0, x28
+ffff8000800708c0:	52800023 	mov	w3, #0x1                   	// #1
+ffff8000800708c4:	94006db1 	bl	ffff80008008bf88 <pkvm_call_hyp_nvhe_ppage>
+ffff8000800708c8:	34000060 	cbz	w0, ffff8000800708d4 <__unmap_stage2_range+0x1f4>
+ffff8000800708cc:	94071413 	bl	ffff800080235918 <__sanitizer_cov_trace_pc>
+ffff8000800708d0:	1400001e 	b	ffff800080070948 <__unmap_stage2_range+0x268>
+ffff8000800708d4:	94071411 	bl	ffff800080235918 <__sanitizer_cov_trace_pc>
+ffff8000800708d8:	3940c382 	ldrb	w2, [x28, #48]
+
+## Reading it:
+##   0x8c4  bl pkvm_call_hyp_nvhe_ppage   <- pkvm_unmap_range / ___unmap_stage2_range /
+##                                           stage2_apply_range are all inlined here
+##   0x8c8  cbz w0, +0x1f4               <- w0 IS the error
+##   0x8cc  bl __sanitizer_cov_trace_pc  <- clobbers x0
+##   0x8d0  b  +0x268 -> brk at +0x26c   <- the WARN, x0 already destroyed
+##
+## The #4 dump shows x0 = 0 for exactly this reason. The error code cannot be
+## recovered from the register dump; a kretprobe on pkvm_call_hyp_nvhe_ppage or a
+## temporary WARN_ONCE printing err is what would give it.
