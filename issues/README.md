@@ -14,6 +14,10 @@ The rule is chosen because it is falsifiable. "Present in code" is a claim that 
 
 The tracker started empty on 2026-08-05. Findings from earlier campaigns on other kernel lineages were deliberately not imported. They enter only if a run on the current target observes them — which makes them predictions we can be wrong about, rather than inherited assertions.
 
+## Cross-cutting analysis
+
+[REACHABILITY.md](REACHABILITY.md) — which guests can actually reach these defects. All five filed issues live in a single path: an **ordinary (non-protected) guest on a host booted `kvm-arm.mode=protected`**. Two gates in `mmu.c` keep protected VMs out of all of them. Read it before using the issue list to set fix priorities, because the obvious conclusion ("we mainly run protected VMs, so this matters less") is half wrong in a way that matters: `kvm-arm.mode=protected` is a host-wide boot parameter, so any local process with `/dev/kvm` can create an ordinary VM, which makes issue 001 workload-independent while 002-005 are not.
+
 ## Layout
 
 ```
