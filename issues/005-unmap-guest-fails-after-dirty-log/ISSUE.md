@@ -1,18 +1,22 @@
 ---
 id: 005
 slug: unmap-guest-fails-after-dirty-log
-title: Once the dirty-logging hypercall succeeds, the EL2 guest unmap fails at VM teardown and WARNs from exit_mmap
+title: A successful dirty-logging hypercall wipes the page's EL2 shared-state, so every later write-protect fails, dirty writes are silently lost, and the teardown unmap WARNs
 class: kernel-defect
 signature: 'WARNING in __unmap_stage2_range'
 hazard: none
-diagnosis: hypothesis
+diagnosis: root-caused
 disposition: open
-repro: repro/probe-dirtylog-thp.c
+repro: repro/probe-dirtylog-twice.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
     state: reproduced
     run: 2026-08-05-unmap-warn-verify
     evidence: evidence/2026-08-05-mode-matrix-and-instance.txt
+  - target: 'klinux 6.6.103+ #4 @348c94763cc6'
+    state: reproduced
+    run: 2026-08-06-dirtylog-reprotect-confirm
+    evidence: evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt
 ---
 
 # 005 — the guest unmap fails at teardown, but only after dirty logging worked
@@ -22,6 +26,8 @@ observations:
 > **Line numbers are on `klinux @348c94763cc6` (`#4`)**, the build this was observed on — `git show 348c94763cc6:<path>`.
 
 A VM whose dirty-logging hypercall **succeeded** cannot be torn down cleanly: the stage-2 unmap returns an error, and `__unmap_stage2_range()` warns about it from inside `exit_mmap()`. It is currently invisible, because issue 003 makes that hypercall fail on every huge-page-backed guest — which is every guest, by default.
+
+> **The teardown WARN is the small half.** Confirmed on hardware 2026-08-06 (`evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`): the EL2 handler wipes the page's shared-state annotation, so **every later `__check_host_unshare_guest()` on that page fails with `-EPERM`** — including the write-protect that `KVM_GET_DIRTY_LOG` performs. That error is dropped on the floor (`kvm_arch_mmu_enable_log_dirty_pt_masked()` is `void`), the page stays writable, the guest's next write takes no fault, and `mark_page_dirty_in_slot()` never runs. **Dirty logging silently stops tracking a page after its first write, 5/5 runs.** A live migration or snapshot taken this way copies stale data and reports success.
 
 Filed now rather than later because of that dependency: **fixing 003 will make this appear on every dirty-logging teardown**, where it will look like a regression from the 003 fix. It is not; it is older than the fix and merely hidden by it.
 
@@ -120,7 +126,7 @@ Note that `host.rs:1720` already masks `PKVM_PAGE_RESTRICTED_PROT` out before co
 
 ### The cause: the re-map writes the state away
 
-**Confidence: full code read of both trees; not yet confirmed on hardware.** Details and quotations in `evidence/2026-08-06-upstream-provenance.txt`.
+**Confidence: confirmed on hardware 2026-08-06 by a before/after test the mechanism predicted** (`evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`, run [2026-08-06-dirtylog-reprotect-confirm](../runs/2026-08-06-dirtylog-reprotect-confirm.md)); code quotations and upstream provenance in `evidence/2026-08-06-upstream-provenance.txt`. What remains inferred is named at the end of this section.
 
 pKVM keeps a page's ownership state **inside the stage-2 PTE**, in its two software bits, and carries it around in the same word as the permissions:
 
@@ -157,9 +163,36 @@ That the omission is an omission, and not a deliberate convention, is settled by
 
 It also disposes of the `guest_ack_unshare()` lead raised in review. That fallback retries with `SHARED_BORROWED | RESTRICTED_PROT` (`guest.rs:1072-1089`), which is still not `0`, so it cannot cover this case.
 
-**Which of the two fires is still not measured, and cannot be from EL1.** Both sites are inside the hypervisor, past the `hvc`. The kretprobe worked because `pkvm_call_hyp_nvhe_ppage()` is host code; **kprobes cannot cross the exception level**. The technique that settled issue 002 (read a register at the WARN) and the one that settled this half (probe the boundary) stop at the same wall.
+### Confirmed: the same check passes, then fails, on the same page
 
-**But the mechanism now offers a confirmation that *is* reachable from EL1.** If the state is genuinely zeroed, then a **second** dirty-log call on the same page must fail too — `check_unshare()` → `guest_ack_unshare()` → `__guest_check_page_state_range(..., PKVM_PAGE_SHARED_BORROWED)` would find `PKVM_PAGE_OWNED` and return `-EPERM` *before* any mapping happens. That call is reachable by write-protecting the page again (`KVM_CLEAR_DIRTY_LOG`, or a second `KVM_GET_DIRTY_LOG` round) and writing to it once more. In `nohuge` mode issue 003 is silent, so a failing `KVM_RUN` on the second round could only be this. A one-page userspace test decides it without any EL2 tooling; see Fix status.
+The mechanism predicted a failure that is reachable from EL1 without touching the hypervisor. `__pkvm_host_wrprotect_guest()` calls the **same** `__check_host_unshare_guest()`, and it is reached from `KVM_GET_DIRTY_LOG`, which re-write-protects whatever it reports dirty. So a page that was just dirty-logged must fail to be re-protected. `repro/probe-dirtylog-twice.c` was written to falsify that. It did not.
+
+```
+PHASE enable-dirty-logging
+  ppage_ret (__stage2_wp_range <- pkvm_call_hyp_nvhe_ppage) ret=0   x3   <- code page, A, B
+PHASE round2-run                                                        <- no probe hits
+PHASE getdirty-1-reprotect
+  ppage_ret (__stage2_wp_range <- pkvm_call_hyp_nvhe_ppage) ret=4294967295   <- page A, -EPERM
+  wpr_ret   (kvm_arch_mmu_enable_log_dirty_pt_masked <- __stage2_wp_range) ret=4294967295
+PHASE round3-run                                                        <- no probe hits
+after round3:  A(page 16)=0   B(page 32)=1
+```
+
+**`__pkvm_host_wrprotect_guest` succeeds on page A, then fails on page A, ~500 µs apart.** The only thing in between is one successful `__pkvm_host_dirty_log_guest` on A. That rules out "this check was always going to fail here" and any static property of the page. 5/5 runs: initial write-protect `0`, re-protect `-EPERM`, never the reverse.
+
+The two empty phases carry weight too. Round 2 has no `ppage_ret` because the logging branch is a **bare** `kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn)` (`mmu.c:1755`) that does not go through `pkvm_call_hyp_nvhe_ppage()`, and no `pkvm_mem_abort` because it is a permission fault. Round 3 is empty because **A takes no fault at all** — which is the defect itself.
+
+**This also narrows the site, without reaching EL2.** The dirty-log handler writes only `vm->pgt`; nothing on that path touches host state or the vmemmap. So the host-side comparison cannot have changed between the passing call and the failing one, and the guest-state comparison at `host.rs:1722` is what is left.
+
+**What is still inferred:** the PTE's software bits were never read directly. Everything above is consistent with `state == PKVM_PAGE_OWNED`, and nothing else has been proposed that fits, but the direct read needs the EL2 coverage capture. Both `-EPERM` sites are past the `hvc` and **kprobes cannot cross the exception level** — the kretprobe only works because `pkvm_call_hyp_nvhe_ppage()` is host code. That is the same wall the register-read technique hit on issue 002.
+
+### The larger consequence: dirty logging silently loses writes
+
+Because `kvm_stage2_wp_range()` is `void`, the `-EPERM` above is discarded — `kvm_arch_mmu_enable_log_dirty_pt_masked()` has nowhere to return it. The page therefore stays writable. The guest's next write takes no fault, `user_mem_abort()` never runs, and `mark_page_dirty_in_slot()` (`mmu.c:2194`) is never called.
+
+Measured, 5/5: page A's second write under dirty logging is **absent from the bitmap**, while the same program's round-2 write to the same page was recorded correctly. The failure is silent from end to end — no error to userspace, no message in `dmesg`, a successful `KVM_GET_DIRTY_LOG`.
+
+For a migration or snapshot this means stale data copied with a success return. It is a correctness defect in dirty logging itself, not only the teardown untidiness this issue was opened on.
 
 ## Reproduction
 
@@ -173,6 +206,17 @@ aarch64-linux-gnu-gcc -O2 -static -o probe-dirtylog-thp repro/probe-dirtylog-thp
 ```
 
 The warning is emitted at process exit, through `exit_mmap`. Read `dmesg` after a settle — reading it synchronously after the program returns misses it intermittently.
+
+For the dirty-page loss and the failing re-write-protect, use `repro/probe-dirtylog-twice.c`, which adds a third round and a control page and needs no `dmesg` at all:
+
+```
+aarch64-linux-gnu-gcc -O2 -static -o probe-dirtylog-twice repro/probe-dirtylog-twice.c
+./probe-dirtylog-twice nohuge
+#   after round2:  A(page 16)=1  B(page 32)=0     <- correct
+#   after round3:  A(page 16)=0  B(page 32)=1     <- A's write lost
+```
+
+To see the `-EPERM` itself, run it under `r:ppage_ret pkvm_call_hyp_nvhe_ppage ret=$retval:s64` and `r:wpr_ret __stage2_wp_range ret=$retval:s64`. **Set `tracing_on` to `1` first** — probes install and enable without complaint and record nothing when it is `0`. The program writes phase names to `trace_marker`, which is what makes the returns attributable to a round.
 
 ## Blast radius
 
@@ -265,15 +309,16 @@ with `pkvm_mkstate` added to the `use crate::utils::{...}` list at `permissions.
 
 An alternative, closer to where upstream went, is to stop using `stage2_map` here at all and reach the same end through `kvm_pgtable_stage2_relax_perms()` as 6.12 does. That is the more future-proof shape, but it cannot break a block mapping, so it only becomes available once issue 003's huge-page problem is settled. The one-line fix is orthogonal to 003 and can land first.
 
-**Confirm before patching.** The mechanism above is a full code read of both trees, not a hardware result, and the tracker's rule is that a fix does not get built on that. Two ways to close it, cheapest first:
+**The confirmation gate is passed.** The rule here is that a fix does not get built on a code-read mechanism. It is no longer one: the before/after on the same page and the same hypercall is in `evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`, 5/5, together with the user-visible lost dirty page it predicts. **This patch can be written.**
 
-1. **A second dirty-logging round, from userspace.** If the state is really zeroed, a second `__pkvm_host_dirty_log_guest` on the same page must fail in `check_unshare()` with `-EPERM` *before* mapping anything. Write-protect the page again (`KVM_CLEAR_DIRTY_LOG`, or a second `KVM_GET_DIRTY_LOG` round with manual-protect) and write to it once more; in `nohuge` mode issue 003 is silent, so a failing `KVM_RUN` there can only be this. No EL2 tooling, one extension to `repro/probe-dirtylog-thp.c`.
-2. **EL2 coverage capture.** Arm the `pkvm_cov` ring, run `nohuge` and `nodirty`, diff the `.rs:line` sets. Site A (`host.rs:1722`) appearing only in the failing arm confirms it directly and rules out `___host_check_page_state_range()`.
+The one open verification is not a gate on the fix but a check of it: an **EL2 coverage capture** (arm the `pkvm_cov` ring, run `nohuge` and `nodirty`, diff the `.rs:line` sets) would show `host.rs:1722` in the failing arm only, reading the site directly instead of inferring it. The same capture on a patched kernel should show it gone. That remains the first time this project needs the ring to advance an issue rather than to measure throughput.
 
-Test 1 is the one to run first; test 2 remains the definitive one and is still the first time this project has needed the ring to advance an issue rather than to measure throughput.
+**Regression test.** `repro/probe-dirtylog-twice.c nohuge` is the check to run after patching. The criterion is **`A=1` in round 3** and a re-write-protect returning `0` rather than `-EPERM` in the trace. Both fail today 5/5, so this is a real test rather than a tautology. Do *not* make `B=1` part of the criterion — the control page is tracked only 3/5 today for an unrelated and still unexplained reason (see the run record), so requiring it would produce false failures.
 
 **Fixing this does not fix 003, and does not need 003 fixed first.** They are independent defects in the same handler: 003 is the order-0 lookup rejecting blocks, 005 is the map dropping the state. Both are inherited from `ee88afa47b55`.
 
 ## Residual hazard
 
 Because 003 hides this, any measurement of 005's frequency taken on a `#4`-like kernel is a lower bound, and any campaign that never enables dirty logging will never see it at all. The syzkaller campaigns to date fall in that second category — the signature does not appear in the 2026-07-31 or 2026-08-05 console logs.
+
+**And the worse half of this defect has no signature at all.** The teardown WARN is at least a message; the lost dirty page produces nothing — no error to userspace, no `dmesg` line, a `KVM_GET_DIRTY_LOG` that returns success. No console-log-scraping campaign can find it, and neither can syzkaller as configured, which has no oracle for "this bitmap should have had a bit set". It was found by predicting it from the code and then writing a test that would fail if the prediction were wrong. Worth remembering when judging what fuzzing coverage is actually buying here.

@@ -1,10 +1,12 @@
-# 005 —— 客户机 unmap 在销毁时失败,但只发生在脏页日志成功之后
+# 005 —— 脏页日志成功一次,就抹掉该页的 EL2 共享状态:此后每次写保护都失败、脏页写入被静默丢失、销毁时 unmap 告警
 
 English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 tracker 的权威记录;本文是等价中文版,不含 front-matter。
 
 > **本文行号以 `klinux @348c94763cc6`(`#4`)为准** —— 即观测所在的构建,可用 `git show 348c94763cc6:<path>` 复核。
 
 一个脏页日志超级调用**成功过**的 VM,销毁时无法干净地拆掉:stage-2 unmap 返回错误,`__unmap_stage2_range()` 在 `exit_mmap()` 内部就此告警。它目前是隐形的,因为问题 003 让那个超级调用在**每一个大页支撑的客户机**上都失败 —— 而默认情况下,每个客户机都是大页支撑的。
+
+> **销毁时的告警只是小的那一半。** 2026-08-06 已在硬件上确认(`evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`):EL2 处理函数抹掉了该页的共享状态标注,于是**之后对该页的每一次 `__check_host_unshare_guest()` 都会返回 `-EPERM`** —— 包括 `KVM_GET_DIRTY_LOG` 所做的那次重新写保护。那个错误被直接丢弃(`kvm_arch_mmu_enable_log_dirty_pt_masked()` 是 `void`),该页保持可写,客户机的下一次写入不再缺页,`mark_page_dirty_in_slot()` 永不执行。**脏页日志在每一页第一次被写之后就静默地停止跟踪该页,5/5。** 用这种状态做热迁移或快照,拷走的是陈旧数据,而且报告成功。
 
 现在就立案而不是以后,正是因为这层依赖:**修好 003 之后,它会在每一次带脏页日志的销毁中出现**,看上去像是 003 补丁引入的回归。它不是 —— 它比那个补丁更老,只是被它遮住了。
 
@@ -103,7 +105,7 @@ handle___pkvm_host_unmap_guest        hyp_main.rs:1094
 
 ### 成因:那次重新映射把状态写没了
 
-**置信度:两棵树的完整代码阅读;尚未在硬件上确认。** 引文与细节见 `evidence/2026-08-06-upstream-provenance.txt`。
+**置信度:2026-08-06 已在硬件上确认** —— 用的正是这个机制自己预言的一次前后对照实验(`evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`,运行记录 [2026-08-06-dirtylog-reprotect-confirm](../runs/2026-08-06-dirtylog-reprotect-confirm.md));代码引文与上游来源见 `evidence/2026-08-06-upstream-provenance.txt`。仍属推断的部分在本节末尾点明。
 
 pKVM 把一页的归属状态存**在 stage-2 PTE 里**,占用它的两个软件位,并且和权限装在同一个字里传递:
 
@@ -140,9 +142,36 @@ enum pkvm_page_state {
 
 它也顺带排除了审阅提出的 `guest_ack_unshare()` 线索:那条回退是改用 `SHARED_BORROWED | RESTRICTED_PROT` 重试(`guest.rs:1072-1089`),仍然不等于 `0`,救不了这种情况。
 
-**究竟是哪一处触发,仍然没有实测,而且从 EL1 根本测不到。** 两处都在管理程序内部、在 `hvc` 之后。kretprobe 之所以奏效,是因为 `pkvm_call_hyp_nvhe_ppage()` 是宿主代码;**kprobe 无法跨越异常级**。当年定下问题 002 的手法(在 WARN 处读寄存器)和定下这一半的手法(在边界挂探针),撞的是同一堵墙。
+### 已确认:同一页、同一个检查,先通过后失败
 
-**但这个机制给出了一条从 EL1 *够得着* 的验证。** 如果状态真的被清零了,那么对同一页的**第二次**脏页日志调用也必然失败 —— `check_unshare()` → `guest_ack_unshare()` → `__guest_check_page_state_range(..., PKVM_PAGE_SHARED_BORROWED)` 会读到 `PKVM_PAGE_OWNED`,在做任何映射**之前**就返回 `-EPERM`。而这次调用是可以触发的:把该页重新写保护(`KVM_CLEAR_DIRTY_LOG`,或第二轮 `KVM_GET_DIRTY_LOG`)后再写一次即可。`nohuge` 模式下问题 003 是沉默的,所以第二轮里 `KVM_RUN` 失败只可能是这个原因。一个用户态小测试就能定案,完全不需要 EL2 工具;见"修复状态"。
+这个机制预言了一次**从 EL1 就够得着、根本不用碰管理程序**的失败。`__pkvm_host_wrprotect_guest()` 调的是**同一个** `__check_host_unshare_guest()`,而它可以由 `KVM_GET_DIRTY_LOG` 触达 —— 后者会把自己报告为脏的页重新写保护。所以一个刚被脏页日志处理过的页,必然无法被重新写保护。`repro/probe-dirtylog-twice.c` 就是为了**证伪**这一点而写的。它没能证伪。
+
+```
+PHASE enable-dirty-logging
+  ppage_ret (__stage2_wp_range <- pkvm_call_hyp_nvhe_ppage) ret=0   x3   <- 代码页、A、B
+PHASE round2-run                                                        <- 无探针命中
+PHASE getdirty-1-reprotect
+  ppage_ret (__stage2_wp_range <- pkvm_call_hyp_nvhe_ppage) ret=4294967295   <- 仅页 A,-EPERM
+  wpr_ret   (kvm_arch_mmu_enable_log_dirty_pt_masked <- __stage2_wp_range) ret=4294967295
+PHASE round3-run                                                        <- 无探针命中
+after round3:  A(page 16)=0   B(page 32)=1
+```
+
+**`__pkvm_host_wrprotect_guest` 先在页 A 上成功,约 500 微秒后又在页 A 上失败。** 两者之间只发生了一件事:对 A 的一次成功的 `__pkvm_host_dirty_log_guest`。这排除了"这个检查本来就会在这里失败",也排除了该页的任何静态属性。5/5:初次写保护 `0`,重新写保护 `-EPERM`,从无反例。
+
+两个**空相位**同样有分量。round 2 没有 `ppage_ret`,是因为脏页日志分支是一次**裸** `kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn)`(`mmu.c:1755`),不经过 `pkvm_call_hyp_nvhe_ppage()`;也没有 `pkvm_mem_abort`,因为那是权限缺页。round 3 是空的,则是因为 **A 根本没有缺页** —— 这正是缺陷本身。
+
+**这同时收窄了站点,而且没有进入 EL2。** 脏页日志处理函数只写 `vm->pgt`,那条路径上没有任何东西碰宿主状态或 vmemmap。所以在"通过"与"失败"这两次调用之间,宿主侧的那个比较不可能发生变化,剩下的只有 `host.rs:1722` 处的客户机状态比较。
+
+**仍属推断的部分:** PTE 的软件位从未被直接读出。以上一切都与 `state == PKVM_PAGE_OWNED` 相符,也没有别的解释能同时满足这些观测,但直接读出仍需 EL2 覆盖率捕获。两个 `-EPERM` 站点都在 `hvc` 之后,而 **kprobe 无法跨越异常级** —— kretprobe 之所以奏效,只因为 `pkvm_call_hyp_nvhe_ppage()` 是宿主代码。这与问题 002 上读寄存器那一手撞的是同一堵墙。
+
+### 更重的后果:脏页日志会静默丢写
+
+因为 `kvm_stage2_wp_range()` 是 `void`,上面那个 `-EPERM` 被丢弃 —— `kvm_arch_mmu_enable_log_dirty_pt_masked()` 根本没地方把它返回出去。于是该页保持可写。客户机的下一次写入不再缺页,`user_mem_abort()` 不会运行,`mark_page_dirty_in_slot()`(`mmu.c:2194`)也就永远不会被调用。
+
+实测 5/5:页 A 在脏页日志下的第二次写入**不出现在位图里**,而同一个程序对同一页的 round 2 写入是被正确记录的。这条失败从头到尾都是静默的 —— 用户态没有错误、`dmesg` 没有消息、`KVM_GET_DIRTY_LOG` 返回成功。
+
+对热迁移或快照而言,这意味着拷走陈旧数据并返回成功。它是脏页日志本身的正确性缺陷,而不只是本问题立案时那点销毁期的不整洁。
 
 ## 复现
 
@@ -156,6 +185,17 @@ aarch64-linux-gnu-gcc -O2 -static -o probe-dirtylog-thp repro/probe-dirtylog-thp
 ```
 
 该告警在进程退出时经 `exit_mmap` 打印。读 `dmesg` 要带沉降 —— 程序返回后立刻读会间歇性漏掉。
+
+要复现**脏页丢失**和那次失败的重新写保护,用 `repro/probe-dirtylog-twice.c` —— 它多跑一轮、带一个对照页,而且完全不需要看 `dmesg`:
+
+```
+aarch64-linux-gnu-gcc -O2 -static -o probe-dirtylog-twice repro/probe-dirtylog-twice.c
+./probe-dirtylog-twice nohuge
+#   after round2:  A(page 16)=1  B(page 32)=0     <- 正确
+#   after round3:  A(page 16)=0  B(page 32)=1     <- A 的写入丢了
+```
+
+想直接看到 `-EPERM`,就挂上 `r:ppage_ret pkvm_call_hyp_nvhe_ppage ret=$retval:s64` 与 `r:wpr_ret __stage2_wp_range ret=$retval:s64` 再跑。**先把 `tracing_on` 置 `1`** —— 探针安装和使能都不会报错,而它为 `0` 时什么都不记。程序会把相位名写进 `trace_marker`,正是这一点让每个返回值能归位到某一轮。
 
 ## 影响面
 
@@ -248,15 +288,16 @@ int __pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)
 
 另一条更贴近上游走向的路,是干脆不在这里用 `stage2_map`,改走 6.12 的 `kvm_pgtable_stage2_relax_perms()`。那个形状更抗未来,但它**拆不开块映射**,所以要等问题 003 的大页问题先解决才谈得上。而这个一行修复与 003 正交,可以先落。
 
-**打补丁之前要先确认。** 上面的机制是两棵树的完整代码阅读,不是硬件结果,而本 tracker 的规矩是不在这种结论上直接建补丁。有两条路可以收口,先便宜的:
+**确认这一关已经过了。** 本项目的规矩是:不在纯代码阅读得出的机制上建补丁。现在它已经不是了 —— 同一页、同一个超级调用上的前后对照记在 `evidence/2026-08-06-reprotect-eperm-and-lost-dirty-page.txt`,5/5,连同它预言的那个用户可见的脏页丢失。**这个补丁可以写了。**
 
-1. **从用户态跑第二轮脏页日志。** 如果状态真被清零,对同一页的第二次 `__pkvm_host_dirty_log_guest` 必然在 `check_unshare()` 里以 `-EPERM` 失败,而且是在做任何映射**之前**。把该页重新写保护(`KVM_CLEAR_DIRTY_LOG`,或带 manual-protect 的第二轮 `KVM_GET_DIRTY_LOG`)后再写一次即可;`nohuge` 模式下 003 是沉默的,所以那里 `KVM_RUN` 失败只可能是这个。不需要任何 EL2 工具,给 `repro/probe-dirtylog-thp.c` 加一段就行。
-2. **EL2 覆盖率捕获。** 武装 `pkvm_cov` ring,分别跑 `nohuge` 和 `nodirty`,对 `.rs:line` 集合取差。站点 A(`host.rs:1722`)只在失败那一侧出现,即为直接确认,同时排除 `___host_check_page_state_range()`。
+唯一还没做的验证,不是修复的前置条件,而是对修复的一次校核:一次 **EL2 覆盖率捕获**(武装 `pkvm_cov` ring,分别跑 `nohuge` 与 `nodirty`,对 `.rs:line` 取差)能让 `host.rs:1722` 只出现在失败那一侧,把站点**直接读出来**而不是推断出来;在打了补丁的内核上再跑一次,它应当消失。这仍将是本项目第一次需要这个 ring 来推进问题、而不只是测吞吐。
 
-先跑第 1 条;第 2 条仍然是决定性的那条,也仍然是本 tracker 里第一次需要这个 ring 来**推进**问题、而不只是用来测吞吐。
+**回归测试。** 打完补丁就跑 `repro/probe-dirtylog-twice.c nohuge`。判据是 **round 3 的 `A=1`**,以及 trace 里那次重新写保护返回 `0` 而不是 `-EPERM`。两者今天都 5/5 失败,所以这是一个真测试,不是同义反复。**不要**把 `B=1` 写进判据 —— 对照页今天只有 3/5 被跟踪,原因与本缺陷无关且尚未查清(见运行记录),拿它当判据会造成假失败。
 
 **修这个不等于修了 003,也不需要先修 003。** 它们是同一个处理函数里两个独立的缺陷:003 是那次 order 0 查表拒绝块映射,005 是那次映射把状态丢掉。两者都继承自 `ee88afa47b55`。
 
 ## 残留风险
 
 因为 003 遮着它,任何在 `#4` 这类内核上测得的 005 频率都只是**下界**;而任何不开启脏页日志的测试永远看不到它。迄今为止的 syzkaller 测试都属于后者 —— 2026-07-31 与 2026-08-05 两轮的控制台日志里都没有这个签名。
+
+**而这个缺陷更重的那一半,根本没有签名。** 销毁时的告警至少还是一条消息;脏页丢失什么都不产生 —— 用户态没有错误、`dmesg` 没有一行、`KVM_GET_DIRTY_LOG` 返回成功。任何靠刮控制台日志的测试都找不到它,当前配置下的 syzkaller 也找不到,因为它没有"这个位图本该置位"这样的判据。它是先从代码里**预言**出来、再写一个"若预言为假就会失败"的测试才被抓到的。在判断模糊测试到底买到了什么覆盖时,这一点值得记住。

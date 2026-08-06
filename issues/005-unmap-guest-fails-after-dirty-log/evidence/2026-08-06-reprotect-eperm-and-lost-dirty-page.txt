@@ -1,0 +1,160 @@
+Issue 005 — hardware confirmation of the page-state-wipe mechanism
+Date: 2026-08-06
+Board: N90 (10.42.27.17), Kylin V11
+Kernel: 6.6.103+ #4 SMP Wed Aug  5 11:28:51 +08 2026, kvm-arm.mode=protected
+        (the same #4 the issue was filed on; tainted=512 from earlier WARNs)
+Repro: repro/probe-dirtylog-twice.c, mode `nohuge`
+
+WHAT WAS PREDICTED, BEFORE RUNNING
+==================================
+From the code read in evidence/2026-08-06-upstream-provenance.txt: if the EL2
+dirty-log handler's bare-prot kvm_pgtable_stage2_map() really zeroes the guest
+PTE's page-state SW bits, then every later operation that goes through
+__check_host_unshare_guest() on that page must fail with -EPERM.  The teardown
+unmap was the known one.  The prediction added a *reachable* one:
+
+  __pkvm_host_wrprotect_guest() calls the same check, and it is reached from
+  KVM_GET_DIRTY_LOG -> kvm_arch_mmu_enable_log_dirty_pt_masked ->
+  __stage2_wp_range -> pkvm_wp_range -> pkvm_call_hyp_nvhe_ppage
+
+so the *re*-write-protect of a page that was just dirty-logged must return
+-EPERM, where the first write-protect of the very same page succeeded.  And
+because kvm_stage2_wp_range() is void, that error is dropped: the page stays
+writable, the guest's next write takes no fault, user_mem_abort() never runs,
+and mark_page_dirty_in_slot() is never called -- so the write is LOST from the
+dirty bitmap.
+
+Design: two guest data pages, both faulted in together in round 1.
+  A = gpa 0x40010000 (page 16) -- written under logging in round 2, so it goes
+                                  through the dirty-log handler
+  B = gpa 0x40020000 (page 32) -- in-run control, untouched in round 2
+KVM_GET_DIRTY_LOG only re-protects pages it reports dirty, so B keeps the
+protection installed when logging was enabled and is unaffected by A's failure.
+
+Correct kernel would give round-3 bitmap A=1 B=1.  Prediction: A=0.
+
+
+RESULT — ordered trace, one run
+===============================
+Probes (tracing_on set to 1 first; see the trap note at the end):
+  r:ppage_ret pkvm_call_hyp_nvhe_ppage ret=$retval:s64
+  r:wpr_ret   __stage2_wp_range        ret=$retval:s64
+  p:memabort  pkvm_mem_abort
+Phase boundaries written by the program to tracefs trace_marker.
+
+  12612.525394: tracing_mark_write: PHASE round1-run
+  12612.525442: memabort: (pkvm_mem_abort+0x0/0x590)
+  12612.525483: ppage_ret: (kvm_handle_guest_abort+0x105c/0x10d8 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.525489: memabort: (pkvm_mem_abort+0x0/0x590)
+  12612.525515: ppage_ret: (kvm_handle_guest_abort+0x105c/0x10d8 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.525520: memabort: (pkvm_mem_abort+0x0/0x590)
+  12612.525534: ppage_ret: (kvm_handle_guest_abort+0x105c/0x10d8 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.525552: tracing_mark_write: PHASE enable-dirty-logging
+  12612.525602: ppage_ret: (__stage2_wp_range+0x11c/0x170 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.525605: ppage_ret: (__stage2_wp_range+0x11c/0x170 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.525606: ppage_ret: (__stage2_wp_range+0x11c/0x170 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.525607: wpr_ret: (kvm_arch_commit_memory_region+0x2d0/0x338 <- __stage2_wp_range) ret=0
+  12612.526056: tracing_mark_write: PHASE round2-run
+  12612.526082: tracing_mark_write: PHASE getdirty-1-reprotect
+  12612.526086: ppage_ret: (__stage2_wp_range+0x11c/0x170 <- pkvm_call_hyp_nvhe_ppage) ret=4294967295
+  12612.526087: wpr_ret: (kvm_arch_mmu_enable_log_dirty_pt_masked+0xe8/0x150 <- __stage2_wp_range) ret=4294967295
+  12612.526461: tracing_mark_write: PHASE round3-run
+  12612.526477: tracing_mark_write: PHASE getdirty-2
+  12612.526480: ppage_ret: (__stage2_wp_range+0x11c/0x170 <- pkvm_call_hyp_nvhe_ppage) ret=4294967295
+  12612.526480: wpr_ret: (kvm_arch_mmu_enable_log_dirty_pt_masked+0xe8/0x150 <- __stage2_wp_range) ret=4294967295
+  12612.526848: tracing_mark_write: PHASE teardown
+  12612.526867: ppage_ret: (__unmap_stage2_range+0x1e8/0x2b8 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.526870: ppage_ret: (__unmap_stage2_range+0x1e8/0x2b8 <- pkvm_call_hyp_nvhe_ppage) ret=4294967295
+  12612.527479: ppage_ret: (__pkvm_destroy_hyp_vm+0x1c0/0x2d8 <- pkvm_call_hyp_nvhe_ppage) ret=0
+  12612.527492: ppage_ret: (__pkvm_destroy_hyp_vm+0x1c0/0x2d8 <- pkvm_call_hyp_nvhe_ppage) ret=0
+
+Program output for the same run:
+  round1 KVM_RUN         ret=0 errno=0 exit=6
+  [dirty logging enabled — whole slot write-protected]
+  round2 KVM_RUN         ret=0 errno=0 (-) exit=6
+  after round2:          A(page 16)=1  B(page 32)=0
+  round3 KVM_RUN         ret=0 errno=0 (-) exit=6
+  after round3:          A(page 16)=0  B(page 32)=1
+  verdict: A=0 B=1 -> PREDICTED FAILURE seen: A's write was lost, control B survived
+
+4294967295 = 0xFFFFFFFF = -1 as a 32-bit int = -EPERM (EPERM is 1; EINVAL 22,
+ENOENT 2, E2BIG 7, ENOMEM 12 are not).
+
+
+THE BEFORE/AFTER CONTROL, ON THE SAME PAGE AND THE SAME CHECK
+=============================================================
+This is the part that makes the trace decisive rather than merely consistent.
+
+  PHASE enable-dirty-logging   3 x __pkvm_host_wrprotect_guest -> ret=0
+                               (code page, A and B -- the whole slot)
+  PHASE getdirty-1-reprotect   1 x __pkvm_host_wrprotect_guest -> ret=-EPERM
+                               (page A only; the mask covers just the dirty page)
+
+Same hypercall, same page A, same __check_host_unshare_guest(), ~500 us apart.
+It passes, then it fails.  The only thing between them is round 2, i.e. one
+successful __pkvm_host_dirty_log_guest on A.  That rules out "the check was
+always going to fail here" and rules out any static property of the page.
+
+It also constrains WHICH of the check's two -EPERM sites fires.  The dirty-log
+handler writes only vm->pgt (kvm_pgtable_stage2_map on the guest page table);
+nothing on that path touches host state or the hyp_vmemmap.  So the host-side
+comparison (___host_check_page_state_range, PKVM_PAGE_SHARED_OWNED) cannot have
+changed between the passing call and the failing one, and the guest-state
+comparison is the one left.  Not read out of the PTE directly -- that still
+wants the EL2 coverage capture -- but no longer a free choice between two.
+
+Note also PHASE round2-run and PHASE round3-run are EMPTY of probe hits.  That
+is exactly right and worth keeping:
+  - round 2: A's permission fault takes pkvm_relax_perms()'s logging_active
+    branch, which is a bare kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn)
+    (mmu.c:1755) and does NOT go through pkvm_call_hyp_nvhe_ppage.  So no
+    ppage_ret.  And it is a permission fault, so no pkvm_mem_abort either.
+  - round 3: A takes no fault at all -- which is the defect.
+
+
+REPEATABILITY — 5 runs
+======================
+run1  round2[A=1 B=0]  round3[A=0 B=1]  initial-wp-ok=1  reprotect: EPERM=2 ok=0  teardown-EPERM=1
+run2  round2[A=1 B=0]  round3[A=0 B=0]  initial-wp-ok=1  reprotect: EPERM=1 ok=0  teardown-EPERM=1
+run3  round2[A=1 B=0]  round3[A=0 B=1]  initial-wp-ok=1  reprotect: EPERM=2 ok=0  teardown-EPERM=1
+run4  round2[A=1 B=0]  round3[A=0 B=1]  initial-wp-ok=1  reprotect: EPERM=2 ok=0  teardown-EPERM=1
+run5  round2[A=1 B=0]  round3[A=0 B=0]  initial-wp-ok=1  reprotect: EPERM=1 ok=0  teardown-EPERM=1
+
+Invariant, 5/5:
+  * round 2 tracks A correctly (A=1) -- so the bitmap plumbing works
+  * the initial full-slot write-protect succeeds
+  * every re-write-protect after a dirty-log returns -EPERM, never 0
+  * A's round-3 write is LOST from the dirty bitmap (A=0)
+  * the teardown unmap returns -EPERM (issue 005's original signature)
+
+Variance: the control page B is tracked in 3/5 and lost in 2/5.  The EPERM count
+tracks it exactly -- 2 when B was tracked (B then gets reported dirty at
+getdirty-2 and its own re-protect also fails), 1 when it was not.  Why B's
+round-3 write is sometimes not tracked is NOT explained here and nothing above
+depends on it; B is only a control, and A fails 5/5 either way.  One candidate
+worth checking if it ever matters: pkvm_relax_perms() can return -EAGAIN, which
+user_mem_abort() converts to 0 while still skipping mark_page_dirty_in_slot()
+(`if (writable && !ret)`) -- a second, unrelated way to drop a dirty bit.
+
+
+SEVERITY
+========
+This is larger than the teardown WARN the issue was filed on.  Dirty logging on
+a pKVM np-guest stops working after the first write to each page: the page can
+never be re-write-protected, so every subsequent write to it goes unrecorded.
+A live migration or snapshot taken this way copies stale data with no error
+reported anywhere -- kvm_arch_mmu_enable_log_dirty_pt_masked() is void and
+drops the -EPERM on the floor.
+
+
+METHOD TRAPS
+============
+1. tracing_on must be 1.  Probes install and enable without complaint and
+   silently record nothing when it is 0 (this cost a full cycle on 2026-08-05).
+2. pkvm_relax_perms, pkvm_wp_range and user_mem_abort are all inlined on this
+   build -- not in /proc/kallsyms.  __stage2_wp_range, pkvm_mem_abort and
+   pkvm_call_hyp_nvhe_ppage are there, and the kretprobe's caller annotation
+   (`<- pkvm_call_hyp_nvhe_ppage` with the return address) is what makes it
+   possible to tell the wp path from the unmap path without them.
+3. Phase markers via tracefs trace_marker are what let a bare return-value
+   probe be attributed to a round.  Without them this trace is unreadable.
