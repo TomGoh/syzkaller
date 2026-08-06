@@ -6,7 +6,7 @@ class: kernel-defect
 signature: 'KVM_RUN returns -E2BIG after KVM_MEM_LOG_DIRTY_PAGES is enabled'
 hazard: none
 diagnosis: root-caused
-disposition: open
+disposition: fix-proposed
 repro: repro/probe-dirtylog-thp.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
@@ -160,7 +160,9 @@ The order matters for anyone reading the tracker later: **002 does not cause 003
 
 ## Fix status
 
-Not fixed. **There is nothing upstream to backport**, but the reason is not the one first recorded here — see the correction immediately below. Evidence: `evidence/2026-08-05-upstream-ack66.txt` and `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-06-upstream-provenance.txt`, both read from `kernel-refs/ack`.
+> **A fix is committed in klinux as `889bd261c945`** (shape 0 below): the host now passes the faulting page's `pfn`, so EL2 never walks the guest table at order 0. Compile-tested only — `disposition: fix-proposed`, not verified. The check is `repro/probe-dirtylog-thp.c` in its **default** THP mode resuming instead of returning `-E2BIG`.
+
+Fixed locally as above; **there was nothing upstream to backport**, and the reason is not the one first recorded here — see the correction immediately below. Evidence: `evidence/2026-08-05-upstream-ack66.txt` and `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-06-upstream-provenance.txt`, both read from `kernel-refs/ack`.
 
 > **Correction (2026-08-06): this defect is inherited from ACK, not introduced by klinux.**
 >

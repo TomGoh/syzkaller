@@ -6,7 +6,7 @@ class: kernel-defect
 signature: 'donations to the nVHE hyp are missing'
 hazard: none
 diagnosis: root-caused
-disposition: open
+disposition: fix-proposed
 repro: repro/probe-dirtylog-thp.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
@@ -168,7 +168,9 @@ All three of 002, 003 and 004 fire on the same input — an ordinary VM whose vC
 
 ## Fix status
 
-Not fixed. Upstream **has** been searched now, against `kernel-refs/ack` (`aosp/android15-6.6`, `android16-6.12`, `android17-6.18`); evidence in `evidence/2026-08-05-upstream-ack.txt`. The answer differs per part, so this issue is three defects with three different provenances:
+> **Fixes are committed in klinux as `61173329e416`** (parts a and c — restore the two missing `atomic64_add()` calls) **and `f8ac14623978`** (part b — print the residual signed and say which direction). Compile-tested only — `disposition: fix-proposed`, not verified. The check is that the teardown message stops appearing at all.
+
+Fixed locally as above. Upstream **has** been searched, against `kernel-refs/ack` (`aosp/android15-6.6`, `android16-6.12`, `android17-6.18`); evidence in `evidence/2026-08-05-upstream-ack.txt`. The answer differs per part, so this issue is three defects with three different provenances:
 
 ### (a) `handle_hyp_req_mem()` — klinux **deleted** upstream's accounting
 

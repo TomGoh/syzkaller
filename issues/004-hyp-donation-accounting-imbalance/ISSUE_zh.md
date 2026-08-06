@@ -151,7 +151,9 @@ kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
 
 ## 修复状态
 
-未修。上游检索**现在做了**,对象是 `kernel-refs/ack` 的三个分支(`aosp/android15-6.6`、`android16-6.12`、`android17-6.18`),证据在 `evidence/2026-08-05-upstream-ack.txt`。答案按部分而不同 —— 本问题其实是三个来源各异的缺陷:
+> **修复已提交到 klinux:`61173329e416`**((a)(c) 两处,补回缺失的 `atomic64_add()`)与 **`f8ac14623978`**((b),按有符号打印并区分方向)。**仅通过编译**,`disposition: fix-proposed`,未验证。判据是销毁时那条消息彻底不再出现。
+
+已按上述方式本地修复。上游检索**已经做过**,对象是 `kernel-refs/ack` 的三个分支(`aosp/android15-6.6`、`android16-6.12`、`android17-6.18`),证据在 `evidence/2026-08-05-upstream-ack.txt`。答案按部分而不同 —— 本问题其实是三个来源各异的缺陷:
 
 ### (a) `handle_hyp_req_mem()` —— klinux **删掉了**上游的记账
 

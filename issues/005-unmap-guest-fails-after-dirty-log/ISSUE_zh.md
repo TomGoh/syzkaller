@@ -273,7 +273,9 @@ int __pkvm_host_dirty_log_guest(u64 gfn, struct pkvm_hyp_vcpu *vcpu)
 
 ## 修复状态
 
-未修。**没有可迁移的补丁** —— 上游的解法是删功能,而删功能的前提是把 np-guest 脏页日志整体挪进通用的 `user_mem_abort()`,那是对整条 np-guest 内存路径的重新设计,不是一个 hunk。所以这个得我们自己写。
+> **修复已提交到 klinux,commit `cfaadd217ab6`**:在那次重新映射处改用 `pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED)`。**仅通过编译**,`disposition: fix-proposed`,未验证。判据见下文的回归测试。
+
+已按上述方式本地修复。**没有可迁移的补丁** —— 上游的解法是删功能,而删功能的前提是把 np-guest 脏页日志整体挪进通用的 `user_mem_abort()`,那是对整条 np-guest 内存路径的重新设计,不是一个 hunk。所以这个得我们自己写。
 
 **建议的修法 —— 把那次映射抹掉的标注补回去。** `permissions.rs:202`,`__pkvm_host_dirty_log_guest()` 内:
 

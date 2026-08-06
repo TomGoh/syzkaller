@@ -143,7 +143,9 @@ kvm [35488]: 18446744073709543424B of donations to the nVHE hyp are missing
 
 ## 修复状态
 
-未修。**上游没有可 backport 的补丁**,但理由不是最初记在这里的那个 —— 见紧接着的更正。证据:`evidence/2026-08-05-upstream-ack66.txt` 与 `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-06-upstream-provenance.txt`,均取自 `kernel-refs/ack`。
+> **修复已提交到 klinux,commit `889bd261c945`**(即下文的形状 0):宿主改为把发生缺页那一页的 `pfn` 传下去,EL2 不再按 order 0 走客户机页表。**仅通过编译**,`disposition: fix-proposed`,未验证。判据是 `repro/probe-dirtylog-thp.c` 的**默认**(THP)模式能恢复运行,而不是返回 `-E2BIG`。
+
+已按上述方式本地修复;**上游没有可 backport 的补丁**,而理由不是最初记在这里的那个 —— 见紧接着的更正。证据:`evidence/2026-08-05-upstream-ack66.txt` 与 `../005-unmap-guest-fails-after-dirty-log/evidence/2026-08-06-upstream-provenance.txt`,均取自 `kernel-refs/ack`。
 
 > **更正(2026-08-06):这个缺陷是从 ACK 继承的,不是 klinux 引入的。**
 >

@@ -6,7 +6,7 @@ class: kernel-defect
 signature: 'WARNING in __unmap_stage2_range'
 hazard: none
 diagnosis: root-caused
-disposition: open
+disposition: fix-proposed
 repro: repro/probe-dirtylog-twice.c
 observations:
   - target: 'klinux 6.6.103+ #4 @348c94763cc6'
@@ -294,7 +294,9 @@ The removal is justified by a redesign, not a bug: *"Now that dirty logging for 
 
 ## Fix status
 
-Not fixed. **There is no patch to migrate** — the upstream remedy is a feature removal predicated on moving np-guest dirty logging into generic `user_mem_abort()`, which is a redesign of the whole np-guest memory path, not a hunk. So this one is ours to write.
+> **A fix is committed in klinux as `cfaadd217ab6`**: `pkvm_mkstate(KVM_PGTABLE_PROT_RWX, PKVM_PAGE_SHARED_BORROWED)` at the remap. Compile-tested only — `disposition: fix-proposed`, not verified. The check is the regression test below.
+
+Fixed locally as above. **There was no patch to migrate** — the upstream remedy is a feature removal predicated on moving np-guest dirty logging into generic `user_mem_abort()`, which is a redesign of the whole np-guest memory path, not a hunk. So this one is ours to write.
 
 **Proposed fix — restore the annotation the map destroys.** `permissions.rs:202`, in `__pkvm_host_dirty_log_guest()`:
 
