@@ -199,3 +199,77 @@ N90 runs #13: issue 003 fixed, issue 004 fixed, issue 005 reverted with the
 above reasoning recorded in a comment at the call site so the next person does
 not repeat the one-liner. The known-good #4 image remains on the board at
 /boot/ostree/kylin-*/vmlinuz-6.6.103+.knowngood-4.
+
+
+================================================================================
+7. SEQUEL — the fix that works (#15), and the last wrong assumption
+================================================================================
+
+Section 5 above said a real fix needs split-then-relax. That was right. It also
+implied the upstream split series had to be ported first. That was wrong -- the
+tree already has everything needed.
+
+An intermediate attempt (#14) picked the primitive by granule: relax_perms when
+the mapping is already PAGE_SIZE, stage2_map when it is a block. Result:
+
+  005 criterion:  A=1 B=1  3/3   <- fixed
+  003 criterion:  THP mode rc=3  <- REGRESSED, livelocked
+
+So the block branch livelocked too, which falsified the assumption that the
+post-split entry would be invalid. Reading stage2_map_prefault_block() from its
+signature this time (it had been read from the middle before) shows why:
+
+  /* pgtable.c:1026-1064 */
+  static void stage2_map_prefault_block(..., const struct kvm_pgtable_visit_ctx *ctx,
+                                        kvm_pte_t *ptep)
+  {
+          pa = kvm_pte_to_phys(block_pte);              /* physical */
+          ...
+          for (i = 0; i < PTRS_PER_PTE; ++i, ++ptep, pa += granule) {
+                  ...
+                  if ((ctx->level < (KVM_PGTABLE_LAST_LEVEL - 1)) ||
+                                  (pa < ctx->addr) || (pa >= ctx->end)) {   /* IPA */
+                          *ptep = pte;
+
+The skip test compares a PHYSICAL address against ctx->addr / ctx->end, which
+are IPAs. For a guest stage-2 those are different address spaces, so the target
+page's entry is NOT skipped -- it is pre-populated as a valid, still
+write-protected leaf carrying the block's software bits. The following leaf
+visit is then a permissions-only change again, and lands in exactly the same
+-EAGAIN-swallowed-into-0 hole.
+
+Both branches hit the same wall, so the fix collapses to one rule: the mapping
+call must never be what grants write access.
+
+  if the IPA is still a block:
+      stage2_map(PAGE_SIZE, pkvm_mkstate(RWX, SHARED_BORROWED))   -- to SPLIT only
+  always:
+      kvm_pgtable_stage2_relax_perms(RWX)                          -- the permission change
+
+The state is still written explicitly on the split path, because the entries the
+split creates are built from the prot handed in; a bare prot would reintroduce
+issue 005 on every page a block covers.
+
+#15, five runs, kretprobe on pkvm_call_hyp_nvhe_ppage and __stage2_wp_range:
+
+  run1 round3[A=1 B=1]  reprotect: EPERM=0 ok=2  teardown-EPERM=0
+  run2 round3[A=1 B=1]  reprotect: EPERM=0 ok=2  teardown-EPERM=0
+  run3 round3[A=1 B=1]  reprotect: EPERM=0 ok=2  teardown-EPERM=0
+  run4 round3[A=1 B=1]  reprotect: EPERM=0 ok=2  teardown-EPERM=0
+  run5 round3[A=1 B=1]  reprotect: EPERM=0 ok=2  teardown-EPERM=0
+  unmap WARN: 0    donation msgs: 0    any WARNING: 0
+
+The re-write-protect that answered -EPERM now returns 0, twice per run (page A
+and the control page B). The page written under dirty logging is reported dirty
+where it used to be lost. The teardown unmap no longer fails and its WARNING is
+gone. probe-dirtylog-thp passes in all three modes including THP, so the block
+path did not regress.
+
+Klinux commit cba248683e5c. Board left on #15.
+
+Count of wrong designs for this one function before it worked: three (#10 state
+write-back, #12 -EAGAIN fallback, #14 granule-selected primitive). Each was
+defensible from the code as read at the time; each was falsified in about ten
+minutes by the reproducer. Two of the three were wrong because a function had
+been read from the middle rather than from its signature -- the rule at the top
+of CLAUDE.md, and it cost three build-and-boot cycles to relearn.

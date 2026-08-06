@@ -16,6 +16,9 @@ observations:
   - target: 'klinux 6.6.103+ #13 @24714fe308bb'
     state: not-observed
     run: 2026-08-06-fix-deploy-verify
+  - target: 'klinux 6.6.103+ #15 @cba248683e5c'
+    state: not-observed
+    run: 2026-08-06-005-split-then-relax
 ---
 
 # 003 — dirty logging is unusable for a huge-page-backed guest
