@@ -1,0 +1,37 @@
+# The order argument: three call sites carry it, the dirty-log one does not.
+
+## EL2: every caller of guest_get_valid_pte()  (arch/arm64/kvm/hyp/xhypervisor/src/)
+mem_protect/permissions.rs:147:    let mut ret =  ptr_wrapper!(vm).guest_get_valid_pte(&mut host_addr, guest_addr, 0, &mut _pte);
+mem_protect/host.rs:1669:    let ret = ptr_wrapper!(vm).guest_get_valid_pte(&mut guest_phys, guest_addr, order, &mut pte);
+mem_protect/host.rs:1714:    let ret = ptr_wrapper!(vm).guest_get_valid_pte(phys, ipa, order, &mut pte);
+mem_protect/host.rs:1897:    let mut ret: i32 = ptr_wrapper!(vm).guest_get_valid_pte(&mut __phys, ipa, order, &mut pte);
+
+## EL2: guest_get_valid_pte() rejects any granule that is not PAGE_SIZE << order
+8:        let size = PAGE_SIZE << order;
+9-        let mut level: i8 = 0;
+10-
+11-        // 检查order参数的合法性
+--
+29:        if kvm_granule_size(level) != size {
+30-            return -(E2BIG as i32);
+31-        }
+32-
+
+## EL2: __pkvm_host_dirty_log_guest() passes 0 and returns the error verbatim
+13:    let mut ret =  ptr_wrapper!(vm).guest_get_valid_pte(&mut host_addr, guest_addr, 0, &mut _pte);
+14:    if ret != 0 {
+17:        return ret;
+
+## Host: the HVC ABI of the three siblings vs the dirty-log one
+mmu.c:1361:	return kvm_call_hyp_nvhe(__pkvm_host_wrprotect_guest,
+mmu.c:1730:	return kvm_call_hyp_nvhe(__pkvm_host_relax_guest_perms, gfn, order, prot);
+mmu.c:1760:		ret = kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn);
+
+## The pKVM huge-page series in this tree -- note what is absent
+275629ed658f ANDROID: KVM: arm64: THP support for pKVM guests
+bb35d8934803 ANDROID: KVM: arm64: Huge page support for pKVM guest relax perm
+5b77817a1876 ANDROID: KVM: arm64: Huge page support for pKVM guest wrprotect
+972a2211ac11 ANDROID: KVM: arm64: Huge page support for pKVM guest unshare
+ac23d6fd5aba ANDROID: KVM: arm64: Huge page support for pKVM guest memory reclaim
+b852c9e9fcea ANDROID: KVM: arm64: Huge page support for pkvm_pinned_page
+  (there is no 'Huge page support for pKVM guest dirty log')

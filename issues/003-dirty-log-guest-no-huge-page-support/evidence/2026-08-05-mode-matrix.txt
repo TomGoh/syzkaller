@@ -1,0 +1,38 @@
+Kylin V11
+### kernel: #4 SMP Wed Aug  5 11:28:51 +08 2026 — klinux @348c94763cc6 (issue 001 fix only; the issue 002 fix is NOT in this build)
+### NOTE: the teardown message is printed after the process exits, so dmesg must be
+###       read after a settle -- reading it immediately misses it intermittently.
+
+================ mode: default ================
+first  KVM_RUN ret=0 errno=0 exit=6
+after first KVM_RUN            hyp_mem =    31048
+after dirty logging on         hyp_mem =    31048
+second KVM_RUN ret=-1 errno=7 (Argument list too long) exit=0
+after second KVM_RUN           hyp_mem =    31048
+-- dmesg after settle:
+[ 1177.871673] WARNING: CPU: 3 PID: 39936 at arch/arm64/kvm/hyp/pgtable.c:654 kvm_tlb_flush_vmid_range+0x74/0xe0
+[ 1177.872518] kvm [39936]: 18446744073709543424B of donations to the nVHE hyp are missing
+
+================ mode: nohuge ================
+[MADV_NOHUGEPAGE applied]
+first  KVM_RUN ret=0 errno=0 exit=6
+after first KVM_RUN            hyp_mem =    39240
+after dirty logging on         hyp_mem =    39240
+second KVM_RUN ret=0 errno=0 (-) exit=6
+after second KVM_RUN           hyp_mem =    39240
+-- dmesg after settle:
+[ 1180.879980] WARNING: CPU: 0 PID: 41432 at arch/arm64/kvm/hyp/pgtable.c:654 kvm_tlb_flush_vmid_range+0x74/0xe0
+
+================ mode: nodirty ================
+first  KVM_RUN ret=0 errno=0 exit=6
+after first KVM_RUN            hyp_mem =    31048
+[dirty logging NOT enabled]
+second KVM_RUN ret=0 errno=0 (-) exit=6
+after second KVM_RUN           hyp_mem =    31048
+-- dmesg after settle:
+   (none)
+
+================ 5 runs per mode ================
+mode=default  KVM_RUN_failures=5/5  donation_msgs=5  tlb_warns=5
+mode=nohuge  KVM_RUN_failures=0/5  donation_msgs=4  tlb_warns=5
+mode=nodirty  KVM_RUN_failures=0/5  donation_msgs=0  tlb_warns=0
