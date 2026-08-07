@@ -8,6 +8,49 @@ English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 
 
 板子本身不受影响 —— 不挂死、不 Oops,死的只是客户机。
 
+---
+
+## 背景知识
+
+### 透明大页（THP）是什么
+
+Linux 的透明大页（Transparent Huge Pages）是一种自动内存管理机制：当一段匿名内存满足对齐和大小条件时，内核会自动用 2 MiB 的大页（而不是 4 KiB 的普通页）来映射它。这是默认行为，不需要程序主动请求。大页的好处是 TLB 利用率更高——一个 2 MiB 的页表项覆盖的范围相当于 512 个 4 KiB 页表项，CPU 的 TLB 能缓存更多地址翻译。
+
+在 pKVM 下，大页支持意味着 EL2 的 stage-2 页表也可以用 2 MiB 块来映射客户机内存。这引入了一个 `order` 参数来区分粒度：`order=0` 表示 4 KiB，`order=9` 表示 2 MiB（因为 `2^9 * 4 KiB = 2 MiB`）。每一条操作 stage-2 页表的路径都必须正确传递这个参数，否则 EL2 会按错误的粒度操作。
+
+### 脏页日志与权限缺页
+
+脏页日志是 KVM 热迁移和快照的基础机制。开启它之后，客户机的内存被写保护，每次写入都会触发 stage-2 权限异常。内核在异常处理中把该页标记为"脏"（记入 dirty bitmap），然后恢复页面的可写权限，让客户机继续。VMM 定期读取 dirty bitmap，知道哪些页被修改过，迁移时只重传这些页。
+
+在 pKVM 下，这个"标记脏页并恢复权限"的操作要通过超级调用 `__pkvm_host_dirty_log_guest` 让 EL2 代劳。EL2 需要找到对应的 stage-2 页表项，检查它的粒度，然后修改权限。问题就出在"检查粒度"这一步。
+
+### `-E2BIG` 的设计语义
+
+在 pKVM 的大页支持设计中，`-E2BIG` 是一个**信号**而非错误。它的产生条件是**粒度不匹配**，而且不分方向——EL2 的 `guest_get_valid_pte()` 只做一次相等判断：
+
+```rust
+let size = PAGE_SIZE << order;          // 调用方声称的粒度
+if kvm_granule_size(level) != size {    // 实际 PTE 的粒度
+    return -(E2BIG as i32);             // 粗了细了都返回这个
+}
+```
+
+但**处理**它的那一侧只考虑了一个方向。klinux 的包装函数 `pkvm_call_hyp_nvhe_ppage()` 假设 `-E2BIG` 意味着"stage-2 比你说的更细"——即大页已经被拆开了——于是把调用方的 `order` 降到 0 重试：
+
+```c
+/* The stage-2 huge page has been broken down */
+case -E2BIG:
+	if (order)
+		order = 0;
+	else
+		/* Something is really wrong ... */
+		return -EINVAL;
+```
+
+注意 `else` 那一支：**如果调用方本来就传 0，包装函数救不了它**，只会把 `-E2BIG` 换成 `-EINVAL`。三个兄弟调用点（unmap、写保护、放宽权限）都传真实 `order` 并走这个包装。**唯独脏页日志这一条两样都没有**——既没传 `order`，也没用包装。这两个缺陷必须一起看：光加包装不够，因为它传的 `order` 恒为 0，包装接到 `-E2BIG` 只会返回 `-EINVAL`；真正的修复是把真实的 `order` 传下去。
+
+---
+
 ## 症状
 
 ```
@@ -51,6 +94,20 @@ second KVM_RUN ret=-1 errno=7 (Argument list too long) exit=0
     logging 分支(mmu.c:1755-1757)一路抛出 KVM_RUN
 ```
 
+逐步解释这个链条:
+
+1. **客户机内存被 2 MiB 块映射**:因为透明大页是默认行为,客户机的匿名内存自动用 2 MiB 页映射,stage-2 页表里对应的是 block 描述符（level=1,粒度 2 MiB）。
+
+2. **开启脏页日志 → 写保护**:VMM 追加 `KVM_MEM_LOG_DIRTY_PAGES`,EL2 把该 memslot 的 stage-2 页表项改成只读。
+
+3. **客户机写 → stage-2 权限异常**:客户机写入被写保护的页,CPU 触发权限异常,陷入 Host 内核。Host 的异常处理路径（`pkvm_relax_perms()`）需要让 EL2 把这一页重新改成可写,并标记为脏。
+
+4. **Host 只传了 gfn,没传 order**:这是核心缺陷。Host 调 `kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn)` 时只传了客户机页帧号（gfn）,没有告诉 EL2 这一页是什么粒度。相比之下,写保护、放宽权限、unmap 这三条兄弟路径都传了 `order`。
+
+5. **EL2 硬编码 order=0,查表发现粒度不匹配**:EL2 的 `guest_get_valid_pte()` 收到 `order=0`（硬编码,不是 Host 传的）,于是认为这一页是 4 KiB。但实际页表项是 2 MiB 块,粒度检查 `kvm_granule_size(level) != PAGE_SIZE << 0` 失败,返回 `-E2BIG`。
+
+6. **`-E2BIG` 原样外泄到 KVM_RUN**:因为没有重试包装接住它（见下文）,这个错误码一路返回到用户态,`KVM_RUN` 返回 `-1`,`errno=E2BIG`。
+
 **`-E2BIG` 是设计好的信号,而这是唯一没人接住它的调用点。** `pkvm_call_hyp_nvhe_ppage()`(`pkvm.c:240-268`)存在的意义就是吸收这个错误:
 
 ```c
@@ -65,7 +122,7 @@ second KVM_RUN ret=-1 errno=7 (Argument list too long) exit=0
 		break;
 ```
 
-也就是说 `-E2BIG` 的语义是"order 不对,换小的再来",而这个包装保证它永远到不了调用方。三处调用都走它 —— `mmu.c:325`(unmap)、`mmu.c:1366`(写保护)、`mmu.c:1762`(放宽权限)。**唯独脏页日志这次是裸调:**
+这个包装的逻辑是:把 `-E2BIG` 读作"stage-2 比你说的更细,大页已经被拆开了",于是把 `order` 降为 0（4 KiB）重试——对一个原本传了大 `order` 的调用方,这次重试就能对上。它保证 `-E2BIG` 这个码本身永远到不了调用方（传 0 的情况下会被换成 `-EINVAL`,见上文背景）。三处调用都走它——`mmu.c:325`(unmap)、`mmu.c:1366`(写保护)、`mmu.c:1762`(放宽权限)。**唯独脏页日志这次是裸调:**
 
 ```c
 	ret = kvm_call_hyp_nvhe(__pkvm_host_dirty_log_guest, gfn);   /* mmu.c:1755 —— 裸调 */
@@ -73,9 +130,9 @@ second KVM_RUN ret=-1 errno=7 (Argument list too long) exit=0
 		return ret;
 ```
 
-**缺陷的两半在同一个函数里碰头。** `pkvm_relax_perms()` 有两个分支:`logging_active` 在 `:1755` 裸调,`else` 分支在 `:1762` 走包装。脏页日志这条同时是**唯一 EL2 侧永远匹配不上块**(order 写死 0)、也是**唯一没有重试包装接住后果**的调用。
+**缺陷的两半在同一个函数里碰头。** `pkvm_relax_perms()` 有两个分支:`logging_active` 在 `:1755` 裸调,`else` 分支在 `:1762` 走包装。脏页日志这条同时是**唯一 EL2 侧永远匹配不上块**(order 写死 0)、也是**唯一没有重试包装接住后果**的调用。两个缺陷叠加,才让错误码一路传到了用户态。
 
-**EL2 侧的结构性佐证。** `guest_get_valid_pte()` 有**三个活的调用点** —— 两个传真实 `order`,一个传 `0`:
+**EL2 侧的结构性佐证。** `guest_get_valid_pte()` 有**三个活的调用点**——两个传真实 `order`,一个传 `0`:
 
 ```
 host.rs:1714        guest_get_valid_pte(..., order, ...)
@@ -83,7 +140,9 @@ host.rs:1897        guest_get_valid_pte(..., order, ...)
 permissions.rs:147  guest_get_valid_pte(..., 0,     ...)   ← 脏页日志
 ```
 
-早前的版本数成了四个,多列了 `host.rs:1669`。那一行位于一段**被注释掉的同名函数副本**内 —— `/*` 在 `host.rs:1635`,`*/` 在 `host.rs:1683`。**`mem_protect/*.rs` 里有好几段这样的注释块**(`guest.rs:1521` 是 `guest_get_valid_pte` 自己的另一份副本),所以在这些文件里 grep 到的行,引用前必须先验注释边界。
+前两个调用点（unshare、reclaim）都正确传递了 `order`,只有脏页日志这一个硬编码为 0。这从侧面印证了这不是设计选择,而是遗漏——大页支持系列覆盖了五条路径,漏了这一条。
+
+早前的版本数成了四个,多列了 `host.rs:1669`。那一行位于一段**被注释掉的同名函数副本**内——`/*` 在 `host.rs:1635`,`*/` 在 `host.rs:1683`。**`mem_protect/*.rs` 里有好几段这样的注释块**(`guest.rs:1521` 是 `guest_get_valid_pte` 自己的另一份副本),所以在这些文件里 grep 到的行,引用前必须先验注释边界。
 
 **尚未直接观测:** 没有在 EL2 侧盯着 `guest_get_valid_pte()` 把这个 `-E2BIG` 返回出来。A/B 只改变了粒度这一个变量,而粒度检查是该路径上唯一的 `-E2BIG` 来源;但用 EL2 覆盖率对两个变体取差集、显示只在失败侧执行的那一行,才算把最后一步钉死。
 

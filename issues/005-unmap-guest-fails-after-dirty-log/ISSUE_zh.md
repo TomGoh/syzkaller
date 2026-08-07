@@ -10,6 +10,35 @@ English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 
 
 现在就立案而不是以后,正是因为这层依赖:**修好 003 之后,它会在每一次带脏页日志的销毁中出现**,看上去像是 003 补丁引入的回归。它不是 —— 它比那个补丁更老,只是被它遮住了。
 
+---
+
+## 背景知识
+
+### pKVM 的页面归属状态
+
+在 pKVM 架构下,每一页内存都有一个"归属状态",记录这页内存当前归谁管。这个状态存在 stage-2 页表项（PTE）的两个软件位里,和页面的访问权限装在同一个字（`prot`）中传递。状态有三种:
+
+- `PKVM_PAGE_OWNED`（0）:Host 自己拥有这页
+- `PKVM_PAGE_SHARED_OWNED`（1）:Host 把页共享给了 EL2,但所有权还在 Host 手里
+- `PKVM_PAGE_SHARED_BORROWED`（2）:客户机借用了这页,Host 不能随意处置它
+
+这些状态不是摆设——EL2 在执行 unshare（解除共享）等操作前会检查它。如果状态不对,EL2 会拒绝操作并返回 `-EPERM`。
+
+### `stage2_map()` vs `stage2_relax_perms()`:两种修改 PTE 的方式
+
+这两种函数都能改 stage-2 页表项,但行为完全不同:
+
+- **`kvm_pgtable_stage2_map()`**:从头**重建**一条 PTE。它会按传入的 `prot` 参数写入所有位——包括软件状态位。所以如果 `prot` 里不带状态信息,它会把状态写成 `PKVM_PAGE_OWNED`（0）,**覆盖掉**原有的状态标注。
+- **`kvm_pgtable_stage2_relax_perms()`**:对现有的 PTE 做**读改写**——只修改权限位（读/写/执行）,不碰软件状态位。原有状态原封不动。
+
+这个差别是本缺陷的核心:脏页日志处理函数用的是 `stage2_map()` 而不是 `relax_perms()`,而且传的是不带状态的裸 `prot`——于是它先把页的状态校验通过,然后立刻把这个状态标注覆盖掉了。
+
+### 脏页日志的写保护循环
+
+脏页日志的工作方式是一个循环:客户机写入被写保护的页 → 触发权限异常 → 内核标记该页为脏 → 恢复该页可写 → 客户机继续。但在 pKVM 下,"恢复可写"这一步要通过超级调用让 EL2 改 stage-2 PTE。本缺陷说的就是这个超级调用在恢复权限的同时,把页面的归属状态也写没了。状态一丢,后续所有依赖状态检查的操作（包括重新写保护、unmap 等）都会失败。
+
+---
+
 ## 症状
 
 ```
@@ -118,14 +147,16 @@ enum pkvm_page_state {
 #define PKVM_PAGE_STATE_PROT_MASK  (KVM_PGTABLE_PROT_SW0 | KVM_PGTABLE_PROT_SW1)
 ```
 
-所以一个不带状态的 prot 字**并不表示"维持原样"**,它会被解读成 `PKVM_PAGE_OWNED`。这就让写入客户机 PTE 的两种方式产生了决定性的差别:
+这三个状态表示一页内存在 Host 和客户机之间的关系:`OWNED` 表示 Host 自己拥有（客户机看不到）,`SHARED_OWNED` 表示 Host 把页共享给了 EL2 但所有权还在 Host,`SHARED_BORROWED` 表示客户机借用了这页（Host 不能随意处置它）。EL2 在执行 unshare 等操作前会检查这个状态——状态不对就拒绝。
+
+关键在于:状态和权限装在**同一个字**（`prot`）里。所以一个不带状态的 prot 字**并不表示"维持原样"**,它会被解读成 `PKVM_PAGE_OWNED`（因为 `OWNED` 的值是 0）。这就让写入客户机 PTE 的两种方式产生了决定性的差别:
 
 | | 对软件状态位的影响 |
 | --- | --- |
 | `kvm_pgtable_stage2_map(..., prot, ...)` | 按 `prot` **重建**一条全新 PTE —— 状态变成 `prot` 里携带的值 |
 | `kvm_pgtable_stage2_relax_perms(..., prot, ...)` | 对现有叶子做读改写 —— 状态**原封不动** |
 
-`relax_perms` 只会置 `S2AP_R`/`S2AP_W` 和清 `XN`(`pgtable.c:1617-1640`),碰不到软件位。而脏页日志处理函数用的是另一个,并且传的是**裸** prot:
+`relax_perms` 只会置 `S2AP_R`/`S2AP_W` 和清 `XN`（`pgtable.c:1617-1640`）,碰不到软件位。而脏页日志处理函数用的是另一个,并且传的是**裸** prot:
 
 ```rust
 	kvm_pgtable_stage2_map(&mut vm_ref.pgt, guest_addr, PAGE_SIZE as u64,
@@ -134,9 +165,11 @@ enum pkvm_page_state {
 			       ... stage2_mc ..., 0)
 ```
 
-于是一次成功的脏页日志,留下的是一条有效、全 RWX、而状态标注为 `PKVM_PAGE_OWNED` 的客户机 PTE —— 而就在两条语句之前,`check_unshare()` 刚刚验证过它是 `PKVM_PAGE_SHARED_BORROWED`。**这个处理函数先校验了那个标注,然后把它覆盖掉了。**
+`KVM_PGTABLE_PROT_RWX` 只包含读、写、执行三个权限位,不包含任何状态位——所以它解码出来的状态是 `PKVM_PAGE_OWNED`（0）。于是一次成功的脏页日志,留下的是一条有效、全 RWX、而状态标注为 `PKVM_PAGE_OWNED` 的客户机 PTE —— 而就在两条语句之前,`check_unshare()` 刚刚验证过它是 `PKVM_PAGE_SHARED_BORROWED`。**这个处理函数先校验了那个标注,然后把它覆盖掉了。**
 
-这是遗漏而非某种有意的约定,由同一个 crate 自己坐实:`guest_complete_share()` 写的是**完全相同**的 host→guest 共享映射,而它写对了 —— `let prot = pkvm_mkstate(perms, PKVM_PAGE_SHARED_BORROWED);`(`guest.rs:1116`)。`pkvm_mkstate()` 就在 `utils.rs:401`。
+打个比方:这就像保安检查了你的访客证件（`SHARED_BORROWED`）,然后发给你一张新门禁卡,但新卡上的身份字段是空白的（`OWNED`）——下次你再刷这张卡进同一个门,保安看到身份不对,就把你拦下了。
+
+这是遗漏而非某种有意的约定,由同一个 crate 自己坐实:`guest_complete_share()` 写的是**完全相同**的 host→guest 共享映射,而它写对了——`let prot = pkvm_mkstate(perms, PKVM_PAGE_SHARED_BORROWED);`（`guest.rs:1116`）。`pkvm_mkstate()` 就在 `utils.rs:401`,它先把 prot 里原有的状态字段清掉、再写入新状态（`prot & !MASK` 然后 `|= field_prep!(MASK, state)`)——对一个不带状态位的 prot 来说等价于"把状态填进去"。脏页日志处理函数漏调了这个。
 
 **这个机制明确指向站点 A**,并且预言了具体取值:`state == PKVM_PAGE_OWNED == 0`,而期望值是 `BIT(1)`,于是返回 `-EPERM` —— 正是实测到的那个码。它同时解释了为什么触发的不是**宿主侧**那个检查(站点 B):脏页日志处理函数只动客户机页表,宿主那份 `PKVM_PAGE_SHARED_OWNED` 记录仍然完好。
 
@@ -167,9 +200,15 @@ after round3:  A(page 16)=0   B(page 32)=1
 
 ### 更重的后果:脏页日志会静默丢写
 
-因为 `kvm_stage2_wp_range()` 是 `void`,上面那个 `-EPERM` 被丢弃 —— `kvm_arch_mmu_enable_log_dirty_pt_masked()` 根本没地方把它返回出去。于是该页保持可写。客户机的下一次写入不再缺页,`user_mem_abort()` 不会运行,`mark_page_dirty_in_slot()`(`mmu.c:2194`)也就永远不会被调用。
+上面说的是销毁时的告警,但真正严重的后果在销毁之前就已经发生了——只是它不报错、不告警,完全静默。
 
-实测 5/5:页 A 在脏页日志下的第二次写入**不出现在位图里**,而同一个程序对同一页的 round 2 写入是被正确记录的。这条失败从头到尾都是静默的 —— 用户态没有错误、`dmesg` 没有消息、`KVM_GET_DIRTY_LOG` 返回成功。
+事情是这样的。脏页日志的工作循环是:写保护 → 客户机写 → 缺页 → 标记脏 → 恢复可写 → 客户机继续。而 `KVM_GET_DIRTY_LOG` 在读取脏页位图后,会把自己报告为脏的页**重新写保护**,开始下一轮跟踪。这次重新写保护调用的正是 `__pkvm_host_wrprotect_guest()`,而它内部的 `__pkvm_wrprotect()`（`permissions.rs:400`）在改页表之前先调 `__check_host_unshare_guest_order()`（`permissions.rs:411`）——和站点 A 是同一族的状态检查。
+
+但那个页的状态已经在上一轮被脏页日志处理函数覆盖成 `PKVM_PAGE_OWNED` 了,所以这次重新写保护必然失败,返回 `-EPERM`。而这个错误被直接丢弃——因为 `kvm_stage2_wp_range()` 是 `void` 函数,`kvm_arch_mmu_enable_log_dirty_pt_masked()` 根本没地方把它返回出去。
+
+于是该页保持可写。客户机的下一次写入不再缺页（因为页表项已经是可写的了）,`user_mem_abort()` 不会运行,`mark_page_dirty_in_slot()`（`mmu.c:2194`）也就永远不会被调用。**这一页从此在脏页位图里消失——它不会再被标记为脏,即使客户机继续往它写。**
+
+实测 5/5:页 A 在脏页日志下的第二次写入**不出现在位图里**,而同一个程序对同一页的 round 2 写入是被正确记录的。这条失败从头到尾都是静默的——用户态没有错误、`dmesg` 没有消息、`KVM_GET_DIRTY_LOG` 返回成功。
 
 对热迁移或快照而言,这意味着拷走陈旧数据并返回成功。它是脏页日志本身的正确性缺陷,而不只是本问题立案时那点销毁期的不整洁。
 

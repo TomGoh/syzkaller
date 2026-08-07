@@ -4,6 +4,30 @@ English version: [ISSUE.md](ISSUE.md) — 该文件带 YAML front-matter,是 tra
 
 本项目迄今出现最频繁的一类签名:2026-07-31 二十分钟内 N90 上 257 次、D3000 上 278 次;2026-08-05 那轮 census 的最后 3.5 分钟里 270 次。它只是一条告警,不是崩溃 —— 机器毫发无损。它的分量在于:告警所报告的那个操作**不是失败了,而是根本没有发生**,而调用方是脏页日志的写保护路径。
 
+---
+
+## 背景知识
+
+### TLB 是什么,为什么改了页表要刷它
+
+CPU 在翻译虚拟地址到物理地址时,不会每次都走完整的页表——那太慢了。它把最近用过的翻译结果缓存在一个叫 TLB（Translation Lookaside Buffer）的硬件结构里，下次直接查 TLB 就行。
+
+问题在于：当你修改了页表项（比如把一个页面从"可写"改成"只读"），TLB 里可能还缓存着旧的"可写"映射。如果不清掉这些旧缓存，CPU 还会按旧的权限放行访问——你的修改就形同虚设了。所以每次修改页表权限后，必须做一次 TLB 失效（invalidate），确保 CPU 用的是新的页表项。
+
+### 范围刷新 vs 全量刷新
+
+ARM v8.4 引入了 `FEAT_TLBIRANGE`（`ID_AA64ISAR0_EL1.TLB == 0b0010`，内核里是 `ARM64_HAS_TLB_RANGE`），允许只失效一个地址范围的 TLB 表项，而不是整个 VMID 的全部——显然更高效，尤其是只改了一个 memslot 的时候。内核根据硬件能力选择走哪条路：有 TLBIRANGE 的走 `__kvm_tlb_flush_vmid_range`（超级调用 id 11），没有的退化到 `__kvm_tlb_flush_vmid`（id 10），后者刷新整个 VMID。飞腾 D3000 和长城 N90 都没有 TLBIRANGE，所以走 id 10。
+
+### pKVM 的超级调用门槛
+
+在 pKVM 架构下，Host 内核不能直接操作 TLB——这是 EL2 的活。Host 必须通过 HVC（Hypercall）请求 EL2 代劳。但 EL2 不是什么超级调用都接：它在保护模式初始化完成后（`__pkvm_prot_finalize`），会把允许的超级调用 id 下限（`hcall_min`）抬高到一个特定值。低于这个门槛的 id，EL2 在**任何 handler 运行之前**就直接返回 `SMCCC_RET_NOT_SUPPORTED`（-1），连执行的机会都不给。
+
+### 脏页日志的写保护路径
+
+脏页日志是 KVM 热迁移和快照的基础机制。当 VMM 对一个 memslot 开启 `KVM_MEM_LOG_DIRTY_PAGES` 时，KVM 要把该 memslot 的所有 stage-2 页表项改成只读（写保护），这样客户机写入时会触发异常，内核就能把这个页标记为"脏"。改完页表权限后，TLB 刷新是必须的一步——否则客户机还能通过旧的 TLB 表项继续写，这些写不会进 dirty bitmap。本缺陷说的就是这一步 TLB 刷新在 pKVM 下从未执行过。
+
+---
+
 ## 症状
 
 ```
@@ -38,11 +62,17 @@ Call trace:
 
 **置信度:已确证。** "EL2 是**拒收**而不是**执行失败**"这个判断,依据的是实测到的寄存器值,不是对派发器的代码阅读。
 
-**哪个寄存器装着状态码。** 函数起点 `ffff8000800bbc20`,告警报的 `+0x74` 即 `ffff8000800bbc94`,反汇编显示那正是 `cbz x19` 之后紧跟的 `brk`。`hvc` 前两条指令 `mov x0, #0xa` 选定 hypercall id 10;`hvc` 之后紧接着 `mov x19, x0` 取回状态码。所以告警处的 `x19` 就是 `res.a0`(`evidence/2026-08-05-warn-site-disasm-and-ids.txt`)。
+### 从告警地址反推到寄存器
 
-**这个寄存器里是什么。** 2026-08-05 census 的每一条该告警中,`x19` 都是 `0xffffffffffffffff`,**270 次中 270 次**,零方差(`evidence/2026-08-05-res-a0-distribution.txt`)。`SMCCC_RET_NOT_SUPPORTED = -1`,`SMCCC_RET_SUCCESS = 0`(`include/linux/arm-smccc.h:339-340`)。随后在下一个内核上做的定向复现得到同样的值,而且告警与反汇编取自**同一个二进制**。
+告警里的偏移 `+0x74` 不是随机的。把函数起点 `ffff8000800bbc20` 加上 `0x74`,得到 `ffff8000800bbc94`——反汇编显示那正是 `cbz x19` 之后紧跟的 `brk` 指令。再往前看,`hvc`（超级调用）之前两条指令是 `mov x0, #0xa`——选定 hypercall id 10;`hvc` 之后紧接着 `mov x19, x0`——把 EL2 返回的状态码取回到 `x19`。所以告警触发时 `x19` 寄存器里装的就是 EL2 的返回值 `res.a0`（`evidence/2026-08-05-warn-site-disasm-and-ids.txt`）。
 
-**为什么 `-1` 唯一地指向拒收路径。** Rust 派发器(`hyp_main.rs:1707-1765`)在保护模式初始化完成后把 `hcall_min` 抬到 `__pkvm_prot_finalize`:
+### 这个寄存器里到底是什么
+
+2026-08-05 census 的每一条该告警中,`x19` 都是 `0xffffffffffffffff`,**270 次中 270 次**,零方差（`evidence/2026-08-05-res-a0-distribution.txt`）。`SMCCC_RET_NOT_SUPPORTED = -1`（即 `0xffffffffffffffff`）,`SMCCC_RET_SUCCESS = 0`（`include/linux/arm-smccc.h:339-340`）。随后在下一个内核上做的定向复现得到同样的值,而且告警与反汇编取自**同一个二进制**。
+
+### 为什么 `-1` 唯一地指向拒收路径
+
+这是关键的推理步骤。Rust 派发器（`hyp_main.rs:1707-1765`）在保护模式初始化完成后,把 `hcall_min` 抬到 `__pkvm_prot_finalize`:
 
 ```rust
 if unlikely(id < hcall_min || (id as usize) >= HOST_HCALL.len()) {
@@ -55,11 +85,15 @@ if let Some(hfn) = HOST_HCALL[id as usize] {
 }
 ```
 
-成功路径是**先写 SUCCESS 再调 handler**,所以任何 handler 都不可能留下 `-1`。`-1` 只能来自 `:1751`。
+注意成功路径的设计:**先写 SUCCESS 再调 handler**。这意味着任何 handler,无论它内部做什么,都不可能让返回值停留在 `-1`——因为派发器在调它之前就已经把 `a0` 写成了 0。所以 `-1` 只能来自 `:1751` 那条拒收路径,不可能来自任何 handler 的执行失败。
 
-**id 也对得上。** 取自 EL2 crate 实际编译所依据的 bindgen 输出,本 config 下:`__kvm_tlb_flush_vmid` = **10**,`__pkvm_prot_finalize` = **18**,`__pkvm_tlb_flush_vmid` = **39**。发出的 id(10,从反汇编读出)低于 `hcall_min`(18),而基于 handle 的刷新(39)高于它。手数枚举会得到不同数字 —— 里面有条件编译项 —— 所以以生成的常量为准。
+### id 也对得上
 
-**因此 TLB 失效从未执行。** 不是"失败":EL2 在派发之前就拒收了这个 id,没有任何 handler 运行过。
+取自 EL2 crate 实际编译所依据的 bindgen 输出,本 config 下:`__kvm_tlb_flush_vmid` = **10**,`__pkvm_prot_finalize` = **18**,`__pkvm_tlb_flush_vmid` = **39**。发出的 id（10,从反汇编读出）低于 `hcall_min`（18）,而基于 handle 的刷新（39）高于它。手数枚举会得到不同数字——里面有条件编译项——所以以生成的常量为准。
+
+### 结论
+
+**TLB 失效从未执行。** 不是"执行了但失败":EL2 在派发之前就拒收了这个 id,没有任何 handler 运行过。Host 发出了一个 EL2 不再接受的超级调用,EL2 直接回绝,Host 收到 `-1` 后告警,但告警之后什么也没做——没有重试,没有退化到全量刷新。
 
 ## 触发条件
 
@@ -81,13 +115,23 @@ aarch64-linux-gnu-gcc -O2 -static -o repro-tlbflush repro/repro-tlbflush-warn.c
 
 ## 影响面
 
-告警本身是噪音,它所报告的事情不是。
+告警本身只是噪音——真正的问题在于它所报告的那个操作从未发生。
 
-调用方是脏页日志的写保护路径,而 EL2 的 `__pkvm_wrprotect` **按设计不做 TLB 失效**,它依赖这次刷新。刷新被拒之后,客户机可以继续通过残留的可写 stage-2 TLB 表项写入,而这些写**不会**被记入 dirty bitmap —— 对迁移或快照而言是静默的数据丢失。**这一层后果是从源码推导的,尚未在本树上实测证明**;已实测的部分是"失效没有执行"。
+### 对脏页日志的后果
 
-而且没有任何东西会暴露这次失败:`kvm_arch_flush_remote_tlbs_range()` 无条件 `return 0`,把通用层"失败就退化为全量 flush"的兜底也一并关掉了。而它本该退化过去的那条全量路径 `kvm_arch_flush_remote_tlbs()` **是有** pKVM 分支的,本来会成功。
+调用方是脏页日志的写保护路径。正常流程是:Host 通过超级调用让 EL2 把 stage-2 页表项改成只读,然后刷 TLB 让写保护对客户机生效。但 EL2 的 `__pkvm_wrprotect` **按设计不做 TLB 失效**——它只改页表项,把 TLB 刷新留给调用方。这本来是合理的分工:改页表和刷 TLB 分开做,避免重复。
 
-对测试本身的代价是吞吐与盲区:该签名在管理器编译期的 ignore 列表里,于是一轮测试会在 `dmesg` 里堆出几百条,而报告显示一切正常。
+问题是,现在调用方的那次 TLB 刷新被 EL2 拒收了。刷新没了,但页表项确实改成了只读——只是 CPU 的 TLB 里可能还缓存着旧的可写映射。客户机的下一次写入如果命中了这条旧缓存,就直接成功了,不会触发权限异常,内核也就不会把这个页标记为"脏"。**这些写不会进 dirty bitmap——对迁移或快照而言是静默的数据丢失。**
+
+需要强调的是:**这一层后果是从源码推导的,尚未在本树上实测证明。** 已实测的部分是"TLB 失效没有执行";至于客户机是否真的能通过旧 TLB 表项写入,取决于硬件时序（旧表项何时被自然换出）,不是必然发生的。
+
+### 失败被彻底隐藏
+
+更麻烦的是,没有任何东西会暴露这次失败。`kvm_arch_flush_remote_tlbs_range()` 无条件 `return 0`——它不检查 EL2 的返回值,直接报告成功。这把通用层"TLB 刷新失败就退化为全量 flush"的兜底也关掉了。而它本该退化过去的那条全量路径 `kvm_arch_flush_remote_tlbs()` **是有** pKVM 分支的,本来会成功——这两个兄弟函数的不对称是问题的另一面:全量刷新知道要走 pKVM 路径,范围刷新却不知道。
+
+### 对测试本身的代价
+
+该签名在管理器编译期的 ignore 列表里,于是一轮测试会在 `dmesg` 里堆出几百条告警,而报告显示一切正常。这意味着如果真的出了别的 TLB 相关问题,也会被淹没在这些噪音里。
 
 ## 修复状态
 
