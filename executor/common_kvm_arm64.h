@@ -1005,6 +1005,29 @@ static long syz_kvm_assert_reg(volatile long a0, volatile long a1, volatile long
 #define MOVZ_IMM(rd, imm16, sh) (0xD2800000u | ((uint32)(sh) << 21) | (((uint32)(imm16) & 0xffff) << 5) | (rd))
 #define STR_X_REG(rt, rn) (0xF9000000u | ((uint32)(rn) << 5) | (rt))
 
+// One guest round: run, then RE-ENTER once so the MMIO exit is completed.
+//
+// Completing an MMIO exit is what sets INCREMENT_PC (kvm_handle_mmio_return,
+// arch/arm64/kvm/mmio.c:146); the pending increment is applied by the
+// __kvm_adjust_pc HYPERCALL on the next entry.  Exiting on MMIO and never
+// coming back -- what the standalone reproducers do, since they only care that
+// the store landed -- leaves id 26 unreached.
+//
+// Relies on each round ending in two consecutive MMIO stores (see the guest
+// code below): the re-entry completes the first and exits immediately on the
+// second, so it cannot eat into the next round.
+static int dlc_run(int vcpu, volatile struct kvm_run* run)
+{
+	if (ioctl(vcpu, KVM_RUN, 0) != 0)
+		return -1;
+	if (run->exit_reason != KVM_EXIT_MMIO)
+		return -1;
+	// A write-side MMIO exit needs no data filled in; re-entering IS the completion.
+	if (ioctl(vcpu, KVM_RUN, 0) != 0)
+		return -1;
+	return 0;
+}
+
 static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 {
 #define DLC_GPA 0x40000000UL
@@ -1040,17 +1063,28 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 	*code++ = MOVZ_IMM(0, 0x4001, 1); // x0 = page A  (0x40010000)
 	*code++ = MOVZ_IMM(3, 0x4002, 1); // x3 = page B  (0x40020000)
 	*code++ = MOVZ_IMM(2, 0x5000, 1); // x2 = MMIO    (0x50000000), outside the slot
+	// Each round ends in TWO consecutive stores to the unbacked GPA, not one.
+	// dlc_run() re-enters after an MMIO exit so that __kvm_adjust_pc runs, and
+	// the re-entry ADVANCES THE GUEST -- with a single terminator it would run
+	// straight into the next round's instructions and shift the whole four-step
+	// sequence by one, which is exactly how the first attempt at this silently
+	// destroyed the dirty-log coverage it exists to produce. With two, the
+	// re-entry completes the first store and immediately exits on the second,
+	// so each dlc_run() advances exactly one round.
 	*code++ = MOVZ_IMM(1, 1, 0); // round 1: fault both pages in
 	*code++ = STR_X_REG(1, 0);
 	*code++ = STR_X_REG(1, 3);
 	*code++ = STR_X_REG(1, 2);
+	*code++ = STR_X_REG(1, 2); // round 1 second terminator
 	*code++ = MOVZ_IMM(1, 2, 0); // round 2: A only, now write-protected
 	*code++ = STR_X_REG(1, 0);
 	*code++ = STR_X_REG(1, 2);
+	*code++ = STR_X_REG(1, 2); // round 2 second terminator
 	*code++ = MOVZ_IMM(1, 3, 0); // round 3: A then B
 	*code++ = STR_X_REG(1, 0);
 	*code++ = STR_X_REG(1, 3);
 	*code++ = STR_X_REG(1, 2);
+	*code++ = STR_X_REG(1, 2); // round 3 second terminator
 	*code++ = STR_X_REG(1, 2); // tail: any overrun exits, never spins
 	*code++ = STR_X_REG(1, 2);
 
@@ -1087,7 +1121,7 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 
 	// Round 1: both pages faulted in. No dirty logging yet, so this only builds
 	// the stage-2 mapping that step 2 will write-protect.
-	if (ioctl(vcpu, KVM_RUN, 0) != 0 || run->exit_reason != KVM_EXIT_MMIO)
+	if (dlc_run(vcpu, run) != 0)
 		goto out;
 
 	// Step 2: turn dirty logging on for the same slot -> write-protects it.
@@ -1098,7 +1132,7 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 	// Round 2: the store to A takes a permission fault, and THAT is the call
 	// under test -- pkvm_relax_perms() -> __pkvm_host_dirty_log_guest.
 	errno = 0;
-	ret = ioctl(vcpu, KVM_RUN, 0);
+	ret = dlc_run(vcpu, run);
 	saved = errno;
 	if (ret != 0)
 		goto out; // -E2BIG here is issue 003; report it rather than hiding it
@@ -1113,7 +1147,7 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 		goto out;
 
 	// Round 3 + a second collection: exercises the re-protected page again.
-	if (ioctl(vcpu, KVM_RUN, 0) == 0 && run->exit_reason == KVM_EXIT_MMIO) {
+	if (dlc_run(vcpu, run) == 0) {
 		memset(bm, 0, sizeof(bm));
 		memset(&dl, 0, sizeof(dl));
 		dl.slot = 0;
