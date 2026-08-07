@@ -1005,6 +1005,30 @@ static long syz_kvm_assert_reg(volatile long a0, volatile long a1, volatile long
 #define MOVZ_IMM(rd, imm16, sh) (0xD2800000u | ((uint32)(sh) << 21) | (((uint32)(imm16) & 0xffff) << 5) | (rd))
 #define STR_X_REG(rt, rn) (0xF9000000u | ((uint32)(rn) << 5) | (rt))
 
+// One guest round: run, and if it exited on MMIO, RE-ENTER once to complete it.
+//
+// The re-entry is what a real VMM does, and it is not cosmetic: completing an
+// MMIO exit is what sets INCREMENT_PC (kvm_handle_mmio_return, mmio.c:146), and
+// the pending increment is applied by the __kvm_adjust_pc HYPERCALL on the next
+// entry.  Exiting on MMIO and never coming back -- which the standalone
+// reproducers do, because they only care about the store landing -- leaves that
+// hypercall unreached.  It is id 26, and it was the one handler a full campaign
+// reached that this composite did not.
+//
+// Bounded at two entries: the guest's next instruction after each MMIO store is
+// either another store or the MMIO tail, so a second exit is expected and a
+// third entry would buy nothing.
+static int dlc_run(int vcpu, volatile struct kvm_run* run)
+{
+	if (ioctl(vcpu, KVM_RUN, 0) != 0)
+		return -1;
+	if (run->exit_reason != KVM_EXIT_MMIO)
+		return -1;
+	// A write-side MMIO exit needs no data filled in; re-entering IS the completion.
+	ioctl(vcpu, KVM_RUN, 0);
+	return 0;
+}
+
 static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 {
 #define DLC_GPA 0x40000000UL
@@ -1087,7 +1111,7 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 
 	// Round 1: both pages faulted in. No dirty logging yet, so this only builds
 	// the stage-2 mapping that step 2 will write-protect.
-	if (ioctl(vcpu, KVM_RUN, 0) != 0 || run->exit_reason != KVM_EXIT_MMIO)
+	if (dlc_run(vcpu, run) != 0)
 		goto out;
 
 	// Step 2: turn dirty logging on for the same slot -> write-protects it.
@@ -1098,7 +1122,7 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 	// Round 2: the store to A takes a permission fault, and THAT is the call
 	// under test -- pkvm_relax_perms() -> __pkvm_host_dirty_log_guest.
 	errno = 0;
-	ret = ioctl(vcpu, KVM_RUN, 0);
+	ret = dlc_run(vcpu, run);
 	saved = errno;
 	if (ret != 0)
 		goto out; // -E2BIG here is issue 003; report it rather than hiding it
@@ -1113,7 +1137,7 @@ static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
 		goto out;
 
 	// Round 3 + a second collection: exercises the re-protected page again.
-	if (ioctl(vcpu, KVM_RUN, 0) == 0 && run->exit_reason == KVM_EXIT_MMIO) {
+	if (dlc_run(vcpu, run) == 0) {
 		memset(bm, 0, sizeof(bm));
 		memset(&dl, 0, sizeof(dl));
 		dl.slot = 0;
