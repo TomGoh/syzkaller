@@ -1,0 +1,12 @@
+# Nothing compiled is ever tracked. OUTDIR defaults to a fresh mktemp -d, but
+# these cover the case where someone points it at ./out or builds in place.
+# The tracker's repro/ directories hold .c files only; this matches that.
+out/
+*.o
+*.build.log
+repro-deadlock
+repro-tlbflush
+verify-dirtylog
+probe-dirtylog-thp
+probe-dirtylog-twice
+probe-mpstate

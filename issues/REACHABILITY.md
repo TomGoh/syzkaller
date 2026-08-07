@@ -1,8 +1,8 @@
-# Reachability — which guests can actually reach these five defects
+# Reachability — which guests can actually reach these defects
 
 > Line numbers are on **klinux `@a35f0a8c899e`** (working tree clean at the time of writing). They drift; the issue documents cite `#4` and differ by a few lines. Read with `git show a35f0a8c899e:<path>`.
 
-All five filed issues live in **one** code path: an **ordinary (non-protected) guest running on a host booted `kvm-arm.mode=protected`**. None of them is reachable by a protected VM. This is worth stating in one place because it is easy to read the issue list as "pKVM is full of holes" when the accurate reading is narrower and, in one respect, worse.
+**Issues 001–005** live in **one** code path: an **ordinary (non-protected) guest running on a host booted `kvm-arm.mode=protected`**. None of the five is reachable by a protected VM. **Issue 006 is different in every respect and is treated separately at the end — read that section before using this document to set priorities, because 006 is the most broadly reachable defect in the tracker.** This is worth stating in one place because it is easy to read the issue list as "pKVM is full of holes" when the accurate reading is narrower and, in one respect, worse.
 
 ## The two gates
 
@@ -49,6 +49,7 @@ Neither gate is an oversight. The whole point of a protected VM is that the host
 | **003** `-E2BIG` on huge pages | **no** — gate 2 | yes | THP-backed guest memory (the default) |
 | **004** donation accounting | **no** — gate 2 | yes | — |
 | **005** page-state wipe | **no** — gates 1 and 2 | yes | the dirty-log call must *succeed* |
+| **006** EL2 pin leak | **not gated — see below** | **no** | `KVM_SET_MP_STATE(SUSPENDED)` before the first `KVM_RUN` |
 
 ## The part that inverts the obvious conclusion
 
@@ -75,4 +76,26 @@ The 2026-08-06 campaign ([2026-08-06-n90-full-surface](runs/2026-08-06-n90-full-
 
 ## What would change this document
 
+The 001–005 priority ordering still depends on the workload-mix question below. **006 does not** — nothing about the workload mix changes its reachability.
+
 The priority ordering above depends on one fact this project does not currently have: **what the product's real workload mix is.** A machine that only ever runs protected VMs, with nothing else touching `/dev/kvm`, has four dormant issues and one live one. A machine that mixes ordinary and protected guests, or that migrates ordinary guests, has five live ones. Worth establishing before this is used to set fix priorities.
+
+## Issue 006 sits outside everything above
+
+Added 2026-08-07. The two gates that keep protected VMs away from 001–005 are both in the **stage-2 / dirty-logging** paths. Issue 006 is in **vCPU initialisation**, which neither gate touches, so nothing in the analysis above applies to it.
+
+What 006 actually needs:
+
+- a host booted `kvm-arm.mode=protected` — same as everything else here;
+- `/dev/kvm`;
+- `KVM_SET_MP_STATE(KVM_MP_STATE_SUSPENDED)` on a vCPU before its first `KVM_RUN`.
+
+That is the entire list. **No dirty logging. No migration or snapshot workload. No particular silicon** — unlike 001, which additionally needs a CPU without `ARM64_HAS_STAGE2_FWB`.
+
+**Protected VMs are not excluded.** `pkvm_create_hyp_vm()` runs under `is_protected_kvm_enabled()` for protected *and* ordinary guests alike, and both reach the same `init_pkvm_hyp_vcpu()`. The hardware reproduction used an ordinary VM, so **the protected case is code-read only and has not been demonstrated** — but there is no gate in that path resembling gates 1 and 2, and `kvm_arch_vcpu_ioctl_set_mpstate()` carries no protected-VM branch. Treat "protected VMs are also affected" as the working assumption to disprove, not the other way round.
+
+This inverts the conclusion the rest of this document supports. For 001–005, "we mainly run protected VMs" is a genuine mitigation for four of them and no mitigation at all for 001. For 006 it is **no mitigation for anything**: the defect needs neither an ordinary guest nor a dirty-logging workload, and any local process that can open `/dev/kvm` reaches it by calling one ordinary ioctl.
+
+Severity does not stop at the WARN. The leaked refcount is on **physical pages**, which return to the slab; a later vCPU landing on one cannot be shared to hyp at all, so `KVM_CREATE_VCPU` itself starts failing, and nothing recovers those pages short of a reboot. That is unprivileged-reachable resource exhaustion that accumulates for the life of the boot.
+
+It is fixed (`klinux 8bdbd1873442`, verified on `#18`). Recorded here anyway, because this document exists to answer "who can reach what", and a reader who stops at the table above would carry away exactly the wrong model for 006.
