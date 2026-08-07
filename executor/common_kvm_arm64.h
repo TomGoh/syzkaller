@@ -1171,4 +1171,167 @@ out:
 }
 #endif
 
+#if SYZ_EXECUTOR || __NR_syz_kvm_run_protected_guest
+// A PROTECTED VM that actually runs a guest, so that its teardown reaches
+// __pkvm_reclaim_dying_guest_page (hypercall id 35). Nothing else in this file
+// gets there, and the reason is a single branch in the host:
+//
+//   kvm_destroy_vm() runs kvm_flush_shadow_all() BEFORE kvm_arch_destroy_vm()
+//   (virt/kvm/kvm_main.c:1343,1345). That reaches __unmap_stage2_range(), which
+//   opens with
+//        if (is_protected_kvm_enabled() && kvm->arch.pkvm.enabled) return;
+//   -- so for a PROTECTED VM the guest's pinned pages survive into
+//   __pkvm_destroy_hyp_vm(), whose loop then fires the reclaim hypercall once
+//   per pinned page. For an ORDINARY VM the early return does not apply,
+//   pkvm_unmap_range() drains every pinned page through __pkvm_host_unmap_guest,
+//   and the reclaim loop later executes ZERO iterations.
+//
+// Measured on N90 with a differential probe -- same program, only the
+// KVM_CREATE_VM type differs -- and the two handlers swap exactly as the code
+// says they must:
+//   protected only : handle___pkvm_reclaim_dying_guest_page
+//   ordinary only  : handle___pkvm_host_unmap_guest
+// So this composite ADDS a path rather than replacing one; the ordinary-VM
+// composites still own the unmap side.
+//
+// Why the existing protected-VM composites do not cover this: syz_kvm_run_fw_fault
+// and syz_kvm_run_fw_fault_gen both stop at their INFO gate (firmware_size == 0)
+// on any board without a pvmfw reservation -- N90 prints "PVMFW: Invalid or
+// missing reg property in /chosen/pvmfw" -- so they never create a vCPU at all.
+// No pvmfw is needed here: with pvmfw_load_addr left invalid, EL2's
+// pkvm_vcpu_init_psci() takes the reset PC/X0 straight from the host vCPU
+// registers (arch/arm64/kvm/hyp/nvhe/pkvm.c, the else branch), so a plain
+// KVM_SET_ONE_REG(pc) is enough to boot the guest.
+//
+// a0 = fd_kvm, caller-owned and NEVER closed here.
+// a1 = hp_mode: 0 asks for MADV_NOHUGEPAGE so the guest pins four separate 4 KiB
+//      pages and the reclaim loop iterates four times at order 0; 1 leaves the
+//      mapping THP-eligible so the first fault may block-map the whole 2 MiB into
+//      ONE pinned page at order 9, exercising the multi-page reclaim instead.
+//      Both are non-hanging.
+//
+// NOTE: the pages this guest faults in are donated to EL2 and only come back
+// through the reclaim loop under test. If that loop ever fails to return them,
+// the loss is permanent for the host -- watch MemAvailable alongside the WARN in
+// __pkvm_destroy_hyp_vm when this composite is enabled.
+//
+// Success is STRICTLY ret == 0 && KVM_EXIT_MMIO. errno is preserved across teardown.
+#ifndef MOVZ_IMM
+#define MOVZ_IMM(rd, imm16, sh) (0xD2800000u | ((uint32)(sh) << 21) | (((uint32)(imm16) & 0xffff) << 5) | (rd))
+#define STR_X_REG(rt, rn) (0xF9000000u | ((uint32)(rn) << 5) | (rt))
+#endif
+// STR (immediate, unsigned offset), 64-bit: the offset is scaled by 8.
+#define STR_X_OFF(rt, rn, off) (0xF9000000u | (((((uint32)(off)) >> 3) & 0xfffu) << 10) | ((uint32)(rn) << 5) | (rt))
+
+static long syz_kvm_run_protected_guest(volatile long a0, volatile long a1)
+{
+#define RPG_GPA 0x40000000UL
+#define RPG_SIZE 0x200000UL // 2 MiB, so hp_mode=1 can actually block-map
+#define RPG_MMIO 0x50000000UL // deliberately outside every memslot
+	struct kvm_userspace_memory_region region;
+	struct kvm_vcpu_init init;
+	struct kvm_one_reg reg;
+	uint64 pc = RPG_GPA;
+	volatile struct kvm_run* run = (volatile struct kvm_run*)MAP_FAILED;
+	int vm = -1, vcpu = -1, msz = 0;
+	long ret = -1;
+	int saved = EINVAL;
+	uint32* code;
+	void* mem = MAP_FAILED;
+
+	// Bit 31 is KVM_VM_TYPE_ARM_PROTECTED; the IPA-size bits stay 0 (default width).
+	vm = ioctl(a0, KVM_CREATE_VM, 0x80000000);
+	if (vm < 0)
+		return -1;
+	mem = mmap(NULL, RPG_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	if (mem == MAP_FAILED)
+		goto out;
+	if (!(a1 & 1)) // hp_mode 0: keep it 4 KiB-backed so each page pins separately
+		madvise(mem, RPG_SIZE, MADV_NOHUGEPAGE);
+
+	// Guest: touch three more pages of the slot, then store to an unbacked GPA so
+	// KVM_RUN returns via KVM_EXIT_MMIO. Reaching the first instruction already
+	// costs one stage-2 fault, so hp_mode=0 leaves FOUR pinned pages behind --
+	// enough for the reclaim loop to iterate and hit its cond_resched(). The tail
+	// repeats the MMIO store: under a fuzzer any extra KVM_RUN must still exit
+	// promptly, and a spinning guest is exactly the failure that once pinned this
+	// project's coverage at 0.
+	code = (uint32*)mem;
+	*code++ = MOVZ_IMM(0, 0x4000, 1); // x0 = slot base   (0x40000000)
+	*code++ = MOVZ_IMM(2, 0x5000, 1); // x2 = MMIO target (0x50000000)
+	*code++ = MOVZ_IMM(1, 0x5a5a, 0); // x1 = payload
+	*code++ = STR_X_OFF(1, 0, 0x1000); // fault page 1 in
+	*code++ = STR_X_OFF(1, 0, 0x2000); // fault page 2 in
+	*code++ = STR_X_OFF(1, 0, 0x3000); // fault page 3 in
+	*code++ = STR_X_REG(1, 2); // MMIO exit
+	*code++ = STR_X_REG(1, 2); // tail: any overrun exits, never spins
+	*code++ = STR_X_REG(1, 2);
+
+	// flags=0: a protected VM rejects both READONLY and LOG_DIRTY_PAGES.
+	memset(&region, 0, sizeof(region));
+	region.slot = 0;
+	region.guest_phys_addr = RPG_GPA;
+	region.memory_size = RPG_SIZE;
+	region.userspace_addr = (uint64)(uintptr_t)mem;
+	if (ioctl(vm, KVM_SET_USER_MEMORY_REGION, &region) != 0)
+		goto out;
+
+	vcpu = ioctl(vm, KVM_CREATE_VCPU, 0);
+	if (vcpu < 0)
+		goto out;
+	// PMU-free vCPU (GENERIC_V8, no features) avoids the arch_timer/PMU_V3 WARN.
+	memset(&init, 0, sizeof(init));
+	init.target = 5; // KVM_ARM_TARGET_GENERIC_V8
+	if (ioctl(vcpu, KVM_ARM_VCPU_INIT, &init) != 0)
+		goto out;
+
+	// PC must be set BEFORE the first KVM_RUN: that run is where
+	// pkvm_create_hyp_vm() donates the vCPU to EL2 (arch/arm64/kvm/arm.c), and
+	// EL2 samples the host vCPU's PC exactly once, at __pkvm_init_vcpu time.
+	memset(&reg, 0, sizeof(reg));
+	reg.id = KVM_REG_ARM64 | KVM_REG_SIZE_U64 | KVM_REG_ARM_CORE | (offsetof(struct kvm_regs, regs.pc) / sizeof(uint32));
+	reg.addr = (uint64)(uintptr_t)&pc;
+	if (ioctl(vcpu, KVM_SET_ONE_REG, &reg) != 0)
+		goto out;
+
+	msz = ioctl(a0, KVM_GET_VCPU_MMAP_SIZE, 0);
+	if (msz <= 0)
+		goto out;
+	run = (volatile struct kvm_run*)mmap(NULL, msz, PROT_READ | PROT_WRITE, MAP_SHARED, vcpu, 0);
+	if (run == MAP_FAILED)
+		goto out;
+
+	run->immediate_exit = 0;
+	errno = 0;
+	if (ioctl(vcpu, KVM_RUN, 0) != 0) {
+		saved = errno;
+		goto out;
+	}
+	if (run->exit_reason != KVM_EXIT_MMIO) {
+		saved = EIO;
+		goto out;
+	}
+	ret = 0;
+	saved = 0;
+
+out:
+	// Closing the fds is not cleanup here, it IS the call under test: the last
+	// fput of the vm fd runs kvm_destroy_vm() -> __pkvm_destroy_hyp_vm() in this
+	// task's context, which is where the reclaim hypercall is issued.
+	if (run != MAP_FAILED && msz > 0)
+		munmap((void*)run, msz);
+	if (vcpu >= 0)
+		close(vcpu);
+	if (vm >= 0)
+		close(vm);
+	if (mem != MAP_FAILED)
+		munmap(mem, RPG_SIZE);
+	errno = saved;
+	return ret;
+#undef RPG_GPA
+#undef RPG_SIZE
+#undef RPG_MMIO
+}
+#endif
+
 #endif // EXECUTOR_COMMON_KVM_ARM64_H
