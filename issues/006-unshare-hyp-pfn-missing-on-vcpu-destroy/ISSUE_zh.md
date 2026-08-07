@@ -1,4 +1,4 @@
-# 006 —— 被挂起的 vCPU 泄漏 EL2 引脚,而且泄漏是永久的
+# 006 —— 被挂起的 vCPU 泄漏 EL2 固定引用,而且泄漏是永久的
 
 English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 tracker 的权威记录;本文是等价中文版,不含 front-matter。
 
@@ -12,19 +12,23 @@ English version: [ISSUE.md](ISSUE.md) —— 该文件带 YAML front-matter,是 
 
 ## 背景知识
 
-### pKVM 中的"引脚"(pin)是什么
+### pKVM 中的"固定"(pin)是什么
 
-在 pKVM 架构下,EL2(管理程序)和宿主内核(EL1)是两个独立的特权级。EL2 不能随意访问宿主的内存——宿主必须显式地把一块内存"共享"(share)给 EL2,EL2 才能读写它。这个共享操作在 EL2 侧维护着一个**引用计数**:每次 `hyp_pin_shared_mem()` 把一块内存固定给 EL2,计数加一;每次 `hyp_unpin_shared_mem()` 解除固定,计数减一。计数归零时,EL2 才真正释放对这块内存的访问权。
+在 pKVM 架构下,EL2(管理程序)和宿主内核(EL1)是两个独立的特权级。EL2 不能随意访问宿主的内存——宿主必须显式地把一块内存"共享"(share)给 EL2,EL2 才能读写它。这个共享操作在 EL2 侧维护着一个**引用计数**:每次 `hyp_pin_shared_mem()` 把一块内存**固定**给 EL2,计数加一;每次 `hyp_unpin_shared_mem()` 解除固定,计数减一。计数归零时,EL2 才真正释放对这块内存的访问权。
 
-这与宿主侧的 `kvm_share_hyp()` / `kvm_unshare_hyp()` 是**两套独立的机制**:宿主侧用一棵红黑树(`hyp_shared_pfns`)跟踪哪些物理页共享给了 EL2,EL2 侧用页面所有权状态跟踪同一件事。两边必须配对——如果 EL2 侧的引脚没解除,宿主侧的 unshare 就会被 EL2 拒绝。
+注意这个"固定"拦住的是什么:它**不碰 Linux 的内存管理**,不阻止回收也不阻止换出(`hyp_pin_shared_mem()` 全部的动作就是两次页状态校验加一次 `hyp_page_ref_inc()`)。它拦住的是**归属转移**——EL2 侧只要 `is_range_refcounted()` 为真,任何想把这块内存从 EL2 手里拿回去的转移都会被拒绝。本缺陷失败的正是这道关口。
+
+这里的"pin"是"固定/钉住"的意思——EL2 声明"这块内存我还在用,别拿走",而不是芯片的"引脚"。
+
+这与宿主侧的 `kvm_share_hyp()` / `kvm_unshare_hyp()` 是**两套独立的机制**:宿主侧用一棵红黑树(`hyp_shared_pfns`)跟踪哪些物理页共享给了 EL2。EL2 侧则用**两样东西**跟踪——页面所有权状态(`OWNED` / `SHARED_OWNED` / `SHARED_BORROWED`)和这个固定计数,两者互相独立。区分它们很重要:issue 005 坏的是前者(状态被覆盖),本 issue 坏的是后者(计数没归零)。两边必须配对——如果 EL2 侧的固定没解除,宿主侧的 unshare 就会被 EL2 拒绝。
 
 ### vCPU 的创建与销毁
 
 在 pKVM 下,一个 vCPU 的生命周期大致是:
 
 1. **创建**(`KVM_CREATE_VCPU`):宿主分配 `struct kvm_vcpu`,调用 `kvm_share_hyp()` 把它共享给 EL2
-2. **首次运行**(`KVM_RUN`):触发 `kvm_arch_vcpu_run_pid_change()` → `pkvm_create_hyp_vm()`,此时 EL2 通过 `__pkvm_init_vcpu` 创建自己的 vCPU 副本,并把宿主的 `struct kvm_vcpu` 引脚到 EL2(这样 EL2 可以安全地读取宿主 vCPU 的状态)
-3. **销毁**(关闭 fd → `kvm_destroy_vm`):宿主调用 `kvm_unshare_hyp()` 解除共享,EL2 侧的引脚应当已经被释放
+2. **首次运行**(`KVM_RUN`):触发 `kvm_arch_vcpu_run_pid_change()` → `pkvm_create_hyp_vm()`,此时 EL2 通过 `__pkvm_init_vcpu` 创建自己的 vCPU 副本,并把宿主的 `struct kvm_vcpu` **固定**到 EL2(这样 EL2 可以安全地读取宿主 vCPU 的状态)
+3. **销毁**(关闭 fd → `kvm_destroy_vm`):宿主调用 `kvm_unshare_hyp()` 解除共享,EL2 侧的固定引用应当已经被释放
 
 本缺陷发生在第 2 步的 EL2 初始化中,但在第 3 步才表现为告警——而且造成的损害是永久的。
 
@@ -52,17 +56,17 @@ Comm: syz.0.6493   6.6.103+ #16   Source Version: cba248683e5c
 
 ## 根因
 
-**置信度:已根因定位。** 引脚顺序、错误路径、清理函数的不对称,都直接从源码逐行读过。
+**置信度:已根因定位。** 固定顺序、错误路径、清理函数的不对称,都直接从源码逐行读过。
 
-`init_pkvm_hyp_vcpu()`(`arch/arm64/kvm/hyp/nvhe/pkvm.c:574`,Rust 移植版在 `hyp/xhypervisor/src/pkvm.rs:1793`)先把宿主 vCPU 结构体引脚到 EL2,再做校验,最后才记录那个"解引脚时需要的指针":
+`init_pkvm_hyp_vcpu()`(`arch/arm64/kvm/hyp/nvhe/pkvm.c:574`,Rust 移植版在 `hyp/xhypervisor/src/pkvm.rs:1793`)先把宿主 vCPU 结构体固定到 EL2,再做校验,最后才记录那个"解除固定时需要的指针":
 
 ```c
 // arch/arm64/kvm/hyp/nvhe/pkvm.c —— init_pkvm_hyp_vcpu()
-if (hyp_pin_shared_mem(host_vcpu, host_vcpu + 1))   // 582行:引脚已取
+if (hyp_pin_shared_mem(host_vcpu, host_vcpu + 1))   // 582行:固定已取
     return -EBUSY;
 
 hyp_vcpu->vcpu.arch.hyp_reqs = kern_hyp_va(host_vcpu->arch.hyp_reqs);  // 585行:hyp_reqs 字段已赋值
-if (hyp_pin_shared_mem(hyp_vcpu->vcpu.arch.hyp_reqs, ...)) {           // 586行:hyp_reqs 引脚已取
+if (hyp_pin_shared_mem(hyp_vcpu->vcpu.arch.hyp_reqs, ...)) {           // 586行:hyp_reqs 固定已取
     hyp_unpin_shared_mem(host_vcpu, host_vcpu + 1);
     return -EBUSY;
 }
@@ -81,7 +85,7 @@ if (mp_state != KVM_MP_STATE_RUNNABLE && mp_state != KVM_MP_STATE_STOPPED) {  //
 hyp_vcpu->host_vcpu = host_vcpu;                    // 603行:指针在这里才记录——太晚了
 ```
 
-`goto done` 调用 `unpin_host_vcpu()`(第 449 行),它通过**字段**来解引脚:
+`goto done` 调用 `unpin_host_vcpu()`(第 449 行),它通过**字段**来解除固定:
 
 ```c
 // arch/arm64/kvm/hyp/nvhe/pkvm.c:449
@@ -97,9 +101,9 @@ static void unpin_host_vcpu(struct pkvm_hyp_vcpu *hyp_vcpu)
 }
 ```
 
-**整个 bug 就是这个不对称**:`hyp_reqs` 的引脚能释放,因为它的字段在校验之前就赋值了;`host_vcpu` 的引脚释放不了,因为它的字段在校验之后才赋值。
+**整个 bug 就是这个不对称**:`hyp_reqs` 的固定能释放,因为它的字段在校验之前就赋值了;`host_vcpu` 的固定释放不了,因为它的字段在校验之后才赋值。
 
-Rust 移植版(`hyp/xhypervisor/src/pkvm.rs`)的结构完全相同——引脚在 1816 行,`hyp_reqs` 字段在 1823 行,`vcpu_idx` 校验在 1836 行,`mp_state` 校验在 1843 行,`self.host_vcpu = host_vcpu` 在 1850 行。`unpin_host_vcpu()`(1525 行)同样先查 `self.host_vcpu`(为 null 就跳过),再查 `self.vcpu.arch.hyp_reqs`(已赋值就解引脚)。
+Rust 移植版(`hyp/xhypervisor/src/pkvm.rs`)的结构完全相同——固定在 1816 行,`hyp_reqs` 字段在 1823 行,`vcpu_idx` 校验在 1836 行,`mp_state` 校验在 1843 行,`self.host_vcpu = host_vcpu` 在 1850 行。`unpin_host_vcpu()`(1525 行)同样先查 `self.host_vcpu`(为 null 就跳过),再查 `self.vcpu.arch.hyp_reqs`(已赋值就解除固定)。
 
 ---
 
@@ -120,10 +124,10 @@ EL2 只接受 `RUNNABLE(0)` 和 `STOPPED(5)`(见上面 `init_pkvm_hyp_vcpu()` �
 1. `open("/dev/kvm")` → `KVM_CREATE_VM` → `KVM_CREATE_VCPU` → `KVM_ARM_VCPU_INIT`
 2. `KVM_SET_MP_STATE(SUSPENDED)` —— 宿主接受,`mp_state` 写入 10
 3. `KVM_RUN` —— 触发 `kvm_arch_vcpu_run_pid_change()`(`arm.c:838`)→ `pkvm_create_hyp_vm()`(`arm.c:894`)→ `__pkvm_create_hyp_vm()`(`pkvm.c:379`)→ `__pkvm_create_hyp_vcpu()`(`pkvm.c:202`)→ `kvm_call_refill_hyp_nvhe(__pkvm_init_vcpu, ...)`(`pkvm.c:223`)→ EL2 的 `__pkvm_init_vcpu()`(`pkvm.c:790`)→ `init_pkvm_hyp_vcpu()`(`pkvm.c:574`)
-4. EL2 在 598 行发现 `mp_state=10` 不是 0 也不是 5,走 600 行 `goto done`,泄漏 `host_vcpu` 引脚,返回 `-EINVAL`
+4. EL2 在 598 行发现 `mp_state=10` 不是 0 也不是 5,走 600 行 `goto done`,泄漏 `host_vcpu` 的固定引用,返回 `-EINVAL`
 5. `-EINVAL` 沿原路返回:`__pkvm_init_vcpu` → `__pkvm_create_hyp_vcpu`(返回)→ `__pkvm_create_hyp_vm`(`goto destroy_vm`)→ `pkvm_create_hyp_vm` → `kvm_arch_vcpu_run_pid_change` → `KVM_RUN` 返回 `-1`,`errno=EINVAL`
 6. 关闭 fd → `kvm_arch_vcpu_destroy()`(`arm.c:523`)→ `kvm_arm_vcpu_destroy()`(`reset.c:156`)→ `kvm_unshare_hyp(vcpu, vcpu + 1)`(`reset.c:160`)
-7. `kvm_unshare_hyp()`(`mmu.c:718`)逐页调 `unshare_pfn_hyp()`,后者调 `__pkvm_host_unshare_hyp` 让 EL2 解除共享——但 EL2 发现该页还被引脚着(引脚没释放),拒绝 unshare,返回非零
+7. `kvm_unshare_hyp()`(`mmu.c:718`)逐页调 `unshare_pfn_hyp()`,后者调 `__pkvm_host_unshare_hyp` 让 EL2 解除共享——但 EL2 发现该页还被固定着(固定引用没释放),拒绝 unshare,返回非零
 8. `mmu.c:728` 的 `WARN_ON(unshare_pfn_hyp(pfn))` 触发
 
 ---
@@ -144,7 +148,7 @@ EL2 只接受 `RUNNABLE(0)` 和 `STOPPED(5)`(见上面 `init_pkvm_hyp_vcpu()` �
 
 ## 泄漏是永久的——这才是更严重的一半
 
-引脚泄漏在**物理页**上,这些页随后归还给 slab 分配器。反复运行最终会导致:
+固定引用泄漏在**物理页**上,这些页随后归还给 slab 分配器。反复运行最终会导致:
 
 ```
 FATAL: KVM_CREATE_VCPU: Invalid argument
@@ -166,7 +170,7 @@ ACK 已修复,`Bug: 357781595`:
 | 提交 | 相关性 |
 | --- | --- |
 | `2b4d43af6` ANDROID: KVM: arm64: Fix cleanup on partially-initialised pKVM vCPU init failure | **正是这个 bug** |
-| `fe4e0e499` BACKPORT: UPSTREAM: KVM: arm64: Fix pin leak and publication ordering in `__pkvm_init_vcpu()` | 相邻路径的引脚泄漏;cherry-pick 自 `73b9c1e5da84`,`Fixes: 49af6ddb8e5c`,`Cc: stable` |
+| `fe4e0e499` BACKPORT: UPSTREAM: KVM: arm64: Fix pin leak and publication ordering in `__pkvm_init_vcpu()` | 相邻路径的固定引用泄漏;cherry-pick 自 `73b9c1e5da84`,`Fixes: 49af6ddb8e5c`,`Cc: stable` |
 
 `2b4d43af6` 的提交信息逐字点名了我们这条路径——*"leak the host_vcpu pin via the mp_state-failure path, which jumps to 'done:' before hyp_vcpu->host_vcpu is recorded"*——修复方式是把赋值提前:
 
@@ -176,7 +180,7 @@ hyp_vcpu->host_vcpu = host_vcpu;
 hyp_vcpu->vcpu.kvm = &hyp_vm->kvm;
 ```
 
-`2b4d43af6` 还带了同一函数中相邻路径的三个进一步泄漏(hyp-pool SVE 分配在 `pkvm_vcpu_init_psci()` 失败时泄漏;从未引脚过的 SVE 页被解引脚;`pvmfw_entry_vcpu` 被悬空)。**这三个在本板上均未确认**——N90 没有 SVE,所以 SVE 相关的在本板不可达——但它们在同一个函数里,应当一起迁移,而不是只 cherry-pick 那一行提前。
+`2b4d43af6` 还带了同一函数中相邻路径的三个进一步泄漏(hyp-pool SVE 分配在 `pkvm_vcpu_init_psci()` 失败时泄漏;从未固定过的 SVE 页被解除固定;`pvmfw_entry_vcpu` 被悬空)。**这三个在本板上均未确认**——N90 没有 SVE,所以 SVE 相关的在本板不可达——但它们在同一个函数里,应当一起迁移,而不是只 cherry-pick 那一行提前。
 
 ---
 
