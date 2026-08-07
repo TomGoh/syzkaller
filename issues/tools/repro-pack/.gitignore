@@ -10,3 +10,7 @@ verify-dirtylog
 probe-dirtylog-thp
 probe-dirtylog-twice
 probe-mpstate
+
+# make-portable.sh output, and the bundle it stages
+src/
+pkvm-repro-pack.tar.gz

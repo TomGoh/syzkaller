@@ -18,6 +18,18 @@ PACK_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 # shellcheck disable=SC2034
 ISSUES_DIR=$(cd "$PACK_DIR/../.." && pwd)
 
+# A bundle built by ./make-portable.sh carries the reproducer sources under
+# src/, mirroring the tracker's <issue-dir>/repro/ layout, and is meant to be
+# unpacked anywhere. Without this, copying only repro-pack/ to another machine
+# made every script report
+#     reproducer source missing: /tmp/003-dirty-log-.../repro/probe-dirtylog-thp.c
+# because ISSUES_DIR resolved to whatever two levels above it happened to land
+# in -- which is the normal way to use this pack, not an edge case.
+if [ -d "$PACK_DIR/src" ]; then
+	# shellcheck disable=SC2034
+	ISSUES_DIR=$PACK_DIR/src
+fi
+
 # Exit codes. Chosen not to collide with the shell's own (126/127), timeout(1)'s
 # (124/125), or the reproducers' (1 = setup failure, 2 = FATAL, 3 = alarm).
 RC_REPRODUCED=10

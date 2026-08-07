@@ -53,11 +53,28 @@ You also need, for all issues:
 
 ## 2. Getting it onto the target
 
-The scripts read the reproducer sources out of the tracker, so copy the whole `issues/` tree (it is a few hundred KB of `.md` and `.c`):
+**Use the bundle.** In place, the scripts read their reproducers out of the tracker at `../../<issue-dir>/repro/`, so copying only this directory leaves them with nothing to build — every issue then reports
+
+```
+RESULT 002: INCONCLUSIVE  (reproducer source missing: /home/002-tlb-range-.../repro/repro-tlbflush-warn.c)
+```
+
+with a path derived from wherever it happened to land. `make-portable.sh` produces a tarball that carries its own copy of the sources under `src/`, which `common.sh` prefers when present:
+
+```
+# in the repo
+./make-portable.sh                       # -> ./pkvm-repro-pack.tar.gz, ~32 KB
+
+# on the target
+tar xzf pkvm-repro-pack.tar.gz
+cd repro-pack && sudo ./run-all.sh
+```
+
+The alternative, if you would rather not carry a tarball, is to copy the whole `issues/` tree and run the pack from inside it:
 
 ```
 rsync -a --exclude runs/ /path/to/syzkaller-pkvm/issues/ root@BOARD:/root/issues/
-ssh root@BOARD 'cd /root/issues/tools/repro-pack && ./run-all.sh'
+ssh root@BOARD 'cd /root/issues/tools/repro-pack && sudo ./run-all.sh'
 ```
 
 `uname -m` is checked: on `aarch64` the scripts build natively with `cc`, otherwise they cross-build with `aarch64-linux-gnu-gcc` and stop at `INCONCLUSIVE` before running anything.
