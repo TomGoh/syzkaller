@@ -1,0 +1,2 @@
+r0 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000), 0x2, 0x0)
+syz_kvm_dirty_log_cycle$arm64(r0, 0x0)

@@ -1,0 +1,49 @@
+Kylin V11
+ 15:47:49 up 30 min, 5 users, load average: 6.92, 6.57, 4.77
+executors: 13
+ring_pages          32
+ring_capacity_pcs   16381
+armed_cpus          8
+leaked_bytes        0
+
+# arm/skip
+begin_calls         1599575553
+skip_not_owner      0
+skip_no_kcov        9100992
+drains              1590474556
+
+# EL2 producer (per-#23, summed)
+el2_hits            174318801085
+el2_written         174318801085
+el2_dropped_ringful 0
+el2_nested_dropped  0
+el2_overflow_drains 0
+el2_hits_max        4948
+el2_written_max     4948
+LOST_IN_RING        0
+
+# runtime->link conversion
+link_ok             174318801085
+link_dropped        0
+
+# task KCOV delivery
+kcov_requested      174318801085
+kcov_accepted       2657077176
+kcov_mode_lost      0
+LOST_IN_KCOV_AREA   171661723909
+
+# per-#23 hit distribution (log2 buckets)
+hits_0              18172
+hits_1_1 13
+hits_2_3 5
+hits_4_7 18
+hits_8_15 1409663
+hits_16_31 743423
+hits_32_63 169378867
+hits_64_127 709669598
+hits_128_255 709226025
+hits_256_511 15143
+hits_512_1023 2753
+hits_1024_2047 9500
+hits_2048_4095 2
+hits_4096_8191 1374

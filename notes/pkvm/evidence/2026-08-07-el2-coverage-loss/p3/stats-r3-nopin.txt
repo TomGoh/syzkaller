@@ -1,0 +1,39 @@
+ring_pages          32
+ring_capacity_pcs   16381
+owner_cpu           0
+leaked_bytes        0
+
+# arm/skip
+begin_calls         4749
+skip_not_owner      4667
+skip_no_kcov        0
+drains              82
+
+# EL2 producer (per-#23, summed)
+el2_hits            6348
+el2_written         6348
+el2_dropped_ringful 0
+el2_nested_dropped  0
+el2_overflow_drains 0
+el2_hits_max        1459
+el2_written_max     1459
+LOST_IN_RING        0
+
+# runtime->link conversion
+link_ok             6348
+link_dropped        0
+
+# task KCOV delivery
+kcov_requested      6348
+kcov_accepted       6348
+kcov_mode_lost      0
+LOST_IN_KCOV_AREA   0
+
+# per-#23 hit distribution (log2 buckets)
+hits_8_15 11
+hits_16_31 1
+hits_32_63 41
+hits_64_127 23
+hits_128_255 4
+hits_256_511 1
+hits_1024_2047 1

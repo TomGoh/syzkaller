@@ -1,0 +1,4 @@
+tag	arm	owner	rc	files	raw	uniq	hyp_raw	hyp_uniq	br_raw	br_uniq	uart_raw	uart_uniq	begin_calls	skip_not_owner	skip_no_kcov	drains	LOST_IN_RING	LOST_IN_KCOV_AREA	consistent
+r1-pin0	pin0	0	0	15	232383	7954	11881	443	0	0	0	0	2568349	0	3800	2564549	0	303397924	yes
+r2-pin1	pin1	1	0	15	232036	8049	11850	443	0	0	0	0	2565985	0	3826	2562159	0	303120984	yes
+r3-pin4	pin4	4	0	15	231399	8027	11575	443	0	0	0	0	2580825	0	3754	2577071	0	304901524	yes
