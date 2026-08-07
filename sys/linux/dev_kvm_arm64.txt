@@ -98,6 +98,28 @@ syz_kvm_memslot_reject_move$arm64(fd fd_kvm)
 # a normal register; the composite creates a bit-31 protected VM before the flagged register.
 syz_kvm_memslot_reject_flags$arm64(fd fd_kvm, flags int32[1:3])
 
+# --- A COMPLETE dirty-logging cycle on an ORDINARY guest (composite) -----------------------------
+# Reaches __pkvm_host_dirty_log_guest (id 25) and __pkvm_host_wrprotect_guest (id 24). Both read ZERO
+# after a 19 h / 91k-exec campaign that had the whole KVM surface enabled: getting there needs four
+# ORDERED steps with a guest that actually stores to a write-protected page in between --
+#   memslot -> vCPU -> KVM_RUN (build the stage-2 mapping)
+#           -> re-register the SAME slot with KVM_MEM_LOG_DIRTY_PAGES (write-protects it)
+#           -> KVM_RUN again, so the store takes a permission fault
+#           -> KVM_GET_DIRTY_LOG, which re-write-protects what it reports
+# and random generation does not assemble that. Issues 003, 004 and 005 all live behind these two
+# hypercalls, so this is also the only regression cover their fixes have.
+#
+# The VM is ORDINARY (type 0), unlike every other composite here: kvm_arch_prepare_memory_region()
+# answers -EPERM for KVM_MEM_LOG_DIRTY_PAGES on a protected VM, so a protected VM cannot reach dirty
+# logging at all (issues/REACHABILITY.md, gate 2).
+#
+# hp_mode 0 asks for MADV_NOHUGEPAGE, 1 leaves the 2 MiB mapping THP-eligible. Both are kept
+# reachable on purpose: the huge-page variant is what issue 003 was about (EL2 hardcoded order=0 and
+# answered -E2BIG for a block mapping), so it is where a 003 regression would show up. Neither hangs
+# -- every guest round ends in a store to an unbacked GPA, and the code tail is another such store
+# rather than a self-loop, so even an unexpected extra KVM_RUN exits via KVM_EXIT_MMIO.
+syz_kvm_dirty_log_cycle$arm64(fd fd_kvm, hp_mode int8[0:1])
+
 # --- Slice 3a: protected-VM config paths via KVM_ENABLE_CAP(KVM_CAP_ARM_PROTECTED_VM), composite -----
 # Each builds a bit-31 protected VM from the /dev/kvm fd in C, then issues the cap, so the "must be a
 # protected VM" precondition (pkvm.c:652) is guaranteed regardless of fuzzer ordering -- and a raw

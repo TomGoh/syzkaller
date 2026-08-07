@@ -274,11 +274,18 @@ format_keep_sorted:
 
 format_cpp:
 	# Exclude auto-generated and canned files.
+	# issues/ and notes/pkvm/evidence/ hold ARCHIVED reproducers and captured
+	# artifacts: they record what was actually built and run on a board, so
+	# reformatting them makes the archive disagree with the thing it documents.
+	# They are also referenced by issues/tools/repro-pack, which ships them
+	# verbatim to other machines.
 	git ls-files '*.h' '*.c' '*.cc' '*.cpp' | grep -Ev \
 "executor/_include/flatbuffers/\
 |pkg/flatrpc/flatrpc.h\
 |pkg/covermerger/testdata/integration/\
-|executor/android/.*_policy.h" \
+|executor/android/.*_policy.h\
+|^issues/\
+|^notes/pkvm/evidence/" \
 	| xargs -I {} -P 0 clang-format --style=file -i {}
 
 format_sys: bin/syz-fmt

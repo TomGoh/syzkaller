@@ -976,4 +976,165 @@ static long syz_kvm_assert_reg(volatile long a0, volatile long a1, volatile long
 }
 #endif
 
+#if SYZ_EXECUTOR || __NR_syz_kvm_dirty_log_cycle
+// Drive one COMPLETE dirty-logging cycle on an ORDINARY guest, which is the only
+// way to reach __pkvm_host_dirty_log_guest (id 25) and __pkvm_host_wrprotect_guest
+// (id 24). Both read 0 after a 19 h / 91k-exec campaign with the full KVM surface
+// enabled: the sequence below is four ordered steps with a guest that must actually
+// store to a write-protected page in between, and random generation does not
+// assemble it. Everything the tracker filed as 003/004/005 lives behind these two
+// hypercalls, so without this their fixes have no regression cover either.
+//
+// The VM is deliberately ORDINARY (type 0), not the bit-31 protected VM the other
+// composites in this file build: kvm_arch_prepare_memory_region() answers -EPERM
+// for KVM_MEM_LOG_DIRTY_PAGES on a protected VM (mmu.c, and issues/REACHABILITY.md
+// gate 2), so a protected VM cannot reach dirty logging at all.
+//
+// a0 = fd_kvm.  a1 = hp_mode: 0 asks for MADV_NOHUGEPAGE, 1 leaves the mapping
+// THP-eligible. Both are useful and neither hangs -- the huge-page variant is the
+// one issue 003 was about (EL2 hardcoded order=0 and answered -E2BIG for a block
+// mapping), so keeping it reachable is what gives 003 a regression signal.
+//
+// Returns the round-2 KVM_RUN result -- the run whose permission fault is what
+// invokes the dirty-log hypercall. 0 means the cycle worked; -1/E2BIG is issue 003
+// re-appearing. errno is preserved across the teardown.
+// Hand-assembled A64, so the guest needs no toolchain and no blob. Same encodings
+// the standalone reproducers use (issues/005-*/repro/probe-dirtylog-twice.c).
+//   MOVZ_IMM(rd, imm16, sh) -> movz xRd, #imm16, lsl #(sh*16)
+//   STR_X_REG(rt, rn)       -> str  xRt, [xRn]
+#define MOVZ_IMM(rd, imm16, sh) (0xD2800000u | ((uint32)(sh) << 21) | (((uint32)(imm16) & 0xffff) << 5) | (rd))
+#define STR_X_REG(rt, rn) (0xF9000000u | ((uint32)(rn) << 5) | (rt))
+
+static long syz_kvm_dirty_log_cycle(volatile long a0, volatile long a1)
+{
+#define DLC_GPA 0x40000000UL
+#define DLC_SIZE 0x200000UL // 2 MiB, so hp_mode=1 can actually block-map
+	struct kvm_userspace_memory_region region;
+	struct kvm_vcpu_init init;
+	struct kvm_one_reg reg;
+	uint64 pc = DLC_GPA;
+	uint64 bm[(DLC_SIZE / 4096 + 63) / 64];
+	struct kvm_dirty_log dl;
+	volatile struct kvm_run* run = (volatile struct kvm_run*)MAP_FAILED;
+	int vm = -1, vcpu = -1, msz = 0;
+	long ret = -1;
+	int saved = EINVAL;
+	uint32* code;
+	void* mem = MAP_FAILED;
+
+	vm = ioctl(a0, KVM_CREATE_VM, 0);
+	if (vm < 0)
+		return -1;
+	mem = mmap(NULL, DLC_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+	if (mem == MAP_FAILED)
+		goto out;
+	if (!(a1 & 1)) // hp_mode 0: keep it 4 KiB-backed
+		madvise(mem, DLC_SIZE, MADV_NOHUGEPAGE);
+
+	// Guest: three rounds, each ending in a store to an unbacked GPA so KVM_RUN
+	// returns via KVM_EXIT_MMIO instead of running on. The TAIL IS ALSO AN MMIO
+	// STORE, not the `b .` self-loop the standalone reproducer uses: under a
+	// fuzzer any extra KVM_RUN must still exit promptly, and a spinning guest is
+	// exactly the failure that once pinned this project's coverage at 0.
+	code = (uint32*)mem;
+	*code++ = MOVZ_IMM(0, 0x4001, 1); // x0 = page A  (0x40010000)
+	*code++ = MOVZ_IMM(3, 0x4002, 1); // x3 = page B  (0x40020000)
+	*code++ = MOVZ_IMM(2, 0x5000, 1); // x2 = MMIO    (0x50000000), outside the slot
+	*code++ = MOVZ_IMM(1, 1, 0); // round 1: fault both pages in
+	*code++ = STR_X_REG(1, 0);
+	*code++ = STR_X_REG(1, 3);
+	*code++ = STR_X_REG(1, 2);
+	*code++ = MOVZ_IMM(1, 2, 0); // round 2: A only, now write-protected
+	*code++ = STR_X_REG(1, 0);
+	*code++ = STR_X_REG(1, 2);
+	*code++ = MOVZ_IMM(1, 3, 0); // round 3: A then B
+	*code++ = STR_X_REG(1, 0);
+	*code++ = STR_X_REG(1, 3);
+	*code++ = STR_X_REG(1, 2);
+	*code++ = STR_X_REG(1, 2); // tail: any overrun exits, never spins
+	*code++ = STR_X_REG(1, 2);
+
+	memset(&region, 0, sizeof(region));
+	region.slot = 0;
+	region.guest_phys_addr = DLC_GPA;
+	region.memory_size = DLC_SIZE;
+	region.userspace_addr = (uint64)(uintptr_t)mem;
+	if (ioctl(vm, KVM_SET_USER_MEMORY_REGION, &region) != 0)
+		goto out;
+
+	vcpu = ioctl(vm, KVM_CREATE_VCPU, 0);
+	if (vcpu < 0)
+		goto out;
+	memset(&init, 0, sizeof(init));
+	if (ioctl(vm, KVM_ARM_PREFERRED_TARGET, &init) != 0)
+		goto out;
+	memset(init.features, 0, sizeof(init.features));
+	if (ioctl(vcpu, KVM_ARM_VCPU_INIT, &init) != 0)
+		goto out;
+
+	memset(&reg, 0, sizeof(reg));
+	reg.id = KVM_REG_ARM64 | KVM_REG_SIZE_U64 | KVM_REG_ARM_CORE | (offsetof(struct kvm_regs, regs.pc) / sizeof(uint32));
+	reg.addr = (uint64)(uintptr_t)&pc;
+	if (ioctl(vcpu, KVM_SET_ONE_REG, &reg) != 0)
+		goto out;
+
+	msz = ioctl(a0, KVM_GET_VCPU_MMAP_SIZE, 0);
+	if (msz <= 0)
+		goto out;
+	run = (volatile struct kvm_run*)mmap(NULL, msz, PROT_READ | PROT_WRITE, MAP_SHARED, vcpu, 0);
+	if (run == MAP_FAILED)
+		goto out;
+
+	// Round 1: both pages faulted in. No dirty logging yet, so this only builds
+	// the stage-2 mapping that step 2 will write-protect.
+	if (ioctl(vcpu, KVM_RUN, 0) != 0 || run->exit_reason != KVM_EXIT_MMIO)
+		goto out;
+
+	// Step 2: turn dirty logging on for the same slot -> write-protects it.
+	region.flags = KVM_MEM_LOG_DIRTY_PAGES;
+	if (ioctl(vm, KVM_SET_USER_MEMORY_REGION, &region) != 0)
+		goto out;
+
+	// Round 2: the store to A takes a permission fault, and THAT is the call
+	// under test -- pkvm_relax_perms() -> __pkvm_host_dirty_log_guest.
+	errno = 0;
+	ret = ioctl(vcpu, KVM_RUN, 0);
+	saved = errno;
+	if (ret != 0)
+		goto out; // -E2BIG here is issue 003; report it rather than hiding it
+
+	// KVM_GET_DIRTY_LOG re-write-protects every page it reports dirty, which is
+	// what reaches __pkvm_host_wrprotect_guest.
+	memset(bm, 0, sizeof(bm));
+	memset(&dl, 0, sizeof(dl));
+	dl.slot = 0;
+	dl.dirty_bitmap = bm;
+	if (ioctl(vm, KVM_GET_DIRTY_LOG, &dl) != 0)
+		goto out;
+
+	// Round 3 + a second collection: exercises the re-protected page again.
+	if (ioctl(vcpu, KVM_RUN, 0) == 0 && run->exit_reason == KVM_EXIT_MMIO) {
+		memset(bm, 0, sizeof(bm));
+		memset(&dl, 0, sizeof(dl));
+		dl.slot = 0;
+		dl.dirty_bitmap = bm;
+		ioctl(vm, KVM_GET_DIRTY_LOG, &dl);
+	}
+
+out:
+	if (run != MAP_FAILED && msz > 0)
+		munmap((void*)run, msz);
+	if (vcpu >= 0)
+		close(vcpu);
+	if (vm >= 0)
+		close(vm);
+	if (mem != MAP_FAILED)
+		munmap(mem, DLC_SIZE);
+	errno = saved;
+	return ret;
+#undef DLC_GPA
+#undef DLC_SIZE
+}
+#endif
+
 #endif // EXECUTOR_COMMON_KVM_ARM64_H
