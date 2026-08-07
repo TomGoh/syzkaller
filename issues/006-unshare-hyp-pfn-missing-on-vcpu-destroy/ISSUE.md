@@ -6,13 +6,17 @@ class: kernel-defect
 signature: 'WARNING in kvm_unshare_hyp'
 hazard: none
 diagnosis: root-caused
-disposition: fix-proposed
+disposition: fix-verified
 repro: repro/probe-mpstate-suspended-pin-leak.c
 observations:
   - target: 'klinux 6.6.103+ #16 @cba248683e5c'
     state: reproduced
     run: 2026-08-06-n90-full-surface
     evidence: evidence/2026-08-07-what-was-ruled-out.txt
+  - target: 'klinux 6.6.103+ #18 @8bdbd1873442'
+    state: not-observed
+    run: 2026-08-07-006-fix-deploy-verify
+    evidence: evidence/2026-08-07-fix-verified-on-18.txt
 ---
 
 # 006 — a suspended vCPU leaks its EL2 pin, and the leak is permanent
@@ -127,6 +131,22 @@ The Rust EL2 is a faithful port of the pre-fix C, and `arch/arm64/kvm/hyp/nvhe/p
 
 **Running this probe pollutes the campaign's crash counter,** because syzkaller's console reader sees our WARNs too. The campaign's "3rd occurrence" at 09:20 was our probe, not a fuzzer find.
 
-## Next
+## Fixed and verified
 
-Migrate `2b4d43af6` (and consider `fe4e0e499`) into both the Rust EL2 and the C in this tree, then re-run `repro/probe-mpstate-suspended-pin-leak.c` and require: control 0 WARNs, test 0 WARNs, and `KVM_CREATE_VCPU` still succeeding after many iterations. Note the poisoned pages on the current board are permanent — **verification requires a reboot**, or the pre-existing poison will produce failures unrelated to the fix.
+`8bdbd1873442` records `host_vcpu` as soon as its pin succeeds, so the existing `done:` cleanup covers it, and assigns `hyp_reqs` only after its own pin succeeds so that "field non-NULL" implies "page pinned" for both. Applied to the Rust EL2 and to the C, which carries the identical defect for configurations that build it.
+
+Verified on N90, kernel `6.6.103+ #18`, after a reboot — mandatory, because the pages poisoned by the pre-fix kernel keep their leaked refcount for the life of the boot:
+
+| | pre-fix `#16` | post-fix `#18` |
+| --- | --- | --- |
+| single run, `SUSPENDED` | 3 WARNs | **0** |
+| 5 consecutive runs | `FATAL: KVM_CREATE_VCPU` by run 3 | **0 FATAL, 0 WARNs** |
+| control, `RUNNABLE` | 0 WARNs | 0 WARNs |
+
+`KVM_RUN` still answers `-EINVAL` for a SUSPENDED vCPU, unchanged and correct: EL2 accepts only `RUNNABLE` and `STOPPED`, and this fix concerns the cleanup on that rejection. Check dmesg, not the exit code.
+
+Run record: [2026-08-07-006-fix-deploy-verify](../runs/2026-08-07-006-fix-deploy-verify.md).
+
+## Still open
+
+The three adjacent leaks `2b4d43af6` also carries — hyp-pool SVE allocation on `pkvm_vcpu_init_psci()` failure, unpinning never-pinned SVE pages, and `pvmfw_entry_vcpu` left dangling — are **not fixed here and not tested**. Two are unreachable on N90, which has no SVE, so this board cannot verify them either way. The C fix is compile-checked only; `CONFIG_X1_RMS=y` means this board runs the Rust.

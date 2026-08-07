@@ -1,0 +1,71 @@
+2026-08-07 — issue 006 fix verified on hardware, kernel #18.
+
+TARGET
+    N90 (10.42.27.17)
+    Linux 6.6.103+ #18 SMP Fri Aug  7 10:47:05 +08 2026
+    klinux @8bdbd1873442 "KYLIN: KVM: arm64: pkvm: record host_vcpu before the
+                          checks that can fail"
+    cmdline still carries kvm-arm.mode=protected
+    booted 2026-08-07 11:02:03, fresh boot_id 7720554e-...
+
+    The reboot matters and was required, not incidental: the pages poisoned by
+    the pre-fix kernel keep their leaked refcount for the life of the boot, so
+    verifying without a reboot would have produced failures unrelated to the fix.
+
+WHICH IMPLEMENTATION IS UNDER TEST
+    CONFIG_X1_RMS=y, so the nvhe Makefile builds xhypervisor.o and NOT
+    pkvm.o/hyp-main.o -- confirmed by arch/arm64/kvm/hyp/nvhe/pkvm.o being
+    absent after a full build while xhypervisor.o was rebuilt. The Rust EL2 is
+    what ran. The identical C fix in hyp/nvhe/pkvm.c is compile-checked only
+    (built once with X1_RMS off); it is NOT exercised by this verification.
+
+    CONFIG_PKVM_EL2_COV survived: /sys/kernel/debug/kvm/pkvm_cov/ is present
+    after boot. Worth stating because a config-header desync during the C
+    compile-check briefly had X1_RMS and PKVM_EL2_COV missing from
+    include/generated/autoconf.h while .config still said y -- see the commit
+    message and section below.
+
+RESULT — repro/probe-mpstate-suspended-pin-leak.c
+
+    baseline                                    dmesg kvm_unshare_hyp = 0
+
+    single run
+      control  mp_state = RUNNABLE(0)   KVM_RUN -> -EINTR (our 3s alarm)
+      test     mp_state = SUSPENDED(10) KVM_RUN -> -EINVAL
+      after                                     dmesg kvm_unshare_hyp = 0
+                                                dmesg WARNING:        = 0
+
+    five consecutive runs
+      run 1..5   FATAL count = 0        cumulative WARN = 0
+      final      kvm_unshare_hyp = 0, WARNING:/BUG:/Oops = 0, board healthy
+
+    ON THE PRE-FIX KERNEL (#16 @cba248683e5c), the same program produced
+    3 WARNs at mmu.c:728 on its first run, and by the third repeat produced
+      FATAL: KVM_CREATE_VCPU: Invalid argument
+    from a vCPU landing on an already-poisoned page.  Both are gone.
+
+WHAT IS NOT CLAIMED
+    KVM_RUN still returns -EINVAL for a SUSPENDED vCPU. That is unchanged and
+    correct: EL2 accepts only RUNNABLE and STOPPED, and this fix is about the
+    cleanup on that rejection, not about accepting the state. Anyone re-running
+    this probe should expect the -EINVAL and check dmesg, not the exit code.
+
+    The three adjacent leaks that ACK 2b4d43af6 also fixes (hyp-pool SVE
+    allocation on pkvm_vcpu_init_psci() failure; unpinning never-pinned SVE
+    pages; pvmfw_entry_vcpu left dangling) are NOT addressed by this change and
+    NOT tested here. Two are unreachable on N90, which has no SVE. They remain
+    open.
+
+ALSO IN THIS KERNEL, PREVIOUSLY UNTESTED ON HARDWARE
+    #18 is the first deployed kernel to carry c6c3a2503e4b (account hyp
+    donations even when the topup fails) and 22f8b90f89c7 (propagate the
+    dirty-log granule probe's own error). Both were committed after #16 was
+    built and verified, in response to review, and had never run on a board.
+    So #18 changes four things relative to what was last verified, not one.
+
+CAMPAIGN NOTE
+    The 2026-08-06 campaign did not end on its own: rebuilding the kernel
+    replaced /home/jose/klinux/vmlinux while syz-manager was using it, and the
+    manager exits fatally on that by design ("has been modified by an external
+    program"). Final state corpus=785 coverage=14052 exec total=113368, one
+    signature, 3 occurrences. Stop the manager before rebuilding next time.
