@@ -1,0 +1,15 @@
+2026/08/06 18:49:11 VM 0: running for 3h0m0.001198407s, restarting
+2026/08/06 21:49:23 VM 0: running for 3h0m0.000870364s, restarting
+2026/08/07 00:49:35 VM 0: running for 3h0m0.000300229s, restarting
+2026/08/07 03:49:47 VM 0: running for 3h0m0.000250714s, restarting
+2026/08/07 05:22:32 VM 0: crash: WARNING in kvm_unshare_hyp
+2026/08/07 05:22:32 VM 0: crash(tail0): WARNING in kvm_unshare_hyp
+2026/08/07 05:22:32 VM 0: crash(tail1): SYZFAIL: rpc peer closed connection (EOF)
+2026/08/07 05:22:32 VM 0: crash(tail2): WARNING in kvm_unshare_hyp
+2026/08/07 05:22:32 start reproducing 'WARNING in kvm_unshare_hyp'
+2026/08/07 05:22:32 VM 0: running for 1m18.785149229s, restarting
+2026/08/07 07:30:12 VM 0: crash: WARNING in kvm_unshare_hyp
+2026/08/07 07:30:12 VM 0: crash(tail0): SYZFAIL: rpc peer closed connection (EOF)
+2026/08/07 07:30:12 VM 0: crash(tail1): WARNING in kvm_unshare_hyp
+2026/08/07 07:30:12 VM 0: crash(tail2): WARNING in kvm_unshare_hyp
+2026/08/07 07:30:12 start reproducing 'WARNING in kvm_unshare_hyp'

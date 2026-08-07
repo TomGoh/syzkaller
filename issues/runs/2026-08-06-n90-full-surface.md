@@ -10,10 +10,10 @@ filters:
   config_ignores: '[] — nothing filtered at the config layer'
   reporter_ignores: 'ONE regexp only, and it is not a kernel message: `WARNING: connection is not using a post-quantum key exchange algorithm` (ssh client banner merged into the console by the isolated backend). All three pKVM/arm64 kernel WARN ignores were REMOVED for this campaign.'
 enabled_syscalls: 91 of 8065 (config lists 111 entries; the manager resolves bare CallNames onto their $arm64 variants)
-duration: started 2026-08-06 15:48, ongoing
+duration: started 2026-08-06 15:48, ongoing (13.5 h at first finding)
 result: 'first campaign on a kernel carrying all five fixes, run with the full KVM surface and no kernel WARN filtering'
 ring: armed on CPU 0, 32 pages / 16381 PC slots
-observed: []
+observed: [6]
 not_observed: []
 ---
 
@@ -66,6 +66,57 @@ no WARNING, no BUG, no Oops
 ## Known risk, accepted knowingly
 
 **N90 still has no out-of-band crash channel.** This campaign enables the syscall that used to wedge the machine. Issue 001's fix is verified 10/10, so the probability is much lower than before, but if the board does wedge there is no remote recovery — it needs physical access. Giving N90 an out-of-band channel remains the open task it has been all along, and this run raises rather than lowers its priority.
+
+## Left unattended overnight, 2026-08-06 ~17:50
+
+The run was deliberately left going overnight rather than being stopped to apply coverage changes. A baseline was frozen first — `2026-08-06-n90-full-surface/baseline-2026-08-06T1748.txt` — so the morning numbers can be read as a delta instead of an absolute.
+
+State at that point, 2h00m in:
+
+```
+corpus=504  coverage=12959  exec total=27240 (225/min)
+crashes: none (crashes/ does not exist; 0 lines in manager.log match crash|WARNING|BUG:|panic|Oops)
+board:   up 3:11, load 1.11, 0 D-state tasks, 3 executors, MemAvailable 21.2 GiB, Mlocked 92 kB
+dmesg:   0 WARNING / BUG: / Oops / Call trace
+ring:    LOST_IN_RING 0, link_dropped 0 at 9.0e10 EL2 PC deliveries
+```
+
+Hourly trajectory, which is the number to compare against in the morning:
+
+```
+15:49  corpus=0    coverage=0
+16:49  corpus=401  coverage=12375
+17:49  corpus=503  coverage=12956     <- +581 in the second hour
+```
+
+Coverage is decelerating steeply. **Prediction, recorded so it can be falsified:** an overnight run plateaus somewhere around 13.2–13.6k with no new hypercall handlers reached, because the four-step sequence needed to enter `__pkvm_host_dirty_log_guest` (memslot → vCPU → `KVM_RUN` → re-add memslot with `KVM_MEM_LOG_DIRTY_PAGES` → `KVM_RUN` again) is not something random generation produces. If the morning shows materially more than that, the reasoning behind the proposed `syz_kvm_dirty_log_cycle$arm64` composite is wrong and should be re-derived before any descriptor is written.
+
+Morning triage: `issues/tools/triage-overnight.sh /home/jose/syzkaller/workdir-n90-full 10.42.27.17 issues/runs/2026-08-06-n90-full-surface/baseline-2026-08-06T1748.txt`. It separates "wedged board" from "healthy plateau" by checking the log's mtime, not only its contents — the two are indistinguishable from the numbers alone.
+
+## Overnight result, 2026-08-07 05:35 — one finding, and the prediction checked
+
+13.5 h in. The board never wedged, the manager never stopped, and one new signature appeared.
+
+```
+05:22:32  VM 0: crash(tail2): WARNING in kvm_unshare_hyp     <- filed as issue 006
+05:22:32  start reproducing
+05:26:57  failed to extract reproducer  (4m25s, "replaying the whole log did not cause a kernel crash")
+05:35     corpus=753  coverage=13992  exec total=91449 (110/min)
+board:    healthy throughout, 0 D-state, 3 executors, campaign still running
+```
+
+**Exactly one distinct signature in 13.5 hours, and it is a new one.** Neither of the two WARNs this run was expected to re-trigger — `vmid.c` VMID rollover, `arch_timer.c:461` — fired at all. That is itself worth recording: the "this campaign will drown in known noise" cost accepted in the section above **did not materialise**.
+
+### The recorded prediction, scored honestly
+
+| claim | predicted | actual | verdict |
+| --- | --- | --- | --- |
+| coverage plateau | 13.2–13.6k | **13992** | **slightly wrong** — 2.9% above the top of the range |
+| no new hypercall handlers | 16/68 unchanged | **16/68, identical set** | **held** |
+
+The EL2 side is flat: 516 → **525** distinct `.rs` PCs across the whole night, +9 in 11.5 h. The +1033 host-side coverage is breadth in the generic KVM/ioctl surface, not depth into EL2.
+
+So the numeric range was a little tight, but the load-bearing claim — that random generation does not assemble the four-step dirty-logging sequence, and the composite descriptor is the only lever that opens those handlers — **survived its own falsification test**. `handle___pkvm_host_dirty_log_guest` and `handle___pkvm_host_wrprotect_guest` are still at zero after 91k executions.
 
 ## Reproducing the exact conditions
 

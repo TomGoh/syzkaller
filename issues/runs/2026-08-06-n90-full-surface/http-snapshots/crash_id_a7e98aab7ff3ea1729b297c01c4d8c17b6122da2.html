@@ -1,0 +1,900 @@
+
+
+<!doctype html>
+<html>
+<head>
+	<title>WARNING in kvm_unshare_hyp</title>
+	<style type="text/css" media="screen">#topbar {
+	padding: 5px 10px;
+	background: #E0EBF5;
+}
+
+#topbar a {
+	color: #375EAB;
+	text-decoration: none;
+}
+
+h1, h2, h3, h4 {
+	margin: 0;
+	padding: 0;
+	color: #375EAB;
+	font-weight: bold;
+}
+
+.navigation .navigation_tab {
+	border: 1px solid black;
+	padding: 4px;
+	margin: 4px;
+	display: flex;
+	align-items: center;
+}
+
+.navigation_tab a:hover {background-color: #ddd;}
+
+.navigation_tab_selected {
+	font-weight: bold;
+	border: 3px solid black;
+	padding: 4px;
+	margin: 4px;
+	display: inline-block;
+}
+
+.navigation {
+	padding-top: 15px;
+	padding-bottom: 6px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+table {
+	border: 1px solid #ccc;
+	margin: 20px 5px;
+	border-collapse: collapse;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+table caption {
+	font-weight: bold;
+}
+
+table td, table th {
+	vertical-align: top;
+	padding: 2px 8px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.namespace {
+	font-weight: bold;
+	font-size: large;
+	color: #375EAB;
+}
+
+.bug_list_caption {
+	font-weight: bold;
+	font-size: large;
+	color: #375EAB;
+	cursor: pointer;
+}
+
+.position_table {
+	border: 0px;
+	margin: 0px;
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.position_table td, .position_table tr {
+	vertical-align: center;
+	padding: 0px;
+}
+
+.position_table .namespace_td {
+	width: 100%;
+	padding-top: 10px;
+	padding-left: 20px;
+}
+
+.action_button, .action_button_selected {
+	border: 1px solid black;
+	align: left;
+	vertical-align: center;
+	text-align: center;
+	width: 30px;
+	height: 30px;
+	padding: 4px;
+	margin: 5px;
+}
+
+.action_button_selected {
+	border: 3px solid black;
+}
+
+.position_table .search {
+	text-align: right;
+}
+
+.list_table td, .list_table th {
+	border-left: 1px solid #ccc;
+}
+
+.list_table th {
+	background: #F4F4F4;
+}
+
+.list_table tr:nth-child(2n) {
+	background: #F4F4F4;
+}
+
+.list_table tr:hover {
+	background: #ffff99;
+}
+
+.list_table .namespace {
+	width: 100pt;
+	max-width: 100pt;
+}
+
+.list_table .key-col {
+	width: 120pt;
+	min-width: 120pt;
+}
+
+.list_table .title {
+	min-width: 350pt;
+	width: max-content;
+}
+
+.list_table .commit_list {
+	width: 500pt;
+	max-width: 500pt;
+}
+
+.list_table .tag {
+	font-family: monospace;
+	font-size: 8pt;
+	max-width: 60pt;
+}
+
+.list_table .opts {
+	width: 40pt;
+	max-width: 40pt;
+}
+
+.list_table .status {
+	width: 250pt;
+	max-width: 250pt;
+}
+
+.list_table .patched {
+	width: 60pt;
+	max-width: 60pt;
+	text-align: center;
+}
+
+.list_table .kernel {
+	width: 80pt;
+	max-width: 80pt;
+}
+
+.list_table .maintainers {
+	max-width: 300pt;
+	white-space: normal;
+}
+
+.list_table .result {
+	width: 60pt;
+	max-width: 200pt;
+}
+
+.list_table .stat {
+	width: 55pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .rank {
+	width: 55pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .discussions {
+	font-family: monospace;
+	text-align: left;
+}
+
+.list_table .bisect_status {
+	width: 75pt;
+	max-width: 75pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .date {
+	width: 60pt;
+	max-width: 60pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .stat_name {
+	width: 180pt;
+	max-width: 180pt;
+	font-family: monospace;
+}
+
+.list_table .stat_value {
+	width: 200pt;
+	max-width: 200pt;
+	font-family: monospace;
+}
+
+.list_table .stale_repro {
+	text-decoration: line-through;
+}
+
+.list_table .assets {
+	white-space: nowrap;
+}
+
+.list_table .assets .no-break {
+	display: inline-block;
+}
+
+.list_table .job_description {
+	max-width: 600pt;
+	word-break: break-all;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+
+.list_table .icon {
+	font-size: 75%;
+}
+
+.list_table .ai_result {
+	max-width: 400pt;
+	white-space: normal;
+}
+
+.list_table .ai_result span {
+	white-space: nowrap;
+}
+
+.list_table .ai_correct {
+	text-align: center;
+}
+
+.list_table .ai_job_error_cell {
+	max-width: 500pt;
+	white-space: normal;
+}
+
+.list_table .ai_job_error {
+	margin: 0;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+.list_table .ai_job_error_note {
+	color: #555;
+	font-size: 85%;
+}
+
+.list_table .status-crashed {
+	background-color: #FF8674;
+}
+
+.list_table tr:hover .status-crashed {
+	background-color: #ffa397;
+}
+
+.list_table .status-ok {
+	background-color: lightgreen;
+}
+
+.list_table tr:hover .status-ok {
+	background-color: palegreen;
+}
+
+.list_table .status-error {
+	background-color: lightgray;
+}
+
+.list_table tr:hover .status-error {
+	background-color: gainsboro;
+}
+
+.bug-label {
+	background: white;
+	border: 1pt solid black;
+	display: inline-block;
+	padding-left: 2pt;
+	padding-right: 2pt;
+	margin-left: 4pt;
+	font-size: small;
+}
+
+.bug-label a {
+	text-decoration: none;
+	color: black;
+}
+
+.bad {
+	color: #f00;
+	font-weight: bold;
+}
+
+.inactive {
+	color: #888;
+}
+
+.plain {
+	text-decoration: none;
+}
+
+textarea {
+	width:100%;
+	box-sizing: border-box;
+	font-family: monospace;
+}
+
+.mono {
+	font-family: monospace;
+}
+
+.info_link {
+	color: #25a7db;
+	text-decoration: none;
+}
+
+.page {
+	position: relative;
+	width: 100%;
+}
+
+aside {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 290px;
+	margin-top: 5px;
+}
+
+.panel {
+	border: 1px solid #aaa;
+	border-radius: 5px;
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+
+.panel h1 {
+	font-size: 16px;
+	margin: 0;
+	padding: 2px 8px;
+}
+
+.panel select {
+	padding: 5px;
+	border: 0;
+	width: 100%;
+}
+
+.panel label {
+	margin-left: 7px;
+}
+
+.main-content {
+	position: absolute;
+	top: 0;
+	left: 300px;
+	right: 5px;
+	min-height: 200px;
+	overflow: hidden;
+}
+
+.graph_help {
+	position: absolute;
+	top: 115px;
+	left: 10px;
+	z-index: 1;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: xx-large;
+	color: blue;
+}
+
+#graph_div {
+	height: 85vh;
+}
+
+#crash_div {
+	align: left;
+	width: 90%;
+	height: 400px;
+	margin: 0 0;
+	overflow: auto;
+	resize: vertical;
+	border: 1px solid #777;
+	padding: 0px;
+	background: transparent;
+}
+
+#crash_div pre {
+	margin: 1px;
+}
+
+#ai_result_div {
+	align: left;
+	margin: 0 0;
+	overflow: auto;
+	border: none;
+	padding: 0px;
+	background: transparent;
+}
+
+#ai_result_div pre {
+	margin: 1px;
+	font-family: 'Courier New', Courier, monospace;
+	max-width: 120ch;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+#ai_details_div pre {
+	margin: 1px;
+	max-width: 120ch;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+.input-values {
+	margin-left: 7px;
+	margin-bottom: 7px;
+}
+
+.input-values textarea {
+	width: 750pt;
+	height: 250pt;
+}
+
+.input-group {
+	margin-top: 7px;
+	margin-bottom: 7px;
+	display: block;
+}
+
+.input-group button {
+	width: 20pt;
+}
+
+.fix-candidate-block {
+	background: lightgreen;
+	padding: 5pt;
+}
+
+.bug-bisection-info {
+	float:left;
+	margin-right: 15px;
+	margin-bottom: 5px;
+	padding: 5px;
+}
+
+.bug-bisection-stop {
+	clear: both;
+	margin-bottom: 10px;
+}
+
+.collapsible {
+	border: 1px solid lightgrey;
+	margin-bottom: 15px;
+}
+
+.collapsible .content {
+	overflow-x: auto;
+}
+
+.collapsible .head {
+	max-width: 100%;
+	background-color: lightgrey;
+	padding: 5pt;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.collapsible-hide .content {
+	display: none;
+}
+
+.collapsible-hide .hide-icon {
+	display: none;
+}
+
+.collapsible-show .show-icon {
+	display: none;
+}
+
+.ai-jobs-form {
+	padding: 15px;
+	box-sizing: border-box;
+	max-width: 800px;
+}
+
+.ai-jobs-form input[type="text"] {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.emergency-stop {
+	background-color: yellow;
+	padding: 5pt;
+	margin-bottom: 5pt;
+}
+
+.emergency-stopped {
+	background-color: coral;
+	padding: 5pt;
+	margin-bottom: 5pt;
+}
+
+ 
+.dropbtn {
+	background-color: transparent;
+	color: #375EAB;
+	text-decoration: none;
+	border: none;
+	font-family: inherit;
+	font-size: inherit;
+	padding: 0;
+	margin: 0;
+}
+
+ 
+.dropdown {
+	position: relative;
+	display: inline-block;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+ 
+.dropdown-content {
+	display: none;
+	flex-direction: column;
+	position: absolute;
+	background-color: #f1f1f1;
+	z-index: 1;
+	top: 100%;
+	left: 0;
+	margin-top: 1px;
+}
+
+ 
+.dropdown-content div a {
+	color: black;
+	text-decoration: none;
+	display: block;
+}
+
+ 
+.dropdown-content a:hover {background-color: #ddd;}
+
+ 
+.dropdown:hover .dropdown-content {display: flex;}
+
+ 
+.dropdown:hover .dropbtn {background-color: #ddd;}
+
+.rank .tooltiptext {
+	visibility: hidden;
+	background-color: black;
+	color: #fff;
+	text-align: left;
+	border-radius: 6px;
+	padding: 5px 0;
+
+	 
+	position: absolute;
+	z-index: 1;
+}
+.rank:hover .tooltiptext {
+	visibility: visible;
+}
+
+.flash-message {
+	background-color: #e2f0fd;
+	color: #0c5460;
+	padding: 10px;
+	border: 1px solid #bee5eb;
+	border-radius: 4px;
+	margin: 10px 5px;
+}
+
+.pagination {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-size: 16px;
+}
+
+.disabled-link {
+	color: grey;
+}
+
+.ai_current_job {
+	background-color: lightgreen;
+}
+
+.restart-form {
+	margin-top: 5px;
+	margin-bottom: 15px;
+}
+</style><script>
+
+
+function sortTable(item, colName, conv, desc = false) {
+	table = item.parentNode.parentNode.parentNode.parentNode;
+	rows = table.rows;
+	col = findColumnByName(rows[0].getElementsByTagName("th"), colName);
+	values = [];
+	for (i = 1; i < rows.length; i++) {
+		const td = rows[i].getElementsByTagName("td")[col]
+		let value = td.textContent
+		if (td.getAttribute("sort-value") != null)
+			value = td.getAttribute("sort-value")
+		values.push([conv(value), rows[i]]);
+	}
+	if (desc)
+		desc = !isSorted(values.slice().reverse())
+	else
+		desc = isSorted(values);
+	values.sort(function (a, b) {
+		if (a[0] == b[0]) return 0;
+		if (desc && a[0] > b[0] || !desc && a[0] < b[0]) return -1;
+		return 1;
+	});
+	for (i = 0; i < values.length; i++)
+		table.tBodies[0].appendChild(values[i][1]);
+	return false;
+}
+
+function findColumnByName(headers, colName) {
+	for (i = 0; i < headers.length; i++) {
+		if (headers[i].innerText == colName)
+			return i;
+	}
+	return 0;
+}
+
+function isSorted(values) {
+	for (i = 0; i < values.length - 1; i++) {
+		if (values[i][0] > values[i + 1][0])
+			return false;
+	}
+	return true;
+}
+
+function textSort(v) { return v == "" ? "zzz" : v.toLowerCase(); }
+function numSort(v) { return -parseInt(v); }
+function floatSort(v) { return -parseFloat(v); }
+function reproSort(v) { return v == "C" ? 0 : v == "syz" ? 1 : 2; }
+function patchedSort(v) { return v == "" ? -1 : parseInt(v); }
+function lineSort(v) { return -v.split(/\r\n|\r|\n/g).length }
+
+function timeSort(v) {
+	if (v == "now")
+		return 0;
+	m = v.indexOf('m');
+	h = v.indexOf('h');
+	d = v.indexOf('d');
+	if (m > 0 && h < 0)
+		return parseInt(v);
+	if (h > 0 && m > 0)
+		return parseInt(v) * 60 + parseInt(v.substring(h + 1));
+	if (d > 0 && h > 0)
+		return parseInt(v) * 60 * 24 + parseInt(v.substring(d + 1)) * 60;
+	if (d > 0)
+		return parseInt(v) * 60 * 24;
+	return 1000000000;
+}
+
+
+
+function findAncestorByClass(el, cls) {
+	while ((el = el.parentElement) && !el.classList.contains(cls));
+	return el;
+}
+
+function deleteInputGroup(node) {
+	group = findAncestorByClass(node, "input-group")
+	values = findAncestorByClass(group, "input-values")
+	if (!values) {
+		return false
+	}
+	count = values.querySelectorAll('.input-group').length
+	if (count == 1) {
+		
+		input = group.querySelector('input')
+		input.value = ""
+	} else {
+		group.remove()
+	}
+	return false
+}
+
+function addInputGroup(node) {
+	values = findAncestorByClass(node, "input-values")
+	groups = values.querySelectorAll(".input-group")
+	if (groups.length == 0) {
+		
+		return false
+	}
+	lastGroup = groups[groups.length - 1]
+	newGroup = lastGroup.cloneNode(true)
+	newGroup.querySelector('input').value = ""
+	values.insertBefore(newGroup, lastGroup.nextSibling)
+	return false
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+	document.addEventListener('click', function (event) {
+		const collapsible = event.target.closest('.collapsible')
+		if (!collapsible) {
+			return
+		}
+		const toggle = event.target.closest('.collapsible .head');
+		if (toggle) {
+			collapsible.classList.toggle("collapsible-hide");
+			collapsible.classList.toggle("collapsible-show");
+		}
+	})
+})
+
+function displayAICreateJobArgs(select) {
+	if (!select) select = document.querySelector('select[name="ai-job-create"]');
+	var args = document.getElementById('ai-set-base-commit');
+	if (!select || !args) return;
+
+	args.style.display = select.options[select.selectedIndex].getAttribute('data-custom-base-commit') ? 'inline' : 'none';
+
+	var custom = document.getElementById('base_commit_custom');
+	var input = document.getElementById('base_commit_input');
+	if (custom && input)
+		input.style.display = custom.checked ? 'inline' : 'none';
+}
+
+window.addEventListener('load', function () {
+	displayAICreateJobArgs();
+	showManualWorkflowFields();
+});
+
+function showManualWorkflowFields(select) {
+	var workflowName = "";
+	if (select && select.value) {
+		workflowName = select.value;
+	} else {
+		var el = document.getElementById("ai-job-create");
+		if (el) workflowName = el.value;
+	}
+	if (!workflowName) return;
+
+	
+	var groups = document.getElementsByClassName("manual-workflow-fields");
+	if (groups.length === 0) return;
+
+	for (var i = 0; i < groups.length; i++) {
+		groups[i].style.display = "none";
+		var inputs = groups[i].querySelectorAll("input, textarea, select");
+		for (var j = 0; j < inputs.length; j++) {
+			inputs[j].disabled = true;
+		}
+	}
+
+	
+	var selected = document.getElementById("workflow-fields-" + workflowName);
+	if (selected) {
+		selected.style.display = "block";
+		var selectedInputs = selected.querySelectorAll("input, textarea, select");
+		for (var k = 0; k < selectedInputs.length; k++) {
+			selectedInputs[k].disabled = false;
+		}
+	}
+}
+</script>
+</head>
+<body>
+	<header id="topbar">
+		<table class="position_table">
+			<tr>
+				<td>
+					<h1><a href="/">syzkaller</a></h1>
+				</td>
+				<td>
+					<form action="/action" method="post">
+						<input type="hidden" name="url" value="/crash?id=a7e98aab7ff3ea1729b297c01c4d8c17b6122da2" />
+						<button type="submit" name="toggle" value="expert" class="action_button" title="Toggle expert mode">
+							🧠
+						</button>
+						<button type="submit" name="toggle" value="pause" class="action_button" title="Pause/unpause fuzzing">
+							⏸️
+						</button>
+					</form>
+				</td>
+				<td class="search">
+					<a href="https://github.com/google/syzkaller/blob/master/docs/" target="_blank">docs</a> |
+					<a href="https://groups.google.com/forum/#!forum/syzkaller" target="_blank">mailing list</a> |
+					<a href="https://github.com/google/syzkaller/commits/9fd30654e444ec028612efafdf1e3b00939ef685" target="_blank">source 9fd30654</a>
+				</td>
+			</tr>
+		</table>
+		<div class="navigation">
+			<div class="navigation_tab">
+				<a href='/stats'>📈 stats</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/cover'>📃 coverage</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/syscalls'>🤖 syscalls</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/corpus'>🛒 corpus</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/vms'>💻 VMs</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/config'>🔧 config</a>
+			</div>
+		</div>
+	</header>
+	<br>
+	
+
+<b>WARNING in kvm_unshare_hyp</b>
+
+
+
+<table class="list_table">
+	<thead>
+	<tr>
+		<th>#</th>
+		<th>Log</th>
+		<th>Report</th>
+		<th>Time</th>
+		<th>Tag</th>
+	</tr>
+	</thead>
+	<tbody>
+	
+	<tr>
+		<td>1</td>
+		<td><a href="/file?name=crashes%2fa7e98aab7ff3ea1729b297c01c4d8c17b6122da2%2flog1">log</a></td>
+		<td>
+			
+				<a href="/file?name=crashes%2fa7e98aab7ff3ea1729b297c01c4d8c17b6122da2%2freport1">report</a>
+			
+		</td>
+		<td class="time ">2026/08/07 07:30</td>
+		<td class="tag " title=""></td>
+	</tr>
+	
+	<tr>
+		<td>0</td>
+		<td><a href="/file?name=crashes%2fa7e98aab7ff3ea1729b297c01c4d8c17b6122da2%2flog0">log</a></td>
+		<td>
+			
+				<a href="/file?name=crashes%2fa7e98aab7ff3ea1729b297c01c4d8c17b6122da2%2freport0">report</a>
+			
+		</td>
+		<td class="time ">2026/08/07 05:22</td>
+		<td class="tag " title=""></td>
+	</tr>
+	
+	</tbody>
+</table>
+
+</body></html>

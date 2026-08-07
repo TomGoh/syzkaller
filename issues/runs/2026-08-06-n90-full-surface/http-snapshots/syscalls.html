@@ -1,0 +1,1785 @@
+
+
+<!doctype html>
+<html>
+<head>
+	<title>syscalls</title>
+	<style type="text/css" media="screen">#topbar {
+	padding: 5px 10px;
+	background: #E0EBF5;
+}
+
+#topbar a {
+	color: #375EAB;
+	text-decoration: none;
+}
+
+h1, h2, h3, h4 {
+	margin: 0;
+	padding: 0;
+	color: #375EAB;
+	font-weight: bold;
+}
+
+.navigation .navigation_tab {
+	border: 1px solid black;
+	padding: 4px;
+	margin: 4px;
+	display: flex;
+	align-items: center;
+}
+
+.navigation_tab a:hover {background-color: #ddd;}
+
+.navigation_tab_selected {
+	font-weight: bold;
+	border: 3px solid black;
+	padding: 4px;
+	margin: 4px;
+	display: inline-block;
+}
+
+.navigation {
+	padding-top: 15px;
+	padding-bottom: 6px;
+	display: flex;
+	flex-wrap: wrap;
+}
+
+table {
+	border: 1px solid #ccc;
+	margin: 20px 5px;
+	border-collapse: collapse;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+table caption {
+	font-weight: bold;
+}
+
+table td, table th {
+	vertical-align: top;
+	padding: 2px 8px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+.namespace {
+	font-weight: bold;
+	font-size: large;
+	color: #375EAB;
+}
+
+.bug_list_caption {
+	font-weight: bold;
+	font-size: large;
+	color: #375EAB;
+	cursor: pointer;
+}
+
+.position_table {
+	border: 0px;
+	margin: 0px;
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.position_table td, .position_table tr {
+	vertical-align: center;
+	padding: 0px;
+}
+
+.position_table .namespace_td {
+	width: 100%;
+	padding-top: 10px;
+	padding-left: 20px;
+}
+
+.action_button, .action_button_selected {
+	border: 1px solid black;
+	align: left;
+	vertical-align: center;
+	text-align: center;
+	width: 30px;
+	height: 30px;
+	padding: 4px;
+	margin: 5px;
+}
+
+.action_button_selected {
+	border: 3px solid black;
+}
+
+.position_table .search {
+	text-align: right;
+}
+
+.list_table td, .list_table th {
+	border-left: 1px solid #ccc;
+}
+
+.list_table th {
+	background: #F4F4F4;
+}
+
+.list_table tr:nth-child(2n) {
+	background: #F4F4F4;
+}
+
+.list_table tr:hover {
+	background: #ffff99;
+}
+
+.list_table .namespace {
+	width: 100pt;
+	max-width: 100pt;
+}
+
+.list_table .key-col {
+	width: 120pt;
+	min-width: 120pt;
+}
+
+.list_table .title {
+	min-width: 350pt;
+	width: max-content;
+}
+
+.list_table .commit_list {
+	width: 500pt;
+	max-width: 500pt;
+}
+
+.list_table .tag {
+	font-family: monospace;
+	font-size: 8pt;
+	max-width: 60pt;
+}
+
+.list_table .opts {
+	width: 40pt;
+	max-width: 40pt;
+}
+
+.list_table .status {
+	width: 250pt;
+	max-width: 250pt;
+}
+
+.list_table .patched {
+	width: 60pt;
+	max-width: 60pt;
+	text-align: center;
+}
+
+.list_table .kernel {
+	width: 80pt;
+	max-width: 80pt;
+}
+
+.list_table .maintainers {
+	max-width: 300pt;
+	white-space: normal;
+}
+
+.list_table .result {
+	width: 60pt;
+	max-width: 200pt;
+}
+
+.list_table .stat {
+	width: 55pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .rank {
+	width: 55pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .discussions {
+	font-family: monospace;
+	text-align: left;
+}
+
+.list_table .bisect_status {
+	width: 75pt;
+	max-width: 75pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .date {
+	width: 60pt;
+	max-width: 60pt;
+	font-family: monospace;
+	text-align: right;
+}
+
+.list_table .stat_name {
+	width: 180pt;
+	max-width: 180pt;
+	font-family: monospace;
+}
+
+.list_table .stat_value {
+	width: 200pt;
+	max-width: 200pt;
+	font-family: monospace;
+}
+
+.list_table .stale_repro {
+	text-decoration: line-through;
+}
+
+.list_table .assets {
+	white-space: nowrap;
+}
+
+.list_table .assets .no-break {
+	display: inline-block;
+}
+
+.list_table .job_description {
+	max-width: 600pt;
+	word-break: break-all;
+	overflow-wrap: break-word;
+	white-space: normal;
+}
+
+.list_table .icon {
+	font-size: 75%;
+}
+
+.list_table .ai_result {
+	max-width: 400pt;
+	white-space: normal;
+}
+
+.list_table .ai_result span {
+	white-space: nowrap;
+}
+
+.list_table .ai_correct {
+	text-align: center;
+}
+
+.list_table .ai_job_error_cell {
+	max-width: 500pt;
+	white-space: normal;
+}
+
+.list_table .ai_job_error {
+	margin: 0;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+.list_table .ai_job_error_note {
+	color: #555;
+	font-size: 85%;
+}
+
+.list_table .status-crashed {
+	background-color: #FF8674;
+}
+
+.list_table tr:hover .status-crashed {
+	background-color: #ffa397;
+}
+
+.list_table .status-ok {
+	background-color: lightgreen;
+}
+
+.list_table tr:hover .status-ok {
+	background-color: palegreen;
+}
+
+.list_table .status-error {
+	background-color: lightgray;
+}
+
+.list_table tr:hover .status-error {
+	background-color: gainsboro;
+}
+
+.bug-label {
+	background: white;
+	border: 1pt solid black;
+	display: inline-block;
+	padding-left: 2pt;
+	padding-right: 2pt;
+	margin-left: 4pt;
+	font-size: small;
+}
+
+.bug-label a {
+	text-decoration: none;
+	color: black;
+}
+
+.bad {
+	color: #f00;
+	font-weight: bold;
+}
+
+.inactive {
+	color: #888;
+}
+
+.plain {
+	text-decoration: none;
+}
+
+textarea {
+	width:100%;
+	box-sizing: border-box;
+	font-family: monospace;
+}
+
+.mono {
+	font-family: monospace;
+}
+
+.info_link {
+	color: #25a7db;
+	text-decoration: none;
+}
+
+.page {
+	position: relative;
+	width: 100%;
+}
+
+aside {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	width: 290px;
+	margin-top: 5px;
+}
+
+.panel {
+	border: 1px solid #aaa;
+	border-radius: 5px;
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+
+.panel h1 {
+	font-size: 16px;
+	margin: 0;
+	padding: 2px 8px;
+}
+
+.panel select {
+	padding: 5px;
+	border: 0;
+	width: 100%;
+}
+
+.panel label {
+	margin-left: 7px;
+}
+
+.main-content {
+	position: absolute;
+	top: 0;
+	left: 300px;
+	right: 5px;
+	min-height: 200px;
+	overflow: hidden;
+}
+
+.graph_help {
+	position: absolute;
+	top: 115px;
+	left: 10px;
+	z-index: 1;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: xx-large;
+	color: blue;
+}
+
+#graph_div {
+	height: 85vh;
+}
+
+#crash_div {
+	align: left;
+	width: 90%;
+	height: 400px;
+	margin: 0 0;
+	overflow: auto;
+	resize: vertical;
+	border: 1px solid #777;
+	padding: 0px;
+	background: transparent;
+}
+
+#crash_div pre {
+	margin: 1px;
+}
+
+#ai_result_div {
+	align: left;
+	margin: 0 0;
+	overflow: auto;
+	border: none;
+	padding: 0px;
+	background: transparent;
+}
+
+#ai_result_div pre {
+	margin: 1px;
+	font-family: 'Courier New', Courier, monospace;
+	max-width: 120ch;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+#ai_details_div pre {
+	margin: 1px;
+	max-width: 120ch;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+.input-values {
+	margin-left: 7px;
+	margin-bottom: 7px;
+}
+
+.input-values textarea {
+	width: 750pt;
+	height: 250pt;
+}
+
+.input-group {
+	margin-top: 7px;
+	margin-bottom: 7px;
+	display: block;
+}
+
+.input-group button {
+	width: 20pt;
+}
+
+.fix-candidate-block {
+	background: lightgreen;
+	padding: 5pt;
+}
+
+.bug-bisection-info {
+	float:left;
+	margin-right: 15px;
+	margin-bottom: 5px;
+	padding: 5px;
+}
+
+.bug-bisection-stop {
+	clear: both;
+	margin-bottom: 10px;
+}
+
+.collapsible {
+	border: 1px solid lightgrey;
+	margin-bottom: 15px;
+}
+
+.collapsible .content {
+	overflow-x: auto;
+}
+
+.collapsible .head {
+	max-width: 100%;
+	background-color: lightgrey;
+	padding: 5pt;
+	vertical-align: middle;
+	cursor: pointer;
+}
+
+.collapsible-hide .content {
+	display: none;
+}
+
+.collapsible-hide .hide-icon {
+	display: none;
+}
+
+.collapsible-show .show-icon {
+	display: none;
+}
+
+.ai-jobs-form {
+	padding: 15px;
+	box-sizing: border-box;
+	max-width: 800px;
+}
+
+.ai-jobs-form input[type="text"] {
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.emergency-stop {
+	background-color: yellow;
+	padding: 5pt;
+	margin-bottom: 5pt;
+}
+
+.emergency-stopped {
+	background-color: coral;
+	padding: 5pt;
+	margin-bottom: 5pt;
+}
+
+ 
+.dropbtn {
+	background-color: transparent;
+	color: #375EAB;
+	text-decoration: none;
+	border: none;
+	font-family: inherit;
+	font-size: inherit;
+	padding: 0;
+	margin: 0;
+}
+
+ 
+.dropdown {
+	position: relative;
+	display: inline-block;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+ 
+.dropdown-content {
+	display: none;
+	flex-direction: column;
+	position: absolute;
+	background-color: #f1f1f1;
+	z-index: 1;
+	top: 100%;
+	left: 0;
+	margin-top: 1px;
+}
+
+ 
+.dropdown-content div a {
+	color: black;
+	text-decoration: none;
+	display: block;
+}
+
+ 
+.dropdown-content a:hover {background-color: #ddd;}
+
+ 
+.dropdown:hover .dropdown-content {display: flex;}
+
+ 
+.dropdown:hover .dropbtn {background-color: #ddd;}
+
+.rank .tooltiptext {
+	visibility: hidden;
+	background-color: black;
+	color: #fff;
+	text-align: left;
+	border-radius: 6px;
+	padding: 5px 0;
+
+	 
+	position: absolute;
+	z-index: 1;
+}
+.rank:hover .tooltiptext {
+	visibility: visible;
+}
+
+.flash-message {
+	background-color: #e2f0fd;
+	color: #0c5460;
+	padding: 10px;
+	border: 1px solid #bee5eb;
+	border-radius: 4px;
+	margin: 10px 5px;
+}
+
+.pagination {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-size: 16px;
+}
+
+.disabled-link {
+	color: grey;
+}
+
+.ai_current_job {
+	background-color: lightgreen;
+}
+
+.restart-form {
+	margin-top: 5px;
+	margin-bottom: 15px;
+}
+</style><script>
+
+
+function sortTable(item, colName, conv, desc = false) {
+	table = item.parentNode.parentNode.parentNode.parentNode;
+	rows = table.rows;
+	col = findColumnByName(rows[0].getElementsByTagName("th"), colName);
+	values = [];
+	for (i = 1; i < rows.length; i++) {
+		const td = rows[i].getElementsByTagName("td")[col]
+		let value = td.textContent
+		if (td.getAttribute("sort-value") != null)
+			value = td.getAttribute("sort-value")
+		values.push([conv(value), rows[i]]);
+	}
+	if (desc)
+		desc = !isSorted(values.slice().reverse())
+	else
+		desc = isSorted(values);
+	values.sort(function (a, b) {
+		if (a[0] == b[0]) return 0;
+		if (desc && a[0] > b[0] || !desc && a[0] < b[0]) return -1;
+		return 1;
+	});
+	for (i = 0; i < values.length; i++)
+		table.tBodies[0].appendChild(values[i][1]);
+	return false;
+}
+
+function findColumnByName(headers, colName) {
+	for (i = 0; i < headers.length; i++) {
+		if (headers[i].innerText == colName)
+			return i;
+	}
+	return 0;
+}
+
+function isSorted(values) {
+	for (i = 0; i < values.length - 1; i++) {
+		if (values[i][0] > values[i + 1][0])
+			return false;
+	}
+	return true;
+}
+
+function textSort(v) { return v == "" ? "zzz" : v.toLowerCase(); }
+function numSort(v) { return -parseInt(v); }
+function floatSort(v) { return -parseFloat(v); }
+function reproSort(v) { return v == "C" ? 0 : v == "syz" ? 1 : 2; }
+function patchedSort(v) { return v == "" ? -1 : parseInt(v); }
+function lineSort(v) { return -v.split(/\r\n|\r|\n/g).length }
+
+function timeSort(v) {
+	if (v == "now")
+		return 0;
+	m = v.indexOf('m');
+	h = v.indexOf('h');
+	d = v.indexOf('d');
+	if (m > 0 && h < 0)
+		return parseInt(v);
+	if (h > 0 && m > 0)
+		return parseInt(v) * 60 + parseInt(v.substring(h + 1));
+	if (d > 0 && h > 0)
+		return parseInt(v) * 60 * 24 + parseInt(v.substring(d + 1)) * 60;
+	if (d > 0)
+		return parseInt(v) * 60 * 24;
+	return 1000000000;
+}
+
+
+
+function findAncestorByClass(el, cls) {
+	while ((el = el.parentElement) && !el.classList.contains(cls));
+	return el;
+}
+
+function deleteInputGroup(node) {
+	group = findAncestorByClass(node, "input-group")
+	values = findAncestorByClass(group, "input-values")
+	if (!values) {
+		return false
+	}
+	count = values.querySelectorAll('.input-group').length
+	if (count == 1) {
+		
+		input = group.querySelector('input')
+		input.value = ""
+	} else {
+		group.remove()
+	}
+	return false
+}
+
+function addInputGroup(node) {
+	values = findAncestorByClass(node, "input-values")
+	groups = values.querySelectorAll(".input-group")
+	if (groups.length == 0) {
+		
+		return false
+	}
+	lastGroup = groups[groups.length - 1]
+	newGroup = lastGroup.cloneNode(true)
+	newGroup.querySelector('input').value = ""
+	values.insertBefore(newGroup, lastGroup.nextSibling)
+	return false
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+	document.addEventListener('click', function (event) {
+		const collapsible = event.target.closest('.collapsible')
+		if (!collapsible) {
+			return
+		}
+		const toggle = event.target.closest('.collapsible .head');
+		if (toggle) {
+			collapsible.classList.toggle("collapsible-hide");
+			collapsible.classList.toggle("collapsible-show");
+		}
+	})
+})
+
+function displayAICreateJobArgs(select) {
+	if (!select) select = document.querySelector('select[name="ai-job-create"]');
+	var args = document.getElementById('ai-set-base-commit');
+	if (!select || !args) return;
+
+	args.style.display = select.options[select.selectedIndex].getAttribute('data-custom-base-commit') ? 'inline' : 'none';
+
+	var custom = document.getElementById('base_commit_custom');
+	var input = document.getElementById('base_commit_input');
+	if (custom && input)
+		input.style.display = custom.checked ? 'inline' : 'none';
+}
+
+window.addEventListener('load', function () {
+	displayAICreateJobArgs();
+	showManualWorkflowFields();
+});
+
+function showManualWorkflowFields(select) {
+	var workflowName = "";
+	if (select && select.value) {
+		workflowName = select.value;
+	} else {
+		var el = document.getElementById("ai-job-create");
+		if (el) workflowName = el.value;
+	}
+	if (!workflowName) return;
+
+	
+	var groups = document.getElementsByClassName("manual-workflow-fields");
+	if (groups.length === 0) return;
+
+	for (var i = 0; i < groups.length; i++) {
+		groups[i].style.display = "none";
+		var inputs = groups[i].querySelectorAll("input, textarea, select");
+		for (var j = 0; j < inputs.length; j++) {
+			inputs[j].disabled = true;
+		}
+	}
+
+	
+	var selected = document.getElementById("workflow-fields-" + workflowName);
+	if (selected) {
+		selected.style.display = "block";
+		var selectedInputs = selected.querySelectorAll("input, textarea, select");
+		for (var k = 0; k < selectedInputs.length; k++) {
+			selectedInputs[k].disabled = false;
+		}
+	}
+}
+</script>
+</head>
+<body>
+	<header id="topbar">
+		<table class="position_table">
+			<tr>
+				<td>
+					<h1><a href="/">syzkaller</a></h1>
+				</td>
+				<td>
+					<form action="/action" method="post">
+						<input type="hidden" name="url" value="/syscalls" />
+						<button type="submit" name="toggle" value="expert" class="action_button" title="Toggle expert mode">
+							🧠
+						</button>
+						<button type="submit" name="toggle" value="pause" class="action_button" title="Pause/unpause fuzzing">
+							⏸️
+						</button>
+					</form>
+				</td>
+				<td class="search">
+					<a href="https://github.com/google/syzkaller/blob/master/docs/" target="_blank">docs</a> |
+					<a href="https://groups.google.com/forum/#!forum/syzkaller" target="_blank">mailing list</a> |
+					<a href="https://github.com/google/syzkaller/commits/9fd30654e444ec028612efafdf1e3b00939ef685" target="_blank">source 9fd30654</a>
+				</td>
+			</tr>
+		</table>
+		<div class="navigation">
+			<div class="navigation_tab">
+				<a href='/stats'>📈 stats</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/cover'>📃 coverage</a>
+			</div>
+			<div class="navigation_tab_selected">
+				<a href='/syscalls'>🤖 syscalls</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/corpus'>🛒 corpus</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/vms'>💻 VMs</a>
+			</div>
+			<div class="navigation_tab">
+				<a href='/config'>🔧 config</a>
+			</div>
+		</div>
+	</header>
+	<br>
+	
+
+<table class="list_table">
+	<caption>Per-syscall coverage:</caption>
+	<thead>
+	<tr>
+		<th><a onclick="return sortTable(this, 'Syscall', textSort)" href="#">Syscall</a></th>
+		<th><a onclick="return sortTable(this, 'Inputs', numSort)" href="#" title="Number of inputs in the corpus added because of this syscall">Inputs</a></th>
+		<th><a onclick="return sortTable(this, 'Total', numSort)" href="#" title="Total number of inputs in the corpus that contain this syscall">Total</a></th>
+		<th><a onclick="return sortTable(this, 'Coverage', numSort)" href="#" title="Coverage achieved by this syscall">Coverage</a></th>
+		<th><a onclick="return sortTable(this, 'Cover overflows', numSort)" href="#" title="Number of times coverage buffer has overflowed on this syscall">Cover overflows</a></th>
+		<th><a onclick="return sortTable(this, 'Comps overflows', numSort)" href="#" title="Number of times comparisons buffer has overflowed on this syscall">Comps overflows</a></th>
+		<th>Prio</th>
+	</tr>
+	</thead>
+	<tbody>
+	
+	<tr>
+		<td>close [198]</td>
+		<td><a href='/corpus?call=close'>14</a></td>
+		<td>30</td>
+		<td><a href='/cover?call=close'>2376</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=close'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>close$kvmvm_protected [203]</td>
+		<td><a href='/corpus?call=close%24kvmvm_protected'>15</a></td>
+		<td>28</td>
+		<td><a href='/cover?call=close%24kvmvm_protected'>2221</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=close%24kvmvm_protected'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>eventfd2 [261]</td>
+		<td><a href='/corpus?call=eventfd2'>5</a></td>
+		<td>43</td>
+		<td><a href='/cover?call=eventfd2'>393</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=eventfd2'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ARM_PREFERRED_TARGET [1899]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ARM_PREFERRED_TARGET'>0</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_ARM_PREFERRED_TARGET'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ARM_PREFERRED_TARGET'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ARM_SET_COUNTER_OFFSET [1900]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ARM_SET_COUNTER_OFFSET'>4</a></td>
+		<td>5</td>
+		<td><a href='/cover?call=ioctl%24KVM_ARM_SET_COUNTER_OFFSET'>283</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ARM_SET_COUNTER_OFFSET'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ARM_SET_DEVICE_ADDR [1901]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ARM_SET_DEVICE_ADDR'>3</a></td>
+		<td>3</td>
+		<td><a href='/cover?call=ioctl%24KVM_ARM_SET_DEVICE_ADDR'>125</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ARM_SET_DEVICE_ADDR'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ARM_VCPU_FINALIZE [1902]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ARM_VCPU_FINALIZE'>4</a></td>
+		<td>7</td>
+		<td><a href='/cover?call=ioctl%24KVM_ARM_VCPU_FINALIZE'>271</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ARM_VCPU_FINALIZE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ARM_VCPU_INIT [1903]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ARM_VCPU_INIT'>5</a></td>
+		<td>30</td>
+		<td><a href='/cover?call=ioctl%24KVM_ARM_VCPU_INIT'>1002</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ARM_VCPU_INIT'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ARM_VCPU_INIT_safe [1904]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ARM_VCPU_INIT_safe'>8</a></td>
+		<td>17</td>
+		<td><a href='/cover?call=ioctl%24KVM_ARM_VCPU_INIT_safe'>4485</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ARM_VCPU_INIT_safe'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ASSIGN_SET_MSIX_ENTRY [1905]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ASSIGN_SET_MSIX_ENTRY'>0</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_ASSIGN_SET_MSIX_ENTRY'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ASSIGN_SET_MSIX_ENTRY'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_ASSIGN_SET_MSIX_NR [1906]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_ASSIGN_SET_MSIX_NR'>1</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_ASSIGN_SET_MSIX_NR'>136</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_ASSIGN_SET_MSIX_NR'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_ARM_EAGER_SPLIT_CHUNK_SIZE [1907]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_ARM_EAGER_SPLIT_CHUNK_SIZE'>4</a></td>
+		<td>6</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_ARM_EAGER_SPLIT_CHUNK_SIZE'>152</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_ARM_EAGER_SPLIT_CHUNK_SIZE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_ARM_INJECT_SERROR_ESR [1908]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_ARM_INJECT_SERROR_ESR'>1</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_ARM_INJECT_SERROR_ESR'>145</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_ARM_INJECT_SERROR_ESR'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_ARM_MTE [1909]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_ARM_MTE'>1</a></td>
+		<td>3</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_ARM_MTE'>141</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_ARM_MTE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_ARM_SYSTEM_SUSPEND [1910]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_ARM_SYSTEM_SUSPEND'>2</a></td>
+		<td>2</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_ARM_SYSTEM_SUSPEND'>147</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_ARM_SYSTEM_SUSPEND'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_ARM_USER_IRQ [1911]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_ARM_USER_IRQ'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_ARM_USER_IRQ'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_ARM_USER_IRQ'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_DIRTY_LOG_RING [1912]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_DIRTY_LOG_RING'>3</a></td>
+		<td>6</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_DIRTY_LOG_RING'>251</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_DIRTY_LOG_RING'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_DIRTY_LOG_RING_ACQ_REL [1913]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_DIRTY_LOG_RING_ACQ_REL'>6</a></td>
+		<td>14</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_DIRTY_LOG_RING_ACQ_REL'>165</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_DIRTY_LOG_RING_ACQ_REL'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_HALT_POLL [1914]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_HALT_POLL'>2</a></td>
+		<td>2</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_HALT_POLL'>141</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_HALT_POLL'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_MANUAL_DIRTY_LOG_PROTECT2 [1915]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_MANUAL_DIRTY_LOG_PROTECT2'>2</a></td>
+		<td>4</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_MANUAL_DIRTY_LOG_PROTECT2'>142</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_MANUAL_DIRTY_LOG_PROTECT2'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CAP_PTP_KVM [1916]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CAP_PTP_KVM'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_CAP_PTP_KVM'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CAP_PTP_KVM'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CHECK_EXTENSION [1917]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CHECK_EXTENSION'>6</a></td>
+		<td>7</td>
+		<td><a href='/cover?call=ioctl%24KVM_CHECK_EXTENSION'>147</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CHECK_EXTENSION'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CHECK_EXTENSION_VM [1918]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CHECK_EXTENSION_VM'>9</a></td>
+		<td>10</td>
+		<td><a href='/cover?call=ioctl%24KVM_CHECK_EXTENSION_VM'>154</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CHECK_EXTENSION_VM'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CLEAR_DIRTY_LOG [1919]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CLEAR_DIRTY_LOG'>7</a></td>
+		<td>8</td>
+		<td><a href='/cover?call=ioctl%24KVM_CLEAR_DIRTY_LOG'>261</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CLEAR_DIRTY_LOG'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_DEVICE [1920]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_DEVICE'>11</a></td>
+		<td>147</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_DEVICE'>424</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_DEVICE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_GUEST_MEMFD [1921]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_GUEST_MEMFD'>0</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_GUEST_MEMFD'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_GUEST_MEMFD'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_IRQCHIP [1922]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_IRQCHIP'>1</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_IRQCHIP'>139</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_IRQCHIP'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_VCPU [1923]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_VCPU'>5</a></td>
+		<td>113</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_VCPU'>695</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_VCPU'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_VCPU_protected [1924]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_VCPU_protected'>1</a></td>
+		<td>68</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_VCPU_protected'>133</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_VCPU_protected'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_VM [1925]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_VM'>12</a></td>
+		<td>541</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_VM'>2963</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_VM'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_CREATE_VM_PROTECTED [1926]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_CREATE_VM_PROTECTED'>0</a></td>
+		<td>58</td>
+		<td><a href='/cover?call=ioctl%24KVM_CREATE_VM_PROTECTED'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_CREATE_VM_PROTECTED'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_DIRTY_TLB [1927]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_DIRTY_TLB'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_DIRTY_TLB'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_DIRTY_TLB'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_API_VERSION [1928]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_API_VERSION'>1</a></td>
+		<td>5</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_API_VERSION'>131</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_API_VERSION'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_DEVICE_ATTR [1929]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_DEVICE_ATTR'>34</a></td>
+		<td>34</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_DEVICE_ATTR'>531</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_DEVICE_ATTR'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_DEVICE_ATTR_vcpu [1930]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_DEVICE_ATTR_vcpu'>16</a></td>
+		<td>17</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_DEVICE_ATTR_vcpu'>289</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_DEVICE_ATTR_vcpu'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_DEVICE_ATTR_vm [1931]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_DEVICE_ATTR_vm'>0</a></td>
+		<td>2</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_DEVICE_ATTR_vm'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_DEVICE_ATTR_vm'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_DIRTY_LOG [1932]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_DIRTY_LOG'>8</a></td>
+		<td>9</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_DIRTY_LOG'>573</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_DIRTY_LOG'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_MP_STATE [1933]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_MP_STATE'>2</a></td>
+		<td>3</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_MP_STATE'>247</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_MP_STATE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_ONE_REG [1934]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_ONE_REG'>41</a></td>
+		<td>41</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_ONE_REG'>1597</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_ONE_REG'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_REGS [1935]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_REGS'>1</a></td>
+		<td>3</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_REGS'>136</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_REGS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_REG_LIST [1936]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_REG_LIST'>5</a></td>
+		<td>5</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_REG_LIST'>335</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_REG_LIST'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_SREGS [1937]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_SREGS'>1</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_SREGS'>136</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_SREGS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_STATS_FD_cpu [1938]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_STATS_FD_cpu'>1</a></td>
+		<td>4</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_STATS_FD_cpu'>329</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_STATS_FD_cpu'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_STATS_FD_vm [1939]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_STATS_FD_vm'>1</a></td>
+		<td>10</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_STATS_FD_vm'>250</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_STATS_FD_vm'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_VCPU_EVENTS [1940]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_VCPU_EVENTS'>3</a></td>
+		<td>4</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_VCPU_EVENTS'>253</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_VCPU_EVENTS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_GET_VCPU_MMAP_SIZE [1941]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_GET_VCPU_MMAP_SIZE'>1</a></td>
+		<td>7</td>
+		<td><a href='/cover?call=ioctl%24KVM_GET_VCPU_MMAP_SIZE'>131</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_GET_VCPU_MMAP_SIZE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_HAS_DEVICE_ATTR [1942]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_HAS_DEVICE_ATTR'>20</a></td>
+		<td>20</td>
+		<td><a href='/cover?call=ioctl%24KVM_HAS_DEVICE_ATTR'>346</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_HAS_DEVICE_ATTR'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_HAS_DEVICE_ATTR_vcpu [1943]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_HAS_DEVICE_ATTR_vcpu'>5</a></td>
+		<td>6</td>
+		<td><a href='/cover?call=ioctl%24KVM_HAS_DEVICE_ATTR_vcpu'>263</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_HAS_DEVICE_ATTR_vcpu'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_HAS_DEVICE_ATTR_vm [1944]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_HAS_DEVICE_ATTR_vm'>3</a></td>
+		<td>3</td>
+		<td><a href='/cover?call=ioctl%24KVM_HAS_DEVICE_ATTR_vm'>249</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_HAS_DEVICE_ATTR_vm'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_INTERRUPT [1945]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_INTERRUPT'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_INTERRUPT'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_INTERRUPT'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_IOEVENTFD [1946]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_IOEVENTFD'>19</a></td>
+		<td>23</td>
+		<td><a href='/cover?call=ioctl%24KVM_IOEVENTFD'>446</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_IOEVENTFD'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_IRQFD [1947]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_IRQFD'>20</a></td>
+		<td>35</td>
+		<td><a href='/cover?call=ioctl%24KVM_IRQFD'>1045</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_IRQFD'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_IRQ_LINE [1948]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_IRQ_LINE'>19</a></td>
+		<td>21</td>
+		<td><a href='/cover?call=ioctl%24KVM_IRQ_LINE'>2711</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_IRQ_LINE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_IRQ_LINE_STATUS [1949]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_IRQ_LINE_STATUS'>5</a></td>
+		<td>5</td>
+		<td><a href='/cover?call=ioctl%24KVM_IRQ_LINE_STATUS'>213</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_IRQ_LINE_STATUS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_KVMCLOCK_CTRL [1950]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_KVMCLOCK_CTRL'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_KVMCLOCK_CTRL'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_KVMCLOCK_CTRL'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_PPC_ALLOCATE_HTAB [1951]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_PPC_ALLOCATE_HTAB'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_PPC_ALLOCATE_HTAB'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_PPC_ALLOCATE_HTAB'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_PRE_FAULT_MEMORY [1952]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_PRE_FAULT_MEMORY'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_PRE_FAULT_MEMORY'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_PRE_FAULT_MEMORY'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_REGISTER_COALESCED_MMIO [1953]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_REGISTER_COALESCED_MMIO'>3</a></td>
+		<td>11</td>
+		<td><a href='/cover?call=ioctl%24KVM_REGISTER_COALESCED_MMIO'>376</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_REGISTER_COALESCED_MMIO'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_RESET_DIRTY_RINGS [1954]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_RESET_DIRTY_RINGS'>3</a></td>
+		<td>4</td>
+		<td><a href='/cover?call=ioctl%24KVM_RESET_DIRTY_RINGS'>183</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_RESET_DIRTY_RINGS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_RUN [1955]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_RUN'>124</a></td>
+		<td>160</td>
+		<td><a href='/cover?call=ioctl%24KVM_RUN'>5757</a></td>
+		<td>2740</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_RUN'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_S390_VCPU_FAULT [1956]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_S390_VCPU_FAULT'>0</a></td>
+		<td>0</td>
+		<td><a href='/cover?call=ioctl%24KVM_S390_VCPU_FAULT'>0</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_S390_VCPU_FAULT'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_DEVICE_ATTR [1957]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_DEVICE_ATTR'>61</a></td>
+		<td>113</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_DEVICE_ATTR'>1494</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_DEVICE_ATTR'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_DEVICE_ATTR_vcpu [1958]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_DEVICE_ATTR_vcpu'>25</a></td>
+		<td>50</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_DEVICE_ATTR_vcpu'>334</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_DEVICE_ATTR_vcpu'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_DEVICE_ATTR_vm [1959]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_DEVICE_ATTR_vm'>13</a></td>
+		<td>20</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_DEVICE_ATTR_vm'>422</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_DEVICE_ATTR_vm'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_GSI_ROUTING [1960]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_GSI_ROUTING'>12</a></td>
+		<td>16</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_GSI_ROUTING'>438</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_GSI_ROUTING'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_GUEST_DEBUG_arm64 [1961]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_GUEST_DEBUG_arm64'>5</a></td>
+		<td>10</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_GUEST_DEBUG_arm64'>252</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_GUEST_DEBUG_arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_MP_STATE [1962]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_MP_STATE'>5</a></td>
+		<td>7</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_MP_STATE'>260</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_MP_STATE'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_ONE_REG [1963]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_ONE_REG'>49</a></td>
+		<td>50</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_ONE_REG'>486</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_ONE_REG'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_REGS [1964]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_REGS'>2</a></td>
+		<td>3</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_REGS'>285</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_REGS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_SIGNAL_MASK [1965]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_SIGNAL_MASK'>2</a></td>
+		<td>2</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_SIGNAL_MASK'>143</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_SIGNAL_MASK'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_SREGS [1966]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_SREGS'>1</a></td>
+		<td>1</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_SREGS'>139</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_SREGS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_USER_MEMORY_REGION [1967]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_USER_MEMORY_REGION'>4</a></td>
+		<td>8</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_USER_MEMORY_REGION'>730</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_USER_MEMORY_REGION'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_USER_MEMORY_REGION2 [1968]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_USER_MEMORY_REGION2'>4</a></td>
+		<td>9</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_USER_MEMORY_REGION2'>358</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_USER_MEMORY_REGION2'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SET_VCPU_EVENTS [1969]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SET_VCPU_EVENTS'>7</a></td>
+		<td>9</td>
+		<td><a href='/cover?call=ioctl%24KVM_SET_VCPU_EVENTS'>288</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SET_VCPU_EVENTS'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_SIGNAL_MSI [1970]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_SIGNAL_MSI'>9</a></td>
+		<td>10</td>
+		<td><a href='/cover?call=ioctl%24KVM_SIGNAL_MSI'>376</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_SIGNAL_MSI'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>ioctl$KVM_UNREGISTER_COALESCED_MMIO [1971]</td>
+		<td><a href='/corpus?call=ioctl%24KVM_UNREGISTER_COALESCED_MMIO'>9</a></td>
+		<td>10</td>
+		<td><a href='/cover?call=ioctl%24KVM_UNREGISTER_COALESCED_MMIO'>267</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=ioctl%24KVM_UNREGISTER_COALESCED_MMIO'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>openat$kvm [4736]</td>
+		<td><a href='/corpus?call=openat%24kvm'>18</a></td>
+		<td>768</td>
+		<td><a href='/cover?call=openat%24kvm'>3043</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=openat%24kvm'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_add_vcpu$arm64 [7431]</td>
+		<td><a href='/corpus?call=syz_kvm_add_vcpu%24arm64'>6</a></td>
+		<td>257</td>
+		<td><a href='/cover?call=syz_kvm_add_vcpu%24arm64'>1583</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_add_vcpu%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_memslot_reject_delete$arm64 [7435]</td>
+		<td><a href='/corpus?call=syz_kvm_memslot_reject_delete%24arm64'>7</a></td>
+		<td>18</td>
+		<td><a href='/cover?call=syz_kvm_memslot_reject_delete%24arm64'>5956</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_memslot_reject_delete%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_memslot_reject_flags$arm64 [7436]</td>
+		<td><a href='/corpus?call=syz_kvm_memslot_reject_flags%24arm64'>3</a></td>
+		<td>5</td>
+		<td><a href='/cover?call=syz_kvm_memslot_reject_flags%24arm64'>2540</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_memslot_reject_flags%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_memslot_reject_move$arm64 [7437]</td>
+		<td><a href='/corpus?call=syz_kvm_memslot_reject_move%24arm64'>6</a></td>
+		<td>12</td>
+		<td><a href='/cover?call=syz_kvm_memslot_reject_move%24arm64'>5779</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_memslot_reject_move%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_pvm_info$arm64 [7438]</td>
+		<td><a href='/corpus?call=syz_kvm_pvm_info%24arm64'>3</a></td>
+		<td>6</td>
+		<td><a href='/cover?call=syz_kvm_pvm_info%24arm64'>2808</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_pvm_info%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_run_fw_fault$arm64 [7439]</td>
+		<td><a href='/corpus?call=syz_kvm_run_fw_fault%24arm64'>1</a></td>
+		<td>2</td>
+		<td><a href='/cover?call=syz_kvm_run_fw_fault%24arm64'>3233</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_run_fw_fault%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_run_fw_fault_gen$arm64 [7440]</td>
+		<td><a href='/corpus?call=syz_kvm_run_fw_fault_gen%24arm64'>12</a></td>
+		<td>20</td>
+		<td><a href='/cover?call=syz_kvm_run_fw_fault_gen%24arm64'>4248</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_run_fw_fault_gen%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_set_fw_ipa$arm64 [7441]</td>
+		<td><a href='/corpus?call=syz_kvm_set_fw_ipa%24arm64'>1</a></td>
+		<td>2</td>
+		<td><a href='/cover?call=syz_kvm_set_fw_ipa%24arm64'>2452</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_set_fw_ipa%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_set_fw_ipa_busy$arm64 [7442]</td>
+		<td><a href='/corpus?call=syz_kvm_set_fw_ipa_busy%24arm64'>4</a></td>
+		<td>12</td>
+		<td><a href='/cover?call=syz_kvm_set_fw_ipa_busy%24arm64'>5484</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_set_fw_ipa_busy%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_setup_cpu$arm64 [7443]</td>
+		<td><a href='/corpus?call=syz_kvm_setup_cpu%24arm64'>10</a></td>
+		<td>60</td>
+		<td><a href='/cover?call=syz_kvm_setup_cpu%24arm64'>2214</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_setup_cpu%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_setup_protected_vm$arm64 [7445]</td>
+		<td><a href='/corpus?call=syz_kvm_setup_protected_vm%24arm64'>3</a></td>
+		<td>151</td>
+		<td><a href='/cover?call=syz_kvm_setup_protected_vm%24arm64'>2209</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_setup_protected_vm%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_setup_syzos_vm$arm64 [7446]</td>
+		<td><a href='/corpus?call=syz_kvm_setup_syzos_vm%24arm64'>8</a></td>
+		<td>273</td>
+		<td><a href='/cover?call=syz_kvm_setup_syzos_vm%24arm64'>1436</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_setup_syzos_vm%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_vcpu_run_immediate$arm64 [7447]</td>
+		<td><a href='/corpus?call=syz_kvm_vcpu_run_immediate%24arm64'>10</a></td>
+		<td>19</td>
+		<td><a href='/cover?call=syz_kvm_vcpu_run_immediate%24arm64'>2331</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_vcpu_run_immediate%24arm64'>prio</a></td>
+	</tr>
+	
+	<tr>
+		<td>syz_kvm_vgic_v3_setup [7448]</td>
+		<td><a href='/corpus?call=syz_kvm_vgic_v3_setup'>13</a></td>
+		<td>179</td>
+		<td><a href='/cover?call=syz_kvm_vgic_v3_setup'>1178</a></td>
+		<td>0</td>
+		<td>0</td>
+		<td><a href='/prio?call=syz_kvm_vgic_v3_setup'>prio</a></td>
+	</tr>
+	
+	</tbody>
+</table>
+
+</body></html>

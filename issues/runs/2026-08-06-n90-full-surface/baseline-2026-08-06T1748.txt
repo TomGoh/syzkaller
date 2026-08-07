@@ -1,0 +1,60 @@
+# Baseline snapshot taken 2026-08-06 17:48 (+08), ~2h00m into the run,
+# immediately before leaving the campaign unattended overnight.
+# Purpose: make tomorrow morning's numbers a DELTA rather than an absolute.
+
+== manager ==
+2026/08/06 17:49:20 candidates=0 corpus=503 coverage=12956 exec total=27213 (226/min) pending=0 reproducing=0 
+crashes_dir_exists: no  (zero crashes in 2h)
+manager.log lines matching crash|WARNING|BUG:|panic|Oops: 0
+
+== board (10.42.27.17) ==
+Kylin V11
+ 17:49:27 up  3:10,  4 users,  load average: 1.20, 1.18, 1.12
+D_state_tasks: 0
+syz_executors: 3
+MemAvailable:   22262264 kB
+Mlocked:              92 kB
+dmesg WARNING|BUG:|Oops|Call trace count: 0
+
+== EL2 ring ==
+Kylin V11
+ring_pages          32
+ring_capacity_pcs   16381
+owner_cpu           0
+leaked_bytes        0
+
+# arm/skip
+begin_calls         932577701
+skip_not_owner      397
+skip_no_kcov        2049621
+drains              930527682
+
+# EL2 producer (per-#23, summed)
+el2_hits            89744262356
+el2_written         89744262356
+el2_dropped_ringful 0
+el2_nested_dropped  0
+el2_overflow_drains 0
+el2_hits_max        2213
+el2_written_max     2213
+LOST_IN_RING        0
+
+# runtime->link conversion
+link_ok             89744262356
+link_dropped        0
+
+# task KCOV delivery
+kcov_requested      89744262356
+kcov_accepted       1150108321
+kcov_mode_lost      0
+LOST_IN_KCOV_AREA   88594154035
+
+# per-#23 hit distribution (log2 buckets)
+hits_8_15 2158794
+hits_16_31 17147
+hits_32_63 236829988
+hits_64_127 346274366
+hits_128_255 345210901
+hits_256_511 20364
+hits_1024_2047 16076
+hits_2048_4095 46

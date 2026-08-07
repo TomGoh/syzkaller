@@ -1,0 +1,1579 @@
+last executing test programs:
+
+10.079913705s ago: executing program 0 (id=6488):
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000180), 0x0, 0x0)
+r2 = ioctl$KVM_CREATE_VM(r1, 0xae01, 0x0)
+r3 = ioctl$KVM_CREATE_VCPU(r2, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r2, r3, &(0x7f0000bfd000/0x400000)=nil, &(0x7f0000000500)=[{0x0, &(0x7f00000001c0)=[@hvc={0x32, 0x40, {0x8600ff01, [0xba, 0x5, 0x5, 0x2000000, 0x4]}}], 0x40}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_RUN(r3, 0xae80, 0x0)
+r4 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+syz_kvm_vgic_v3_setup(r4, 0x1, 0x100)
+ioctl$KVM_IRQ_LINE(r4, 0x4008ae61, &(0x7f0000000100)={0x1000020})
+r5 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000180), 0x40001, 0x0)
+syz_kvm_memslot_reject_delete$arm64(r5)
+syz_kvm_run_fw_fault_gen$arm64(r5, 0x0, 0x7fc00000, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r5, 0x0, 0x7fc00000, 0x1)
+syz_kvm_memslot_reject_flags$arm64(r5, 0x3)
+r6 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r7 = ioctl$KVM_CREATE_VM(r6, 0xae01, 0x0)
+r8 = ioctl$KVM_CREATE_VCPU(r7, 0xae41, 0x1)
+ioctl$KVM_ARM_VCPU_INIT(r8, 0x4020aeae, &(0x7f0000000080)={0x5, 0x1})
+ioctl$KVM_SET_ONE_REG(r8, 0x4010aeac, &(0x7f00000001c0)=@arm64_fw={0x6030000000140003, &(0x7f00000000c0)=0xfff})
+ioctl$KVM_RUN(r8, 0xae80, 0x0)
+
+56.122763ms ago: executing program 0 (id=6489):
+r0 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = ioctl$KVM_CREATE_VCPU(r1, 0xae41, 0x0)
+r3 = openat$kvm(0x0, &(0x7f0000000080), 0x0, 0x0)
+r4 = ioctl$KVM_CREATE_VM(r3, 0xae01, 0x0)
+r5 = ioctl$KVM_CREATE_VCPU(r4, 0xae41, 0x0)
+syz_kvm_setup_cpu$arm64(r4, r5, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000140)=[{0x0, 0x0, 0x80}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_GET_ONE_REG(r5, 0x4010aeab, &(0x7f0000000080)=@arm64_bitmap={0x6030000000160000, 0x0})
+ioctl$KVM_ARM_VCPU_INIT(r2, 0x4020aeae, &(0x7f00000000c0)={0x5, 0x8})
+ioctl$KVM_SET_DEVICE_ATTR_vcpu(r2, 0x4018aee1, &(0x7f0000000280)=@attr_pmu_filter={0x0, 0x0, 0x2, &(0x7f0000000240)={0x9, 0x8, 0x1}})
+ioctl$KVM_SET_DEVICE_ATTR_vcpu(r2, 0x4018aee1, &(0x7f0000000200)=@attr_pmu_filter={0x0, 0x0, 0x2, &(0x7f0000000180)={0x7, 0x7f}})
+
+55.955562ms ago: executing program 0 (id=6490):
+r0 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = openat$kvm(0xffffffffffffff9c, &(0x7f00000000c0), 0x200, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r2, 0x0, 0x7fc00000, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r2, 0x0, 0x7fc00000, 0x1)
+r3 = openat$kvm(0x0, &(0x7f0000000040), 0xa0041, 0x0)
+r4 = ioctl$KVM_CREATE_VM(r3, 0xae01, 0x0)
+r5 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000280), 0x400, 0x0)
+r6 = ioctl$KVM_CREATE_VM_PROTECTED(r5, 0xae01, 0x80000062)
+r7 = openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+r8 = ioctl$KVM_CREATE_VM(r7, 0xae01, 0x0)
+r9 = syz_kvm_setup_syzos_vm$arm64(r8, &(0x7f0000c00000/0x400000)=nil)
+r10 = syz_kvm_add_vcpu$arm64(r9, &(0x7f0000000080)={0x0, 0x0}, &(0x7f0000000100)=[@featur1={0x1, 0x8}], 0x1)
+syz_kvm_vgic_v3_setup(r8, 0xfffffffffffffffe, 0x0)
+ioctl$KVM_SET_DEVICE_ATTR_vcpu(r10, 0x4018aee1, &(0x7f0000000140)=@attr_pmu_irq={0x0, 0x0, 0x0, 0x0})
+ioctl$KVM_IRQFD(r6, 0x4020ae76, &(0x7f0000000940)={0xffffffffffffffff, 0xfa5, 0x1})
+r11 = ioctl$KVM_CREATE_VCPU(r4, 0xae41, 0x1)
+syz_kvm_setup_cpu$arm64(r4, r11, &(0x7f0000e8a000/0x18000)=nil, &(0x7f0000000140)=[{0x0, 0x0}], 0x1, 0x0, 0x0, 0x0)
+ioctl$KVM_SET_ONE_REG(r11, 0x4010aeac, &(0x7f0000000200)=@arm64_ccsidr={0x6020000000110007, &(0x7f00000001c0)=0x80})
+r12 = syz_kvm_setup_syzos_vm$arm64(r1, &(0x7f0000c00000/0x400000)=nil)
+r13 = syz_kvm_add_vcpu$arm64(r12, &(0x7f0000000080)={0x0, 0x0}, 0x0, 0x0)
+ioctl$KVM_RUN(r13, 0xae80, 0x0)
+r14 = openat$kvm(0xffffffffffffff9c, &(0x7f00000001c0), 0x40, 0x0)
+r15 = ioctl$KVM_CREATE_VM(r14, 0xae01, 0x18)
+ioctl$KVM_SET_DEVICE_ATTR_vm(r15, 0x4018aee1, &(0x7f0000000700)=@attr_other={0x0, 0x401, 0xf233, 0x0})
+r16 = openat$kvm(0xffffffffffffff9c, &(0x7f00000006c0), 0x20000, 0x0)
+syz_kvm_memslot_reject_delete$arm64(r16)
+ioctl$KVM_CREATE_DEVICE(r5, 0xc00caee0, &(0x7f0000000000)={0x4, <r17=>0xffffffffffffffff})
+ioctl$KVM_SET_DEVICE_ATTR(r17, 0x4018aee1, &(0x7f0000000100)=@attr_riscv64=@attr_config={0x0, 0x1, 0x0, &(0x7f00000000c0)})
+
+54.799069ms ago: executing program 0 (id=6491):
+r0 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000180), 0x40001, 0x0)
+syz_kvm_memslot_reject_delete$arm64(r0)
+syz_kvm_run_fw_fault_gen$arm64(r0, 0x0, 0x7fc00000, 0x0)
+r1 = openat$kvm(0xffffffffffffff9c, &(0x7f00000000c0), 0x180, 0x0)
+ioctl$KVM_GET_API_VERSION(0xffffffffffffffff, 0xae00, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r1, 0x0, 0x7fc00000, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r0, 0x0, 0x7fc00000, 0x1)
+
+161.601µs ago: executing program 0 (id=6492):
+r0 = ioctl$KVM_CREATE_VM_PROTECTED(0xffffffffffffffff, 0xae01, 0x8000007c)
+ioctl$KVM_SET_GSI_ROUTING(r0, 0x4008ae6a, &(0x7f0000000000)={0x2, 0x0, [{0x6, 0x1, 0x0, 0x0, @sint={0x2, 0xd7f9}}, {0x2, 0x1, 0x0, 0x0, @adapter={0x8, 0x3, 0x2, 0xb8, 0xff}}]})
+ioctl$KVM_CHECK_EXTENSION_VM(r0, 0xae03, 0x0)
+r1 = eventfd2(0xb4, 0x1)
+ioctl$KVM_IOEVENTFD(r0, 0x4040ae79, &(0x7f0000000080)={0x200, 0x9000, 0x0, r1})
+syz_kvm_memslot_reject_delete$arm64(0xffffffffffffffff)
+r2 = openat$kvm(0xffffffffffffff9c, &(0x7f00000000c0), 0x2003, 0x0)
+syz_kvm_memslot_reject_delete$arm64(r2)
+r3 = eventfd2(0x400, 0x801)
+ioctl$KVM_IRQFD(r0, 0x4020ae76, &(0x7f0000000100)={r1, 0x1, 0x3, r3})
+r4 = syz_kvm_setup_protected_vm$arm64(r2, 0x1139b4c8012e752b)
+r5 = eventfd2(0xe94, 0x800)
+ioctl$KVM_IRQFD(r4, 0x4020ae76, &(0x7f0000000140)={r3, 0x613, 0x0, r5})
+ioctl$KVM_IRQFD(r0, 0x4020ae76, &(0x7f0000000180)={r5, 0x7f, 0x3, r3})
+ioctl$KVM_CLEAR_DIRTY_LOG(r0, 0xc018aec0, &(0x7f00000005c0)={0x1, 0x180, 0x2c0, &(0x7f00000001c0)=[0xc, 0x3, 0x5, 0xfffffffffffffffc, 0x0, 0xffffffffffffffff, 0x5423, 0xe04, 0x7, 0x4, 0x0, 0x1, 0x9, 0x5, 0x1, 0x3, 0x1, 0x9, 0x9, 0x4, 0xffffffff, 0x0, 0x4, 0x4, 0x6, 0x80000000, 0x100000001, 0x4, 0x3ff, 0x9, 0x0, 0x3, 0xff, 0x5, 0x5, 0x2, 0x907, 0xd, 0x7, 0x8, 0x3ff, 0x80, 0x13, 0x5, 0x10, 0x4, 0xd, 0xbe81, 0xffffffff, 0x5, 0x0, 0xffffffffffffff81, 0xac1, 0x8001, 0xcd78, 0xbba3, 0xa, 0x3, 0xc44, 0x7f, 0x9, 0x1, 0x5eeb, 0x3, 0x1ff, 0xc48, 0xfffffffffffffff9, 0x667, 0x1ff, 0x8ba, 0x5, 0x6, 0x9, 0x8001, 0x6, 0x4, 0x7, 0x4, 0x3, 0x0, 0x200, 0xa27, 0x8, 0x2, 0x4f, 0x591, 0x7, 0x0, 0xffffffffffff5d4f, 0x10000, 0x8, 0x101, 0x0, 0x8, 0x0, 0x28, 0x200, 0x100000000, 0x5, 0x60, 0x0, 0x3, 0x3, 0x2, 0xd9a, 0x8, 0x8, 0x1, 0x7c, 0x2, 0x4, 0x4, 0x8000000000000001, 0x7fff, 0x1, 0xff, 0x7, 0x5, 0x77d03394, 0x7, 0x0, 0x7ff, 0xffffffffffffffce, 0x17, 0x9, 0x52cd, 0x7, 0x80d]})
+r6 = ioctl$KVM_CREATE_VCPU_protected(r4, 0xae41, 0x0)
+ioctl$KVM_CHECK_EXTENSION(0xffffffffffffffff, 0xae03, 0x5)
+ioctl$KVM_GET_DIRTY_LOG(r0, 0x4010ae42, &(0x7f0000000600)={0x4, 0x0, &(0x7f0000ffc000/0x2000)=nil})
+r7 = syz_kvm_setup_protected_vm$arm64(r2, 0x20)
+ioctl$KVM_SET_DEVICE_ATTR_vm(r7, 0x4018aee1, &(0x7f0000000680)=@attr_arm64={0x0, 0x0, 0x0, &(0x7f0000000640)={0x3, 0x5, 0x2}})
+ioctl$KVM_CREATE_VCPU(r4, 0xae41, 0x0)
+syz_kvm_setup_syzos_vm$arm64(r4, &(0x7f0000c00000/0x400000)=nil)
+r8 = ioctl$KVM_CREATE_GUEST_MEMFD(r0, 0xc040aed4, &(0x7f00000006c0)={0x7ff, 0x8})
+ioctl$KVM_SET_USER_MEMORY_REGION2(r0, 0x40a0ae49, &(0x7f0000000700)={0x2710, 0x4, 0x100000, 0x1000, &(0x7f0000ffd000/0x1000)=nil, 0x1, r8})
+ioctl$KVM_CREATE_VM_PROTECTED(r2, 0xae01, 0x800000ba)
+r9 = ioctl$KVM_GET_STATS_FD_cpu(r6, 0xaece)
+syz_kvm_pvm_info$arm64(r9)
+ioctl$KVM_GET_DEVICE_ATTR_vm(r4, 0x4018aee2, &(0x7f0000000800)=@attr_arm64={0x0, 0x0, 0x0, &(0x7f00000007c0)={0x5, 0x200, 0x1}})
+syz_kvm_memslot_reject_move$arm64(r2)
+ioctl$KVM_GET_VCPU_MMAP_SIZE(r9, 0xae04)
+
+0s ago: executing program 0 (id=6493):
+r0 = openat$kvm(0x0, &(0x7f0000000240), 0x125100, 0x0)
+r1 = ioctl$KVM_CREATE_VM(r0, 0xae01, 0x0)
+r2 = syz_kvm_setup_syzos_vm$arm64(r1, &(0x7f0000c00000/0x400000)=nil)
+r3 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000040), 0x42000, 0x0)
+r4 = ioctl$KVM_CREATE_VM(r3, 0xae01, 0x2e)
+r5 = ioctl$KVM_CREATE_VCPU_protected(r4, 0xae41, 0x1)
+ioctl$KVM_SET_MP_STATE(r5, 0x4004ae99, &(0x7f0000000700)=0xa)
+r6 = syz_kvm_add_vcpu$arm64(r2, &(0x7f00000000c0)={0x0, &(0x7f0000000100)=[@its_setup={0x82, 0x28, {0x1, 0x1, 0x1}}, @its_send_cmd={0xaa, 0x28, {0xe}}], 0x50}, 0x0, 0x0)
+syz_kvm_vgic_v3_setup(r1, 0x1, 0x100)
+ioctl$KVM_CREATE_DEVICE(r1, 0xc00caee0, &(0x7f0000000180)={0x8, <r7=>0xffffffffffffffff})
+ioctl$KVM_SET_DEVICE_ATTR(r7, 0x4018aee1, &(0x7f00000001c0)=@attr_arm64={0x0, 0x0, 0x4, &(0x7f0000000200)=0x8080000})
+ioctl$KVM_RUN(r6, 0xae80, 0x0)
+r8 = openat$kvm(0xffffffffffffff9c, &(0x7f00000003c0), 0x80000, 0x0)
+r9 = syz_kvm_setup_protected_vm$arm64(r8, 0x20)
+r10 = syz_kvm_vgic_v3_setup(r9, 0x3, 0x1a0)
+ioctl$KVM_SET_DEVICE_ATTR(r10, 0x4018aee1, &(0x7f0000000000)=@attr_arm64={0x0, 0x4, 0x4, &(0x7f0000000280)=0xffffffffffff7fff})
+openat$kvm(0x0, &(0x7f0000000040), 0x0, 0x0)
+ioctl$KVM_CREATE_VM(r0, 0xae01, 0xfffffffffffffffe)
+r11 = syz_kvm_setup_syzos_vm$arm64(r4, &(0x7f0000bfe000/0x400000)=nil)
+r12 = syz_kvm_add_vcpu$arm64(r11, &(0x7f0000000080)={0x0, 0x0}, 0x0, 0x0)
+ioctl$KVM_SET_DEVICE_ATTR_vcpu(r12, 0x4018aee1, 0x0)
+ioctl$KVM_RUN(r12, 0xae80, 0x0)
+syz_kvm_setup_protected_vm$arm64(0xffffffffffffffff, 0x0)
+r13 = openat$kvm(0xffffffffffffff9c, &(0x7f0000000000), 0x8400, 0x0)
+r14 = openat$kvm(0xffffffffffffff9c, &(0x7f00000000c0), 0x41, 0x0)
+syz_kvm_run_fw_fault_gen$arm64(r14, 0x0, 0x7fc00000, 0x1)
+syz_kvm_memslot_reject_delete$arm64(r13)
+syz_kvm_memslot_reject_delete$arm64(r13)
+r15 = openat$kvm(0xffffffffffffff9c, &(0x7f00000006c0), 0x20000, 0x0)
+syz_kvm_memslot_reject_delete$arm64(r15)
+
+kernel console output (not intermixed with test programs):
+
+Setting up swapspace version 1, size = 122.1 MiB (127995904 bytes)
+no label, UUID=b6e1082b-5862-4074-9aa6-f7ba9a7c1de5
+[47492.223824] Adding 124996k swap on ./swap-file.  Priority:0 extents:1 across:124996k SS
+[47492.460909] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[47492.460974] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[47492.461100] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[47492.461476] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[47492.461622] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[47492.461991] Bluetooth: MGMT ver 1.22
+[47492.510772] chnl_net:caif_netlink_parms(): no params data found
+[47492.518283] bridge0: port 1(bridge_slave_0) entered blocking state
+[47492.518296] bridge0: port 1(bridge_slave_0) entered disabled state
+[47492.518328] bridge_slave_0: entered allmulticast mode
+[47492.518428] bridge_slave_0: entered promiscuous mode
+[47492.518700] bridge0: port 2(bridge_slave_1) entered blocking state
+[47492.518709] bridge0: port 2(bridge_slave_1) entered disabled state
+[47492.518738] bridge_slave_1: entered allmulticast mode
+[47492.518839] bridge_slave_1: entered promiscuous mode
+[47492.520531] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[47492.520800] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[47492.522434] team0: Port device team_slave_0 added
+[47492.522659] team0: Port device team_slave_1 added
+[47492.523928] batman_adv: batadv0: Adding interface: batadv_slave_0
+[47492.523936] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[47492.523946] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[47492.524034] batman_adv: batadv0: Adding interface: batadv_slave_1
+[47492.524040] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[47492.524048] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[47492.554645] hsr_slave_0: entered promiscuous mode
+[47492.570426] hsr_slave_1: entered promiscuous mode
+[47492.603191] bridge0: port 2(bridge_slave_1) entered blocking state
+[47492.603207] bridge0: port 2(bridge_slave_1) entered forwarding state
+[47492.603230] bridge0: port 1(bridge_slave_0) entered blocking state
+[47492.603237] bridge0: port 1(bridge_slave_0) entered forwarding state
+[47492.620463] 8021q: adding VLAN 0 to HW filter on device bond0
+[47492.621133] bridge0: port 1(bridge_slave_0) entered disabled state
+[47492.621313] bridge0: port 2(bridge_slave_1) entered disabled state
+[47492.622351] 8021q: adding VLAN 0 to HW filter on device team0
+[47492.622932] bridge0: port 1(bridge_slave_0) entered blocking state
+[47492.622942] bridge0: port 1(bridge_slave_0) entered forwarding state
+[47492.623381] bridge0: port 2(bridge_slave_1) entered blocking state
+[47492.623391] bridge0: port 2(bridge_slave_1) entered forwarding state
+[47492.668965] 8021q: adding VLAN 0 to HW filter on device batadv0
+[47492.689640] veth0_vlan: entered promiscuous mode
+[47492.690034] veth1_vlan: entered promiscuous mode
+[47492.691437] veth0_macvtap: entered promiscuous mode
+[47492.691690] veth1_macvtap: entered promiscuous mode
+[47492.692535] batman_adv: batadv0: Interface activated: batadv_slave_0
+[47492.693098] batman_adv: batadv0: Interface activated: batadv_slave_1
+[47494.482257] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[47494.482267] Bluetooth: hci1: command tx timeout
+[47496.498256] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47496.498258] Bluetooth: hci1: command tx timeout
+[47498.510272] Bluetooth: hci1: command tx timeout
+[47498.514255] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47500.526273] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47500.526308] Bluetooth: hci1: command 0x0419 tx timeout
+[47502.542265] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47502.546287] Bluetooth: hci1: command 0x0419 tx timeout
+[47502.546303] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47504.558347] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47504.558350] Bluetooth: hci1: command 0x0419 tx timeout
+[47506.574272] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47506.574333] Bluetooth: hci1: command 0x0419 tx timeout
+[47508.590274] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47508.590275] Bluetooth: hci1: command 0x0419 tx timeout
+[47510.606277] Bluetooth: hci1: command 0x0419 tx timeout
+[47510.606300] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47512.626278] Bluetooth: hci1: command 0x0419 tx timeout
+[47512.626281] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47514.638337] Bluetooth: hci1: command 0x0419 tx timeout
+[47514.638337] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47516.654279] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47516.654301] Bluetooth: hci1: command 0x0419 tx timeout
+[47518.670337] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[47518.670361] Bluetooth: hci1: command 0x0419 tx timeout
+[47520.690289] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47520.690289] Bluetooth: hci1: command 0x0419 tx timeout
+[47522.702287] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[47522.702297] Bluetooth: hci1: command 0x0419 tx timeout
+[47524.718289] Bluetooth: hci1: command 0x0419 tx timeout
+[47526.734349] Bluetooth: hci1: command 0x0419 tx timeout
+[47528.750361] Bluetooth: hci1: command 0x0419 tx timeout
+[47530.770307] Bluetooth: hci1: command 0x0419 tx timeout
+[47532.786303] Bluetooth: hci1: command 0x0419 tx timeout
+[47533.891478] KVM: debugfs: duplicate directory 438912-6
+[47534.802409] Bluetooth: hci1: command 0x0419 tx timeout
+[47554.249618] KVM: debugfs: duplicate directory 439123-9
+[47554.250086] KVM: debugfs: duplicate directory 439123-9
+[47615.374498] Bluetooth: hci1: command 0x0419 tx timeout
+[47617.774526] Bluetooth: hci1: command 0x0419 tx timeout
+[47637.254641] irq bypass consumer (token 0000000073e8a730) registration fails: -16
+[47657.860870] KVM: debugfs: duplicate directory 439437-7
+[47668.379563] KVM: debugfs: duplicate directory 439473-13
+[47678.664762] KVM: debugfs: duplicate directory 439510-6
+[47689.049202] KVM: debugfs: duplicate directory 439538-13
+[47689.541936] KVM: debugfs: duplicate directory 439555-9
+[47700.151919] irq bypass consumer (token 000000001f11ec51) registration fails: -16
+[47700.229013] KVM: debugfs: duplicate directory 439603-6
+[47710.304317] KVM: debugfs: duplicate directory 439623-6
+[47710.351135] KVM: debugfs: duplicate directory 439625-6
+[47720.436773] KVM: debugfs: duplicate directory 439641-6
+[47730.546366] KVM: debugfs: duplicate directory 439658-6
+[47740.657869] KVM: debugfs: duplicate directory 439675-13
+[47771.163836] KVM: debugfs: duplicate directory 439736-6
+[47781.556232] KVM: debugfs: duplicate directory 439932-11
+[47822.470839] KVM: debugfs: duplicate directory 440074-13
+[47843.049190] KVM: debugfs: duplicate directory 440129-6
+[47843.139152] KVM: debugfs: duplicate directory 440133-6
+[47863.606693] KVM: debugfs: duplicate directory 440172-11
+[47914.863868] irq bypass consumer (token 0000000084d98da9) registration fails: -16
+[47925.097296] KVM: debugfs: duplicate directory 440303-15
+[47925.097735] KVM: debugfs: duplicate directory 440303-15
+[47945.203359] KVM: debugfs: duplicate directory 440334-4
+[47945.637572] irq bypass consumer (token 00000000db9f587e) registration fails: -16
+[47966.541745] KVM: debugfs: duplicate directory 440408-4
+[47997.524002] KVM: debugfs: duplicate directory 440487-9
+[47997.649255] KVM: debugfs: duplicate directory 440493-6
+[47997.714150] KVM: debugfs: duplicate directory 440496-6
+[47997.810365] KVM: debugfs: duplicate directory 440500-6
+[47997.953120] KVM: debugfs: duplicate directory 440504-6
+[48059.068073] KVM: debugfs: duplicate directory 444248-16
+[48079.821380] Bluetooth: hci2: unexpected cc 0x0c03 length: 249 > 1
+[48079.821489] Bluetooth: hci2: unexpected cc 0x1003 length: 249 > 9
+[48079.821621] Bluetooth: hci2: unexpected cc 0x1001 length: 249 > 9
+[48079.821968] Bluetooth: hci2: unexpected cc 0x0c23 length: 249 > 4
+[48079.822027] Bluetooth: hci2: unexpected cc 0x0c38 length: 249 > 2
+[48079.822478] Bluetooth: MGMT ver 1.22
+[48079.859969] chnl_net:caif_netlink_parms(): no params data found
+[48079.866134] bridge0: port 1(bridge_slave_0) entered blocking state
+[48079.866144] bridge0: port 1(bridge_slave_0) entered disabled state
+[48079.866164] bridge_slave_0: entered allmulticast mode
+[48079.866255] bridge_slave_0: entered promiscuous mode
+[48079.866452] bridge0: port 2(bridge_slave_1) entered blocking state
+[48079.866459] bridge0: port 2(bridge_slave_1) entered disabled state
+[48079.866478] bridge_slave_1: entered allmulticast mode
+[48079.866563] bridge_slave_1: entered promiscuous mode
+[48079.868051] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[48079.868259] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[48079.869521] team0: Port device team_slave_0 added
+[48079.869673] team0: Port device team_slave_1 added
+[48079.870942] batman_adv: batadv0: Adding interface: batadv_slave_0
+[48079.870949] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[48079.870958] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[48079.871042] batman_adv: batadv0: Adding interface: batadv_slave_1
+[48079.871047] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[48079.871056] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[48079.911499] hsr_slave_0: entered promiscuous mode
+[48079.955013] hsr_slave_1: entered promiscuous mode
+[48079.978838] debugfs: Directory 'hsr0' with parent 'hsr' already present!
+[48079.978860] Cannot create hsr debugfs directory
+[48079.990042] bridge0: port 2(bridge_slave_1) entered blocking state
+[48079.990056] bridge0: port 2(bridge_slave_1) entered forwarding state
+[48079.990078] bridge0: port 1(bridge_slave_0) entered blocking state
+[48079.990085] bridge0: port 1(bridge_slave_0) entered forwarding state
+[48080.008922] 8021q: adding VLAN 0 to HW filter on device bond0
+[48080.009623] bridge0: port 1(bridge_slave_0) entered disabled state
+[48080.009869] bridge0: port 2(bridge_slave_1) entered disabled state
+[48080.011152] 8021q: adding VLAN 0 to HW filter on device team0
+[48080.011703] bridge0: port 1(bridge_slave_0) entered blocking state
+[48080.011711] bridge0: port 1(bridge_slave_0) entered forwarding state
+[48080.175423] bridge0: port 2(bridge_slave_1) entered blocking state
+[48080.175437] bridge0: port 2(bridge_slave_1) entered forwarding state
+[48080.221508] 8021q: adding VLAN 0 to HW filter on device batadv0
+[48080.245333] veth0_vlan: entered promiscuous mode
+[48080.245840] veth1_vlan: entered promiscuous mode
+[48080.247789] veth0_macvtap: entered promiscuous mode
+[48080.248091] veth1_macvtap: entered promiscuous mode
+[48080.248833] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[48080.248842] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[48080.249001] batman_adv: batadv0: Interface activated: batadv_slave_0
+[48080.249410] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[48080.249417] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[48080.249558] batman_adv: batadv0: Interface activated: batadv_slave_1
+[48080.575175] hsr_slave_0: left promiscuous mode
+[48080.622811] hsr_slave_1: left promiscuous mode
+[48080.670776] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[48080.670799] batman_adv: batadv0: Removing interface: batadv_slave_0
+[48080.670973] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[48080.670981] batman_adv: batadv0: Removing interface: batadv_slave_1
+[48080.671082] bridge_slave_1: left allmulticast mode
+[48080.671091] bridge_slave_1: left promiscuous mode
+[48080.671131] bridge0: port 2(bridge_slave_1) entered disabled state
+[48080.702934] bridge_slave_0: left allmulticast mode
+[48080.702948] bridge_slave_0: left promiscuous mode
+[48080.702989] bridge0: port 1(bridge_slave_0) entered disabled state
+[48080.786776] veth1_macvtap: left promiscuous mode
+[48080.786804] veth0_macvtap: left promiscuous mode
+[48080.786822] veth1_vlan: left promiscuous mode
+[48080.786837] veth0_vlan: left promiscuous mode
+[48080.799624] team0 (unregistering): Port device team_slave_1 removed
+[48080.800090] team0 (unregistering): Port device team_slave_0 removed
+[48080.800525] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[48080.820105] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[48080.846178] bond0 (unregistering): Released all slaves
+[48081.842827] Bluetooth: hci2: command tx timeout
+[48083.854819] Bluetooth: hci2: command tx timeout
+[48085.870819] Bluetooth: hci2: command tx timeout
+[48087.886819] Bluetooth: hci2: command tx timeout
+[48089.902975] Bluetooth: hci2: command tx timeout
+[48091.922780] Bluetooth: hci2: command tx timeout
+[48110.968411] KVM: debugfs: duplicate directory 447403-7
+[48152.048570] KVM: debugfs: duplicate directory 447795-10
+[48172.607047] KVM: debugfs: duplicate directory 447856-17
+[48203.150883] Bluetooth: hci2: command 0x0406 tx timeout
+[48203.525626] KVM: debugfs: duplicate directory 447928-6
+[48205.486839] Bluetooth: hci2: command 0x0406 tx timeout
+[48213.762549] KVM: debugfs: duplicate directory 447986-4
+[48213.807521] KVM: debugfs: duplicate directory 447988-4
+[48213.807876] KVM: debugfs: duplicate directory 447988-4
+[48214.089392] KVM: debugfs: duplicate directory 447995-13
+[48224.258796] KVM: debugfs: duplicate directory 448011-6
+[48285.293978] KVM: debugfs: duplicate directory 448127-5
+[48285.365174] KVM: debugfs: duplicate directory 448131-5
+[48285.458185] KVM: debugfs: duplicate directory 448135-5
+[48285.556356] KVM: debugfs: duplicate directory 448139-5
+[48296.499440] KVM: debugfs: duplicate directory 448179-19
+[48317.203920] KVM: debugfs: duplicate directory 448240-6
+[48317.360567] KVM: debugfs: duplicate directory 448248-6
+[48337.897965] KVM: debugfs: duplicate directory 448298-6
+[48338.053771] KVM: debugfs: duplicate directory 448306-6
+[48338.090665] KVM: debugfs: duplicate directory 448308-13
+[48348.434454] KVM: debugfs: duplicate directory 448339-5
+[48368.903570] KVM: debugfs: duplicate directory 448387-6
+[48409.849345] KVM: debugfs: duplicate directory 448630-6
+[48441.572514] KVM: debugfs: duplicate directory 448738-10
+[48462.097374] KVM: debugfs: duplicate directory 448774-13
+[48462.189242] KVM: debugfs: duplicate directory 448774-13
+[48462.269290] KVM: debugfs: duplicate directory 448779-7
+[48462.271996] KVM: debugfs: duplicate directory 448779-11
+[48472.571737] KVM: debugfs: duplicate directory 448803-10
+[48472.856586] KVM: debugfs: duplicate directory 448817-12
+[48483.280728] KVM: debugfs: duplicate directory 448849-17
+[48514.264451] KVM: debugfs: duplicate directory 448928-10
+[48545.869424] KVM: debugfs: duplicate directory 449041-5
+[48546.212628] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[48546.212674] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[48546.212706] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[48546.212797] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[48546.212851] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[48546.213240] Bluetooth: MGMT ver 1.22
+[48546.256321] chnl_net:caif_netlink_parms(): no params data found
+[48546.262361] bridge0: port 1(bridge_slave_0) entered blocking state
+[48546.262372] bridge0: port 1(bridge_slave_0) entered disabled state
+[48546.262402] bridge_slave_0: entered allmulticast mode
+[48546.262499] bridge_slave_0: entered promiscuous mode
+[48546.262735] bridge0: port 2(bridge_slave_1) entered blocking state
+[48546.262743] bridge0: port 2(bridge_slave_1) entered disabled state
+[48546.262770] bridge_slave_1: entered allmulticast mode
+[48546.262856] bridge_slave_1: entered promiscuous mode
+[48546.264316] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[48546.264526] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[48546.265739] team0: Port device team_slave_0 added
+[48546.265895] team0: Port device team_slave_1 added
+[48546.267228] batman_adv: batadv0: Adding interface: batadv_slave_0
+[48546.267237] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[48546.267247] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[48546.267344] batman_adv: batadv0: Adding interface: batadv_slave_1
+[48546.267349] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[48546.267358] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[48546.294621] hsr_slave_0: entered promiscuous mode
+[48546.318344] hsr_slave_1: entered promiscuous mode
+[48546.352222] bridge0: port 2(bridge_slave_1) entered blocking state
+[48546.352249] bridge0: port 2(bridge_slave_1) entered forwarding state
+[48546.352279] bridge0: port 1(bridge_slave_0) entered blocking state
+[48546.352288] bridge0: port 1(bridge_slave_0) entered forwarding state
+[48546.368562] 8021q: adding VLAN 0 to HW filter on device bond0
+[48546.369251] bridge0: port 1(bridge_slave_0) entered disabled state
+[48546.369427] bridge0: port 2(bridge_slave_1) entered disabled state
+[48546.370400] 8021q: adding VLAN 0 to HW filter on device team0
+[48546.371333] bridge0: port 1(bridge_slave_0) entered blocking state
+[48546.371343] bridge0: port 1(bridge_slave_0) entered forwarding state
+[48546.371831] bridge0: port 2(bridge_slave_1) entered blocking state
+[48546.371839] bridge0: port 2(bridge_slave_1) entered forwarding state
+[48546.571532] 8021q: adding VLAN 0 to HW filter on device batadv0
+[48546.594318] veth0_vlan: entered promiscuous mode
+[48546.594706] veth1_vlan: entered promiscuous mode
+[48546.596009] veth0_macvtap: entered promiscuous mode
+[48546.596267] veth1_macvtap: entered promiscuous mode
+[48546.596917] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[48546.596925] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[48546.597060] batman_adv: batadv0: Interface activated: batadv_slave_0
+[48546.597430] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[48546.597437] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[48546.597565] batman_adv: batadv0: Interface activated: batadv_slave_1
+[48546.878524] hsr_slave_0: left promiscuous mode
+[48546.894321] hsr_slave_1: left promiscuous mode
+[48546.966216] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[48546.966234] batman_adv: batadv0: Removing interface: batadv_slave_0
+[48546.966322] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[48546.966327] batman_adv: batadv0: Removing interface: batadv_slave_1
+[48546.966396] bridge_slave_1: left allmulticast mode
+[48546.966401] bridge_slave_1: left promiscuous mode
+[48546.966428] bridge0: port 2(bridge_slave_1) entered disabled state
+[48546.986321] bridge_slave_0: left allmulticast mode
+[48546.986330] bridge_slave_0: left promiscuous mode
+[48546.986365] bridge0: port 1(bridge_slave_0) entered disabled state
+[48547.070219] veth1_macvtap: left promiscuous mode
+[48547.070236] veth0_macvtap: left promiscuous mode
+[48547.070250] veth1_vlan: left promiscuous mode
+[48547.070263] veth0_vlan: left promiscuous mode
+[48547.079554] team0 (unregistering): Port device team_slave_1 removed
+[48547.079876] team0 (unregistering): Port device team_slave_0 removed
+[48547.080189] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[48547.099518] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[48547.133289] bond0 (unregistering): Released all slaves
+[48548.238268] Bluetooth: hci1: command tx timeout
+[48548.238322] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[48550.254321] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48550.254346] Bluetooth: hci1: command 0x041b tx timeout
+[48552.270197] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48552.270237] Bluetooth: hci1: command 0x041b tx timeout
+[48554.286281] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48554.286332] Bluetooth: hci1: command 0x041b tx timeout
+[48556.302237] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48556.302262] Bluetooth: hci1: command 0x041b tx timeout
+[48558.318233] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48558.318254] Bluetooth: hci1: command 0x041b tx timeout
+[48560.334217] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48560.334241] Bluetooth: hci1: command 0x041b tx timeout
+[48562.350163] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48562.350259] Bluetooth: hci1: command 0x041b tx timeout
+[48564.366276] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48564.366302] Bluetooth: hci1: command 0x041b tx timeout
+[48566.382276] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48566.382301] Bluetooth: hci1: command 0x041b tx timeout
+[48568.398217] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48568.398238] Bluetooth: hci1: command 0x041b tx timeout
+[48570.414257] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48570.414279] Bluetooth: hci1: command 0x041b tx timeout
+[48572.430180] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48572.430203] Bluetooth: hci1: command 0x041b tx timeout
+[48574.446223] Bluetooth: hci1: command 0x041b tx timeout
+[48574.446223] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[48576.462121] Bluetooth: hci1: command 0x041b tx timeout
+[48576.462121] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48578.478157] Bluetooth: hci1: command 0x041b tx timeout
+[48578.478157] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[48580.494251] Bluetooth: hci1: command 0x041b tx timeout
+[48582.510143] Bluetooth: hci1: command 0x041b tx timeout
+[48584.526088] Bluetooth: hci1: command 0x041b tx timeout
+[48586.542186] Bluetooth: hci1: command 0x041b tx timeout
+[48588.558084] Bluetooth: hci1: command 0x041b tx timeout
+[48588.656988] KVM: debugfs: duplicate directory 449285-6
+[48590.574117] Bluetooth: hci1: command 0x041b tx timeout
+[48629.303462] KVM: debugfs: duplicate directory 449367-11
+[48649.959773] KVM: debugfs: duplicate directory 449423-7
+[48670.093923] Bluetooth: hci1: command 0x041b tx timeout
+[48672.493823] Bluetooth: hci1: command 0x041b tx timeout
+[48700.675323] KVM: debugfs: duplicate directory 449833-6
+[48731.424089] KVM: debugfs: duplicate directory 450068-6
+[48782.894051] KVM: debugfs: duplicate directory 450486-14
+[48803.482569] KVM: debugfs: duplicate directory 450532-6
+[48813.669651] KVM: debugfs: duplicate directory 450555-16
+[48834.667979] KVM: debugfs: duplicate directory 450610-8
+[48834.728688] KVM: debugfs: duplicate directory 450613-4
+[48875.803644] KVM: debugfs: duplicate directory 450706-10
+[48886.278341] KVM: debugfs: duplicate directory 450748-6
+[48886.527112] KVM: debugfs: duplicate directory 450760-12
+[48886.527458] KVM: debugfs: duplicate directory 450760-12
+[48906.931806] KVM: debugfs: duplicate directory 450805-7
+[48906.985004] KVM: debugfs: duplicate directory 450807-6
+[48917.347170] KVM: debugfs: duplicate directory 450835-9
+[48917.435410] KVM: debugfs: duplicate directory 450840-11
+[48917.436197] KVM: debugfs: duplicate directory 450840-11
+[48917.911109] KVM: debugfs: duplicate directory 450858-6
+[48948.744131] KVM: debugfs: duplicate directory 450934-12
+[48959.451606] irq bypass consumer (token 000000009d1c9a1b) registration fails: -16
+[48969.913683] KVM: debugfs: duplicate directory 450986-12
+[49030.777988] KVM: debugfs: duplicate directory 451091-6
+[49062.682968] KVM: debugfs: duplicate directory 451362-10
+[49062.821178] irq bypass consumer (token 000000005316a755) registration fails: -16
+[49083.290448] Bluetooth: hci2: unexpected cc 0x0c03 length: 249 > 1
+[49083.290496] Bluetooth: hci2: unexpected cc 0x1003 length: 249 > 9
+[49083.290529] Bluetooth: hci2: unexpected cc 0x1001 length: 249 > 9
+[49083.290622] Bluetooth: hci2: unexpected cc 0x0c23 length: 249 > 4
+[49083.290677] Bluetooth: hci2: unexpected cc 0x0c38 length: 249 > 2
+[49083.291096] Bluetooth: MGMT ver 1.22
+[49083.335436] chnl_net:caif_netlink_parms(): no params data found
+[49083.342628] bridge0: port 1(bridge_slave_0) entered blocking state
+[49083.342642] bridge0: port 1(bridge_slave_0) entered disabled state
+[49083.342664] bridge_slave_0: entered allmulticast mode
+[49083.342761] bridge_slave_0: entered promiscuous mode
+[49083.342992] bridge0: port 2(bridge_slave_1) entered blocking state
+[49083.343001] bridge0: port 2(bridge_slave_1) entered disabled state
+[49083.343020] bridge_slave_1: entered allmulticast mode
+[49083.343108] bridge_slave_1: entered promiscuous mode
+[49083.344607] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[49083.344822] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[49083.346232] team0: Port device team_slave_0 added
+[49083.346391] team0: Port device team_slave_1 added
+[49083.347693] batman_adv: batadv0: Adding interface: batadv_slave_0
+[49083.347699] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[49083.347710] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[49083.347804] batman_adv: batadv0: Adding interface: batadv_slave_1
+[49083.347809] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[49083.347818] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[49083.377388] hsr_slave_0: entered promiscuous mode
+[49083.405116] hsr_slave_1: entered promiscuous mode
+[49083.433000] debugfs: Directory 'hsr0' with parent 'hsr' already present!
+[49083.433011] Cannot create hsr debugfs directory
+[49083.443679] bridge0: port 2(bridge_slave_1) entered blocking state
+[49083.443693] bridge0: port 2(bridge_slave_1) entered forwarding state
+[49083.443715] bridge0: port 1(bridge_slave_0) entered blocking state
+[49083.443722] bridge0: port 1(bridge_slave_0) entered forwarding state
+[49083.462101] 8021q: adding VLAN 0 to HW filter on device bond0
+[49083.462811] bridge0: port 1(bridge_slave_0) entered disabled state
+[49083.463057] bridge0: port 2(bridge_slave_1) entered disabled state
+[49083.464055] 8021q: adding VLAN 0 to HW filter on device team0
+[49083.464567] bridge0: port 1(bridge_slave_0) entered blocking state
+[49083.464574] bridge0: port 1(bridge_slave_0) entered forwarding state
+[49083.464984] bridge0: port 2(bridge_slave_1) entered blocking state
+[49083.464993] bridge0: port 2(bridge_slave_1) entered forwarding state
+[49083.629065] 8021q: adding VLAN 0 to HW filter on device batadv0
+[49083.651706] veth0_vlan: entered promiscuous mode
+[49083.652096] veth1_vlan: entered promiscuous mode
+[49083.654236] veth0_macvtap: entered promiscuous mode
+[49083.654494] veth1_macvtap: entered promiscuous mode
+[49083.655150] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[49083.655158] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[49083.655299] batman_adv: batadv0: Interface activated: batadv_slave_0
+[49083.655793] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[49083.655801] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[49083.655934] batman_adv: batadv0: Interface activated: batadv_slave_1
+[49083.936071] KVM: debugfs: duplicate directory 451473-14
+[49083.957563] hsr_slave_0: left promiscuous mode
+[49083.997049] hsr_slave_1: left promiscuous mode
+[49084.049031] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[49084.049057] batman_adv: batadv0: Removing interface: batadv_slave_0
+[49084.049235] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[49084.049243] batman_adv: batadv0: Removing interface: batadv_slave_1
+[49084.049371] bridge_slave_1: left allmulticast mode
+[49084.049380] bridge_slave_1: left promiscuous mode
+[49084.049417] bridge0: port 2(bridge_slave_1) entered disabled state
+[49084.085168] bridge_slave_0: left allmulticast mode
+[49084.085182] bridge_slave_0: left promiscuous mode
+[49084.085222] bridge0: port 1(bridge_slave_0) entered disabled state
+[49084.168998] veth1_macvtap: left promiscuous mode
+[49084.169027] veth0_macvtap: left promiscuous mode
+[49084.169044] veth1_vlan: left promiscuous mode
+[49084.169060] veth0_vlan: left promiscuous mode
+[49084.182022] team0 (unregistering): Port device team_slave_1 removed
+[49084.182477] team0 (unregistering): Port device team_slave_0 removed
+[49084.182920] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[49084.216945] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[49084.240362] bond0 (unregistering): Released all slaves
+[49084.574093] KVM: debugfs: duplicate directory 451497-7
+[49084.670790] irq bypass consumer (token 000000000ea3a0b7) registration fails: -16
+[49085.293044] Bluetooth: hci2: command tx timeout
+[49087.309121] Bluetooth: hci2: command tx timeout
+[49089.324984] Bluetooth: hci2: command tx timeout
+[49091.340974] Bluetooth: hci2: command tx timeout
+[49093.356974] Bluetooth: hci2: command tx timeout
+[49095.373144] Bluetooth: hci2: command tx timeout
+[49115.400649] KVM: debugfs: duplicate directory 451654-10
+[49115.969346] KVM: debugfs: duplicate directory 451683-6
+[49146.804909] KVM: debugfs: duplicate directory 451754-8
+[49158.288200] KVM: debugfs: duplicate directory 451843-11
+[49158.288587] KVM: debugfs: duplicate directory 451843-11
+[49206.672829] Bluetooth: hci2: command 0x0406 tx timeout
+[49209.068927] Bluetooth: hci2: command 0x0406 tx timeout
+[49252.715909] KVM: debugfs: duplicate directory 452189-11
+[49252.716580] KVM: debugfs: duplicate directory 452189-11
+[49252.716938] KVM: debugfs: duplicate directory 452189-11
+[49253.223895] KVM: debugfs: duplicate directory 452212-4
+[49284.360544] KVM: debugfs: duplicate directory 452297-17
+[49284.566965] KVM: debugfs: duplicate directory 452300-4
+[49284.692177] KVM: debugfs: duplicate directory 452306-4
+[49357.168599] KVM: debugfs: duplicate directory 453182-14
+[49367.460294] KVM: debugfs: duplicate directory 453236-5
+[49408.868245] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[49408.868355] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[49408.868389] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[49408.868484] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[49408.868542] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[49408.868961] Bluetooth: MGMT ver 1.22
+[49408.915458] chnl_net:caif_netlink_parms(): no params data found
+[49408.923780] bridge0: port 1(bridge_slave_0) entered blocking state
+[49408.923791] bridge0: port 1(bridge_slave_0) entered disabled state
+[49408.923812] bridge_slave_0: entered allmulticast mode
+[49408.923907] bridge_slave_0: entered promiscuous mode
+[49408.924121] bridge0: port 2(bridge_slave_1) entered blocking state
+[49408.924129] bridge0: port 2(bridge_slave_1) entered disabled state
+[49408.924164] bridge_slave_1: entered allmulticast mode
+[49408.924252] bridge_slave_1: entered promiscuous mode
+[49408.925754] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[49408.925959] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[49408.927273] team0: Port device team_slave_0 added
+[49408.927427] team0: Port device team_slave_1 added
+[49408.928581] batman_adv: batadv0: Adding interface: batadv_slave_0
+[49408.928587] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[49408.928597] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[49408.928974] batman_adv: batadv0: Adding interface: batadv_slave_1
+[49408.928980] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[49408.928989] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[49408.949168] hsr_slave_0: entered promiscuous mode
+[49408.976731] hsr_slave_1: entered promiscuous mode
+[49409.153116] bridge0: port 2(bridge_slave_1) entered blocking state
+[49409.153128] bridge0: port 2(bridge_slave_1) entered forwarding state
+[49409.153148] bridge0: port 1(bridge_slave_0) entered blocking state
+[49409.153155] bridge0: port 1(bridge_slave_0) entered forwarding state
+[49409.169702] 8021q: adding VLAN 0 to HW filter on device bond0
+[49409.170517] bridge0: port 1(bridge_slave_0) entered disabled state
+[49409.170942] bridge0: port 2(bridge_slave_1) entered disabled state
+[49409.172041] 8021q: adding VLAN 0 to HW filter on device team0
+[49409.172656] bridge0: port 1(bridge_slave_0) entered blocking state
+[49409.172665] bridge0: port 1(bridge_slave_0) entered forwarding state
+[49409.173184] bridge0: port 2(bridge_slave_1) entered blocking state
+[49409.173195] bridge0: port 2(bridge_slave_1) entered forwarding state
+[49409.215328] 8021q: adding VLAN 0 to HW filter on device batadv0
+[49409.237635] veth0_vlan: entered promiscuous mode
+[49409.238034] veth1_vlan: entered promiscuous mode
+[49409.239386] veth0_macvtap: entered promiscuous mode
+[49409.239646] veth1_macvtap: entered promiscuous mode
+[49409.240303] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[49409.240312] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[49409.240455] batman_adv: batadv0: Interface activated: batadv_slave_0
+[49409.241025] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[49409.241034] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[49409.241173] batman_adv: batadv0: Interface activated: batadv_slave_1
+[49409.481095] hsr_slave_0: left promiscuous mode
+[49409.509137] hsr_slave_1: left promiscuous mode
+[49409.560713] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[49409.560742] batman_adv: batadv0: Removing interface: batadv_slave_0
+[49409.560928] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[49409.560936] batman_adv: batadv0: Removing interface: batadv_slave_1
+[49409.561036] bridge_slave_1: left allmulticast mode
+[49409.561045] bridge_slave_1: left promiscuous mode
+[49409.561085] bridge0: port 2(bridge_slave_1) entered disabled state
+[49409.596808] bridge_slave_0: left allmulticast mode
+[49409.596822] bridge_slave_0: left promiscuous mode
+[49409.596867] bridge0: port 1(bridge_slave_0) entered disabled state
+[49409.684643] veth1_macvtap: left promiscuous mode
+[49409.684669] veth0_macvtap: left promiscuous mode
+[49409.684688] veth1_vlan: left promiscuous mode
+[49409.684705] veth0_vlan: left promiscuous mode
+[49409.697615] team0 (unregistering): Port device team_slave_1 removed
+[49409.698081] team0 (unregistering): Port device team_slave_0 removed
+[49409.698521] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[49409.738932] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[49409.767903] bond0 (unregistering): Released all slaves
+[49410.892629] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[49410.892649] Bluetooth: hci1: command tx timeout
+[49412.908734] Bluetooth: hci1: command tx timeout
+[49412.908755] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49414.928621] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49414.928645] Bluetooth: hci1: command 0x040f tx timeout
+[49416.940670] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49416.940693] Bluetooth: hci1: command 0x040f tx timeout
+[49418.956614] Bluetooth: hci1: command 0x040f tx timeout
+[49418.956639] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49420.972664] Bluetooth: hci1: command 0x040f tx timeout
+[49420.972664] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49421.316215] KVM: debugfs: duplicate directory 453529-6
+[49422.988733] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49422.988757] Bluetooth: hci1: command 0x040f tx timeout
+[49425.004710] Bluetooth: hci1: command 0x040f tx timeout
+[49425.004710] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49427.020612] Bluetooth: hci1: command 0x040f tx timeout
+[49427.020614] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49429.036682] Bluetooth: hci1: command 0x040f tx timeout
+[49429.036701] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49431.052670] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49431.052694] Bluetooth: hci1: command 0x040f tx timeout
+[49433.072671] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49433.072695] Bluetooth: hci1: command 0x040f tx timeout
+[49435.084692] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49435.084715] Bluetooth: hci1: command 0x040f tx timeout
+[49437.104645] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[49437.104671] Bluetooth: hci1: command 0x040f tx timeout
+[49439.116787] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49439.116813] Bluetooth: hci1: command 0x040f tx timeout
+[49441.132735] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[49441.132759] Bluetooth: hci1: command 0x040f tx timeout
+[49443.148646] Bluetooth: hci1: command 0x040f tx timeout
+[49445.164667] Bluetooth: hci1: command 0x040f tx timeout
+[49447.180710] Bluetooth: hci1: command 0x040f tx timeout
+[49449.196634] Bluetooth: hci1: command 0x040f tx timeout
+[49451.212724] Bluetooth: hci1: command 0x040f tx timeout
+[49453.228630] Bluetooth: hci1: command 0x040f tx timeout
+[49472.903488] KVM: debugfs: duplicate directory 453648-4
+[49483.449356] KVM: debugfs: duplicate directory 453683-7
+[49483.743869] KVM: debugfs: duplicate directory 453698-8
+[49483.925896] KVM: debugfs: duplicate directory 453708-18
+[49484.023925] KVM: debugfs: duplicate directory 453711-18
+[49484.113592] KVM: debugfs: duplicate directory 453716-18
+[49484.211411] KVM: debugfs: duplicate directory 453720-18
+[49514.846885] irq bypass consumer (token 0000000085b5c295) registration fails: -16
+[49532.300626] Bluetooth: hci1: command 0x040f tx timeout
+[49534.700574] Bluetooth: hci1: command 0x040f tx timeout
+[49556.858051] KVM: debugfs: duplicate directory 453928-6
+[49587.227058] KVM: debugfs: duplicate directory 453983-15
+[49607.454242] KVM: debugfs: duplicate directory 454025-14
+[49607.978832] KVM: debugfs: duplicate directory 454051-6
+[49618.159631] KVM: debugfs: duplicate directory 454069-17
+[49618.160359] KVM: debugfs: duplicate directory 454069-17
+[49638.502282] irq bypass consumer (token 00000000224afad3) registration fails: -16
+[49648.696945] KVM: debugfs: duplicate directory 454132-5
+[49658.916996] KVM: debugfs: duplicate directory 454153-5
+[49679.415787] KVM: debugfs: duplicate directory 454367-7
+[49699.673772] KVM: debugfs: duplicate directory 454405-14
+[49699.848238] KVM: debugfs: duplicate directory 454414-6
+[49740.727423] KVM: debugfs: duplicate directory 454493-19
+[49832.254109] KVM: debugfs: duplicate directory 454681-6
+[49914.017410] KVM: debugfs: duplicate directory 455127-6
+[49924.113680] KVM: debugfs: duplicate directory 455141-19
+[49955.704575] KVM: debugfs: duplicate directory 455238-12
+[49986.886954] Bluetooth: hci2: unexpected cc 0x0c03 length: 249 > 1
+[49986.887008] Bluetooth: hci2: unexpected cc 0x1003 length: 249 > 9
+[49986.887053] Bluetooth: hci2: unexpected cc 0x1001 length: 249 > 9
+[49986.887152] Bluetooth: hci2: unexpected cc 0x0c23 length: 249 > 4
+[49986.887982] Bluetooth: hci2: unexpected cc 0x0c38 length: 249 > 2
+[49986.888407] Bluetooth: MGMT ver 1.22
+[49986.930247] chnl_net:caif_netlink_parms(): no params data found
+[49986.937062] bridge0: port 1(bridge_slave_0) entered blocking state
+[49986.937074] bridge0: port 1(bridge_slave_0) entered disabled state
+[49986.937106] bridge_slave_0: entered allmulticast mode
+[49986.937206] bridge_slave_0: entered promiscuous mode
+[49986.937457] bridge0: port 2(bridge_slave_1) entered blocking state
+[49986.937465] bridge0: port 2(bridge_slave_1) entered disabled state
+[49986.937484] bridge_slave_1: entered allmulticast mode
+[49986.937570] bridge_slave_1: entered promiscuous mode
+[49986.939246] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[49986.939468] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[49986.940865] team0: Port device team_slave_0 added
+[49986.941024] team0: Port device team_slave_1 added
+[49986.942194] batman_adv: batadv0: Adding interface: batadv_slave_0
+[49986.942201] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[49986.942210] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[49986.942294] batman_adv: batadv0: Adding interface: batadv_slave_1
+[49986.942300] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[49986.942309] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[49986.980708] hsr_slave_0: entered promiscuous mode
+[49987.036401] hsr_slave_1: entered promiscuous mode
+[49987.072266] debugfs: Directory 'hsr0' with parent 'hsr' already present!
+[49987.072280] Cannot create hsr debugfs directory
+[49987.082844] bridge0: port 2(bridge_slave_1) entered blocking state
+[49987.082858] bridge0: port 2(bridge_slave_1) entered forwarding state
+[49987.082880] bridge0: port 1(bridge_slave_0) entered blocking state
+[49987.082887] bridge0: port 1(bridge_slave_0) entered forwarding state
+[49987.099355] 8021q: adding VLAN 0 to HW filter on device bond0
+[49987.100072] bridge0: port 1(bridge_slave_0) entered disabled state
+[49987.100358] bridge0: port 2(bridge_slave_1) entered disabled state
+[49987.232588] 8021q: adding VLAN 0 to HW filter on device team0
+[49987.233246] bridge0: port 1(bridge_slave_0) entered blocking state
+[49987.233256] bridge0: port 1(bridge_slave_0) entered forwarding state
+[49987.233730] bridge0: port 2(bridge_slave_1) entered blocking state
+[49987.233740] bridge0: port 2(bridge_slave_1) entered forwarding state
+[49987.277437] 8021q: adding VLAN 0 to HW filter on device batadv0
+[49987.299569] veth0_vlan: entered promiscuous mode
+[49987.299987] veth1_vlan: entered promiscuous mode
+[49987.301607] veth0_macvtap: entered promiscuous mode
+[49987.301965] veth1_macvtap: entered promiscuous mode
+[49987.302678] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[49987.302687] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[49987.302834] batman_adv: batadv0: Interface activated: batadv_slave_0
+[49987.303361] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[49987.303369] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[49987.303506] batman_adv: batadv0: Interface activated: batadv_slave_1
+[49987.564731] hsr_slave_0: left promiscuous mode
+[49987.584307] hsr_slave_1: left promiscuous mode
+[49987.640268] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[49987.640292] batman_adv: batadv0: Removing interface: batadv_slave_0
+[49987.640446] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[49987.640453] batman_adv: batadv0: Removing interface: batadv_slave_1
+[49987.640527] bridge_slave_1: left allmulticast mode
+[49987.640534] bridge_slave_1: left promiscuous mode
+[49987.640572] bridge0: port 2(bridge_slave_1) entered disabled state
+[49987.668441] bridge_slave_0: left allmulticast mode
+[49987.668454] bridge_slave_0: left promiscuous mode
+[49987.668494] bridge0: port 1(bridge_slave_0) entered disabled state
+[49987.748270] veth1_macvtap: left promiscuous mode
+[49987.748298] veth0_macvtap: left promiscuous mode
+[49987.748318] veth1_vlan: left promiscuous mode
+[49987.748336] veth0_vlan: left promiscuous mode
+[49987.761458] team0 (unregistering): Port device team_slave_1 removed
+[49987.761921] team0 (unregistering): Port device team_slave_0 removed
+[49987.762390] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[49987.786127] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[49987.811455] bond0 (unregistering): Released all slaves
+[49988.908314] Bluetooth: hci2: command tx timeout
+[49990.924305] Bluetooth: hci2: command tx timeout
+[49992.940320] Bluetooth: hci2: command tx timeout
+[49994.960293] Bluetooth: hci2: command tx timeout
+[49996.972247] Bluetooth: hci2: command tx timeout
+[49998.988318] Bluetooth: hci2: command tx timeout
+[50029.535156] KVM: debugfs: duplicate directory 456040-9
+[50039.944643] KVM: debugfs: duplicate directory 456071-6
+[50039.964272] KVM: debugfs: duplicate directory 456072-5
+[50050.745484] KVM: debugfs: duplicate directory 456121-7
+[50060.868307] KVM: debugfs: duplicate directory 456137-11
+[50081.485525] KVM: debugfs: duplicate directory 456190-18
+[50109.836249] Bluetooth: hci2: command 0x0406 tx timeout
+[50112.204252] Bluetooth: hci2: command 0x0406 tx timeout
+[50153.467873] KVM: debugfs: duplicate directory 456350-6
+[50224.683933] KVM: debugfs: duplicate directory 456483-9
+[50245.133823] KVM: debugfs: duplicate directory 456530-13
+[50255.617364] KVM: debugfs: duplicate directory 456565-11
+[50348.549809] KVM: debugfs: duplicate directory 456937-13
+[50399.901050] KVM: debugfs: duplicate directory 457056-4
+[50410.057162] KVM: debugfs: duplicate directory 457077-4
+[50472.212452] KVM: debugfs: duplicate directory 457241-6
+[50472.481487] KVM: debugfs: duplicate directory 457251-10
+[50472.525996] KVM: debugfs: duplicate directory 457252-5
+[50472.740428] KVM: debugfs: duplicate directory 457263-5
+[50482.827706] KVM: debugfs: duplicate directory 457280-4
+[50482.860954] KVM: debugfs: duplicate directory 457282-6
+[50492.959197] KVM: debugfs: duplicate directory 457296-6
+[50503.063147] KVM: debugfs: duplicate directory 457314-6
+[50503.162350] KVM: debugfs: duplicate directory 457319-6
+[50544.600384] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[50544.600498] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[50544.600531] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[50544.600624] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[50544.600679] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[50544.601043] Bluetooth: MGMT ver 1.22
+[50544.647159] chnl_net:caif_netlink_parms(): no params data found
+[50544.654503] bridge0: port 1(bridge_slave_0) entered blocking state
+[50544.654520] bridge0: port 1(bridge_slave_0) entered disabled state
+[50544.654551] bridge_slave_0: entered allmulticast mode
+[50544.654665] bridge_slave_0: entered promiscuous mode
+[50544.654918] bridge0: port 2(bridge_slave_1) entered blocking state
+[50544.654927] bridge0: port 2(bridge_slave_1) entered disabled state
+[50544.654947] bridge_slave_1: entered allmulticast mode
+[50544.655038] bridge_slave_1: entered promiscuous mode
+[50544.656597] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[50544.656806] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[50544.658125] team0: Port device team_slave_0 added
+[50544.658284] team0: Port device team_slave_1 added
+[50544.659467] batman_adv: batadv0: Adding interface: batadv_slave_0
+[50544.659473] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[50544.659483] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[50544.659568] batman_adv: batadv0: Adding interface: batadv_slave_1
+[50544.659573] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[50544.659582] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[50544.708247] hsr_slave_0: entered promiscuous mode
+[50544.723958] hsr_slave_1: entered promiscuous mode
+[50544.909163] bridge0: port 2(bridge_slave_1) entered blocking state
+[50544.909176] bridge0: port 2(bridge_slave_1) entered forwarding state
+[50544.909196] bridge0: port 1(bridge_slave_0) entered blocking state
+[50544.909203] bridge0: port 1(bridge_slave_0) entered forwarding state
+[50544.923761] 8021q: adding VLAN 0 to HW filter on device bond0
+[50544.924674] bridge0: port 1(bridge_slave_0) entered disabled state
+[50544.924861] bridge0: port 2(bridge_slave_1) entered disabled state
+[50544.925846] 8021q: adding VLAN 0 to HW filter on device team0
+[50544.926485] bridge0: port 1(bridge_slave_0) entered blocking state
+[50544.926496] bridge0: port 1(bridge_slave_0) entered forwarding state
+[50544.926959] bridge0: port 2(bridge_slave_1) entered blocking state
+[50544.926968] bridge0: port 2(bridge_slave_1) entered forwarding state
+[50544.972118] 8021q: adding VLAN 0 to HW filter on device batadv0
+[50544.995339] veth0_vlan: entered promiscuous mode
+[50544.995769] veth1_vlan: entered promiscuous mode
+[50544.997193] veth0_macvtap: entered promiscuous mode
+[50544.997493] veth1_macvtap: entered promiscuous mode
+[50544.998356] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[50544.998366] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[50544.998528] batman_adv: batadv0: Interface activated: batadv_slave_0
+[50544.999060] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[50544.999068] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[50544.999216] batman_adv: batadv0: Interface activated: batadv_slave_1
+[50545.304324] hsr_slave_0: left promiscuous mode
+[50545.335928] hsr_slave_1: left promiscuous mode
+[50545.379907] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[50545.379929] batman_adv: batadv0: Removing interface: batadv_slave_0
+[50545.380090] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[50545.380098] batman_adv: batadv0: Removing interface: batadv_slave_1
+[50545.380195] bridge_slave_1: left allmulticast mode
+[50545.380203] bridge_slave_1: left promiscuous mode
+[50545.380241] bridge0: port 2(bridge_slave_1) entered disabled state
+[50545.396066] bridge_slave_0: left allmulticast mode
+[50545.396077] bridge_slave_0: left promiscuous mode
+[50545.396117] bridge0: port 1(bridge_slave_0) entered disabled state
+[50545.495901] veth1_macvtap: left promiscuous mode
+[50545.495926] veth0_macvtap: left promiscuous mode
+[50545.495944] veth1_vlan: left promiscuous mode
+[50545.495960] veth0_vlan: left promiscuous mode
+[50545.508723] team0 (unregistering): Port device team_slave_1 removed
+[50545.509180] team0 (unregistering): Port device team_slave_0 removed
+[50545.509619] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[50545.536522] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[50545.567049] bond0 (unregistering): Released all slaves
+[50546.635899] Bluetooth: hci1: command tx timeout
+[50546.635897] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[50548.652013] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50548.652038] Bluetooth: hci1: command tx timeout
+[50550.667960] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50550.667986] Bluetooth: hci1: command tx timeout
+[50552.683883] Bluetooth: hci1: command tx timeout
+[50552.683932] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50554.699926] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50554.699951] Bluetooth: hci1: command 0x0c13 tx timeout
+[50555.243503] KVM: debugfs: duplicate directory 457869-6
+[50556.171676] KVM: debugfs: duplicate directory 457897-6
+[50556.715929] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50556.715951] Bluetooth: hci1: command 0x0c13 tx timeout
+[50558.731876] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50558.731902] Bluetooth: hci1: command 0x0c13 tx timeout
+[50560.747870] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50560.747911] Bluetooth: hci1: command 0x0c13 tx timeout
+[50562.763934] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50562.763962] Bluetooth: hci1: command 0x0c13 tx timeout
+[50564.779967] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50564.779991] Bluetooth: hci1: command 0x0c13 tx timeout
+[50566.795869] Bluetooth: hci1: command 0x0c13 tx timeout
+[50566.795869] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50568.811930] Bluetooth: hci1: command 0x0c13 tx timeout
+[50568.811931] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50570.827935] Bluetooth: hci1: command 0x0c13 tx timeout
+[50570.827936] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50572.843932] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[50572.843958] Bluetooth: hci1: command 0x0c13 tx timeout
+[50574.859952] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50574.859977] Bluetooth: hci1: command 0x0c13 tx timeout
+[50576.879847] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[50576.879866] Bluetooth: hci1: command 0x0c13 tx timeout
+[50578.891852] Bluetooth: hci1: command 0x0c13 tx timeout
+[50580.907894] Bluetooth: hci1: command 0x0c13 tx timeout
+[50582.923930] Bluetooth: hci1: command 0x0c13 tx timeout
+[50584.939896] Bluetooth: hci1: command 0x0c13 tx timeout
+[50586.955906] Bluetooth: hci1: command 0x0c13 tx timeout
+[50588.971963] Bluetooth: hci1: command 0x0c13 tx timeout
+[50597.620327] KVM: debugfs: duplicate directory 458310-10
+[50638.733777] KVM: debugfs: duplicate directory 458574-6
+[50638.830215] KVM: debugfs: duplicate directory 458577-6
+[50639.081167] KVM: debugfs: duplicate directory 458582-6
+[50639.169537] KVM: debugfs: duplicate directory 458586-6
+[50639.940287] KVM: debugfs: duplicate directory 458621-4
+[50666.891811] Bluetooth: hci1: command 0x0c13 tx timeout
+[50669.291784] Bluetooth: hci1: command 0x0c13 tx timeout
+[50794.374138] KVM: debugfs: duplicate directory 459010-8
+[50805.617245] KVM: debugfs: duplicate directory 459068-4
+[50806.153358] KVM: debugfs: duplicate directory 459086-15
+[50837.785990] KVM: debugfs: duplicate directory 459177-10
+[50869.800326] KVM: debugfs: duplicate directory 459276-13
+[50881.938058] KVM: debugfs: duplicate directory 459374-6
+[50882.634944] Bluetooth: hci2: unexpected cc 0x0c03 length: 249 > 1
+[50882.635076] Bluetooth: hci2: unexpected cc 0x1003 length: 249 > 9
+[50882.635108] Bluetooth: hci2: unexpected cc 0x1001 length: 249 > 9
+[50882.635198] Bluetooth: hci2: unexpected cc 0x0c23 length: 249 > 4
+[50882.635252] Bluetooth: hci2: unexpected cc 0x0c38 length: 249 > 2
+[50882.635763] Bluetooth: MGMT ver 1.22
+[50882.676046] chnl_net:caif_netlink_parms(): no params data found
+[50882.683203] bridge0: port 1(bridge_slave_0) entered blocking state
+[50882.683214] bridge0: port 1(bridge_slave_0) entered disabled state
+[50882.683235] bridge_slave_0: entered allmulticast mode
+[50882.683335] bridge_slave_0: entered promiscuous mode
+[50882.683632] bridge0: port 2(bridge_slave_1) entered blocking state
+[50882.683640] bridge0: port 2(bridge_slave_1) entered disabled state
+[50882.683666] bridge_slave_1: entered allmulticast mode
+[50882.683775] bridge_slave_1: entered promiscuous mode
+[50882.685372] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[50882.685584] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[50882.686851] team0: Port device team_slave_0 added
+[50882.687063] team0: Port device team_slave_1 added
+[50882.688329] batman_adv: batadv0: Adding interface: batadv_slave_0
+[50882.688336] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[50882.688346] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[50882.688428] batman_adv: batadv0: Adding interface: batadv_slave_1
+[50882.688433] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[50882.688442] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[50882.720162] hsr_slave_0: entered promiscuous mode
+[50882.767614] hsr_slave_1: entered promiscuous mode
+[50882.803512] debugfs: Directory 'hsr0' with parent 'hsr' already present!
+[50882.803524] Cannot create hsr debugfs directory
+[50882.813436] bridge0: port 2(bridge_slave_1) entered blocking state
+[50882.813450] bridge0: port 2(bridge_slave_1) entered forwarding state
+[50882.813478] bridge0: port 1(bridge_slave_0) entered blocking state
+[50882.813486] bridge0: port 1(bridge_slave_0) entered forwarding state
+[50882.830961] 8021q: adding VLAN 0 to HW filter on device bond0
+[50882.831666] bridge0: port 1(bridge_slave_0) entered disabled state
+[50882.831946] bridge0: port 2(bridge_slave_1) entered disabled state
+[50882.832907] 8021q: adding VLAN 0 to HW filter on device team0
+[50882.833445] bridge0: port 1(bridge_slave_0) entered blocking state
+[50882.833452] bridge0: port 1(bridge_slave_0) entered forwarding state
+[50882.833859] bridge0: port 2(bridge_slave_1) entered blocking state
+[50882.833868] bridge0: port 2(bridge_slave_1) entered forwarding state
+[50883.032908] 8021q: adding VLAN 0 to HW filter on device batadv0
+[50883.058224] veth0_vlan: entered promiscuous mode
+[50883.058618] veth1_vlan: entered promiscuous mode
+[50883.060065] veth0_macvtap: entered promiscuous mode
+[50883.060325] veth1_macvtap: entered promiscuous mode
+[50883.060994] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[50883.061002] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[50883.061140] batman_adv: batadv0: Interface activated: batadv_slave_0
+[50883.061633] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[50883.061640] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[50883.061778] batman_adv: batadv0: Interface activated: batadv_slave_1
+[50883.347951] hsr_slave_0: left promiscuous mode
+[50883.367557] hsr_slave_1: left promiscuous mode
+[50883.419542] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[50883.419598] batman_adv: batadv0: Removing interface: batadv_slave_0
+[50883.419867] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[50883.419876] batman_adv: batadv0: Removing interface: batadv_slave_1
+[50883.419996] bridge_slave_1: left allmulticast mode
+[50883.420004] bridge_slave_1: left promiscuous mode
+[50883.420046] bridge0: port 2(bridge_slave_1) entered disabled state
+[50883.455698] bridge_slave_0: left allmulticast mode
+[50883.455709] bridge_slave_0: left promiscuous mode
+[50883.455744] bridge0: port 1(bridge_slave_0) entered disabled state
+[50883.543516] veth1_macvtap: left promiscuous mode
+[50883.543540] veth0_macvtap: left promiscuous mode
+[50883.543558] veth1_vlan: left promiscuous mode
+[50883.543574] veth0_vlan: left promiscuous mode
+[50883.556451] team0 (unregistering): Port device team_slave_1 removed
+[50883.556914] team0 (unregistering): Port device team_slave_0 removed
+[50883.557398] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[50883.592974] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[50883.615127] bond0 (unregistering): Released all slaves
+[50884.651587] Bluetooth: hci2: command tx timeout
+[50886.671500] Bluetooth: hci2: command tx timeout
+[50888.683620] Bluetooth: hci2: command tx timeout
+[50890.699497] Bluetooth: hci2: command tx timeout
+[50892.715614] Bluetooth: hci2: command tx timeout
+[50893.333678] KVM: debugfs: duplicate directory 459557-6
+[50893.391321] KVM: debugfs: duplicate directory 459560-10
+[50894.735541] Bluetooth: hci2: command tx timeout
+[50934.417586] KVM: debugfs: duplicate directory 459821-13
+[50934.417987] KVM: debugfs: duplicate directory 459821-13
+[50934.553110] KVM: debugfs: duplicate directory 459824-11
+[50944.864245] KVM: debugfs: duplicate directory 459852-12
+[51004.811478] Bluetooth: hci2: command 0x0406 tx timeout
+[51007.179465] Bluetooth: hci2: command 0x0406 tx timeout
+[51037.446561] irq bypass consumer (token 00000000074f7c02) registration fails: -16
+[51129.495730] KVM: debugfs: duplicate directory 460579-8
+[51241.682131] KVM: debugfs: duplicate directory 461293-4
+[51241.850205] KVM: debugfs: duplicate directory 461310-6
+[51241.895418] KVM: debugfs: duplicate directory 461312-6
+[51241.976972] KVM: debugfs: duplicate directory 461317-13
+[51262.626627] KVM: debugfs: duplicate directory 461366-6
+[51282.935100] KVM: debugfs: duplicate directory 461402-15
+[51375.884040] KVM: debugfs: duplicate directory 461658-8
+[51458.649009] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[51458.649050] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[51458.649080] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[51458.649163] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[51458.649216] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[51458.649615] Bluetooth: MGMT ver 1.22
+[51458.694351] chnl_net:caif_netlink_parms(): no params data found
+[51458.701635] bridge0: port 1(bridge_slave_0) entered blocking state
+[51458.701652] bridge0: port 1(bridge_slave_0) entered disabled state
+[51458.701692] bridge_slave_0: entered allmulticast mode
+[51458.701807] bridge_slave_0: entered promiscuous mode
+[51458.702114] bridge0: port 2(bridge_slave_1) entered blocking state
+[51458.702123] bridge0: port 2(bridge_slave_1) entered disabled state
+[51458.702158] bridge_slave_1: entered allmulticast mode
+[51458.702260] bridge_slave_1: entered promiscuous mode
+[51458.704047] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[51458.704259] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[51458.705490] team0: Port device team_slave_0 added
+[51458.705648] team0: Port device team_slave_1 added
+[51458.706859] batman_adv: batadv0: Adding interface: batadv_slave_0
+[51458.706866] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[51458.706875] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[51458.706963] batman_adv: batadv0: Adding interface: batadv_slave_1
+[51458.706968] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[51458.706976] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[51458.739784] hsr_slave_0: entered promiscuous mode
+[51458.775182] hsr_slave_1: entered promiscuous mode
+[51458.809358] bridge0: port 2(bridge_slave_1) entered blocking state
+[51458.809371] bridge0: port 2(bridge_slave_1) entered forwarding state
+[51458.809393] bridge0: port 1(bridge_slave_0) entered blocking state
+[51458.809400] bridge0: port 1(bridge_slave_0) entered forwarding state
+[51458.826309] 8021q: adding VLAN 0 to HW filter on device bond0
+[51458.826954] bridge0: port 1(bridge_slave_0) entered disabled state
+[51458.827166] bridge0: port 2(bridge_slave_1) entered disabled state
+[51458.827932] 8021q: adding VLAN 0 to HW filter on device team0
+[51458.828505] bridge0: port 1(bridge_slave_0) entered blocking state
+[51458.828515] bridge0: port 1(bridge_slave_0) entered forwarding state
+[51458.828918] bridge0: port 2(bridge_slave_1) entered blocking state
+[51458.828924] bridge0: port 2(bridge_slave_1) entered forwarding state
+[51458.989414] 8021q: adding VLAN 0 to HW filter on device batadv0
+[51459.006680] veth0_vlan: entered promiscuous mode
+[51459.007262] veth1_vlan: entered promiscuous mode
+[51459.008625] veth0_macvtap: entered promiscuous mode
+[51459.008872] veth1_macvtap: entered promiscuous mode
+[51459.009522] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[51459.009530] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[51459.009665] batman_adv: batadv0: Interface activated: batadv_slave_0
+[51459.010126] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[51459.010133] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[51459.010265] batman_adv: batadv0: Interface activated: batadv_slave_1
+[51459.291477] hsr_slave_0: left promiscuous mode
+[51459.307118] hsr_slave_1: left promiscuous mode
+[51459.367066] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[51459.367085] batman_adv: batadv0: Removing interface: batadv_slave_0
+[51459.367185] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[51459.367190] batman_adv: batadv0: Removing interface: batadv_slave_1
+[51459.367254] bridge_slave_1: left allmulticast mode
+[51459.367259] bridge_slave_1: left promiscuous mode
+[51459.367286] bridge0: port 2(bridge_slave_1) entered disabled state
+[51459.387194] bridge_slave_0: left allmulticast mode
+[51459.387202] bridge_slave_0: left promiscuous mode
+[51459.387231] bridge0: port 1(bridge_slave_0) entered disabled state
+[51459.463066] veth1_macvtap: left promiscuous mode
+[51459.463084] veth0_macvtap: left promiscuous mode
+[51459.463097] veth1_vlan: left promiscuous mode
+[51459.463109] veth0_vlan: left promiscuous mode
+[51459.472726] team0 (unregistering): Port device team_slave_1 removed
+[51459.473077] team0 (unregistering): Port device team_slave_0 removed
+[51459.473412] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[51459.492114] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[51459.522600] bond0 (unregistering): Released all slaves
+[51460.655075] Bluetooth: hci1: command tx timeout
+[51460.687060] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[51462.667111] Bluetooth: hci1: command 0x041b tx timeout
+[51462.667180] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51464.683107] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51464.683114] Bluetooth: hci1: command 0x041b tx timeout
+[51466.699105] Bluetooth: hci1: command 0x041b tx timeout
+[51466.699157] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51468.715132] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51468.715155] Bluetooth: hci1: command 0x041b tx timeout
+[51470.731176] Bluetooth: hci1: command 0x041b tx timeout
+[51470.731282] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51472.747203] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51472.747209] Bluetooth: hci1: command 0x041b tx timeout
+[51474.763165] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51474.763190] Bluetooth: hci1: command 0x041b tx timeout
+[51476.779180] Bluetooth: hci1: command 0x041b tx timeout
+[51476.779179] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51478.795127] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51478.795153] Bluetooth: hci1: command 0x041b tx timeout
+[51480.815042] Bluetooth: hci1: command 0x041b tx timeout
+[51480.815043] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51482.827123] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51482.827125] Bluetooth: hci1: command 0x041b tx timeout
+[51484.843198] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51484.843220] Bluetooth: hci1: command 0x041b tx timeout
+[51486.859146] Bluetooth: hci1: command 0x041b tx timeout
+[51486.859146] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[51488.875136] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51488.875161] Bluetooth: hci1: command 0x041b tx timeout
+[51490.891165] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[51490.891189] Bluetooth: hci1: command 0x041b tx timeout
+[51492.907040] Bluetooth: hci1: command 0x041b tx timeout
+[51494.923131] Bluetooth: hci1: command 0x041b tx timeout
+[51496.939112] Bluetooth: hci1: command 0x041b tx timeout
+[51498.955181] Bluetooth: hci1: command 0x041b tx timeout
+[51500.748148] KVM: debugfs: duplicate directory 462156-6
+[51500.975081] Bluetooth: hci1: command 0x041b tx timeout
+[51502.987129] Bluetooth: hci1: command 0x041b tx timeout
+[51511.470737] KVM: debugfs: duplicate directory 462199-4
+[51521.639917] KVM: debugfs: duplicate directory 462218-13
+[51521.701059] KVM: debugfs: duplicate directory 462221-13
+[51521.764785] KVM: debugfs: duplicate directory 462224-13
+[51521.820940] KVM: debugfs: duplicate directory 462227-13
+[51552.813093] KVM: debugfs: duplicate directory 462331-7
+[51582.347081] Bluetooth: hci1: command 0x041b tx timeout
+[51584.719029] Bluetooth: hci1: command 0x041b tx timeout
+[51674.718585] KVM: debugfs: duplicate directory 462743-6
+[51674.793336] KVM: debugfs: duplicate directory 462747-6
+[51685.148725] KVM: debugfs: duplicate directory 462777-7
+[51695.580305] KVM: debugfs: duplicate directory 462809-9
+[51757.311146] KVM: debugfs: duplicate directory 463248-9
+[51767.676814] KVM: debugfs: duplicate directory 463275-5
+[51767.842398] KVM: debugfs: duplicate directory 463283-10
+[51767.855323] KVM: debugfs: duplicate directory 463284-6
+[51789.850375] KVM: debugfs: duplicate directory 463527-10
+[51830.495187] KVM: debugfs: duplicate directory 463762-11
+[51830.735271] KVM: debugfs: duplicate directory 463774-11
+[51841.517633] KVM: debugfs: duplicate directory 463813-6
+[51861.652284] KVM: debugfs: duplicate directory 463848-8
+[51922.220500] KVM: debugfs: duplicate directory 464115-12
+[51963.293630] KVM: debugfs: duplicate directory 464208-13
+[51963.363081] KVM: debugfs: duplicate directory 464211-10
+[51973.499581] KVM: debugfs: duplicate directory 464231-5
+[51984.477703] Bluetooth: hci2: unexpected cc 0x0c03 length: 249 > 1
+[51984.477821] Bluetooth: hci2: unexpected cc 0x1003 length: 249 > 9
+[51984.477857] Bluetooth: hci2: unexpected cc 0x1001 length: 249 > 9
+[51984.477960] Bluetooth: hci2: unexpected cc 0x0c23 length: 249 > 4
+[51984.478018] Bluetooth: hci2: unexpected cc 0x0c38 length: 249 > 2
+[51984.478395] Bluetooth: MGMT ver 1.22
+[51984.520684] chnl_net:caif_netlink_parms(): no params data found
+[51984.527740] bridge0: port 1(bridge_slave_0) entered blocking state
+[51984.527755] bridge0: port 1(bridge_slave_0) entered disabled state
+[51984.527793] bridge_slave_0: entered allmulticast mode
+[51984.527909] bridge_slave_0: entered promiscuous mode
+[51984.528207] bridge0: port 2(bridge_slave_1) entered blocking state
+[51984.528215] bridge0: port 2(bridge_slave_1) entered disabled state
+[51984.528248] bridge_slave_1: entered allmulticast mode
+[51984.528348] bridge_slave_1: entered promiscuous mode
+[51984.529842] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[51984.530056] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[51984.531334] team0: Port device team_slave_0 added
+[51984.531489] team0: Port device team_slave_1 added
+[51984.532724] batman_adv: batadv0: Adding interface: batadv_slave_0
+[51984.532730] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[51984.532740] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[51984.532823] batman_adv: batadv0: Adding interface: batadv_slave_1
+[51984.532828] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[51984.532837] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[51984.559573] hsr_slave_0: entered promiscuous mode
+[51984.595038] hsr_slave_1: entered promiscuous mode
+[51984.618772] debugfs: Directory 'hsr0' with parent 'hsr' already present!
+[51984.618785] Cannot create hsr debugfs directory
+[51984.731317] bridge0: port 2(bridge_slave_1) entered blocking state
+[51984.731329] bridge0: port 2(bridge_slave_1) entered forwarding state
+[51984.731350] bridge0: port 1(bridge_slave_0) entered blocking state
+[51984.731357] bridge0: port 1(bridge_slave_0) entered forwarding state
+[51984.746594] 8021q: adding VLAN 0 to HW filter on device bond0
+[51984.748570] bridge0: port 1(bridge_slave_0) entered disabled state
+[51984.748778] bridge0: port 2(bridge_slave_1) entered disabled state
+[51984.749705] 8021q: adding VLAN 0 to HW filter on device team0
+[51984.750392] bridge0: port 1(bridge_slave_0) entered blocking state
+[51984.750402] bridge0: port 1(bridge_slave_0) entered forwarding state
+[51984.750857] bridge0: port 2(bridge_slave_1) entered blocking state
+[51984.750865] bridge0: port 2(bridge_slave_1) entered forwarding state
+[51984.792760] 8021q: adding VLAN 0 to HW filter on device batadv0
+[51984.816488] veth0_vlan: entered promiscuous mode
+[51984.816884] veth1_vlan: entered promiscuous mode
+[51984.818244] veth0_macvtap: entered promiscuous mode
+[51984.818519] veth1_macvtap: entered promiscuous mode
+[51984.819307] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[51984.819316] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[51984.819476] batman_adv: batadv0: Interface activated: batadv_slave_0
+[51984.820026] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[51984.820034] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[51984.820187] batman_adv: batadv0: Interface activated: batadv_slave_1
+[51985.047195] hsr_slave_0: left promiscuous mode
+[51985.078794] hsr_slave_1: left promiscuous mode
+[51985.122762] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[51985.122781] batman_adv: batadv0: Removing interface: batadv_slave_0
+[51985.122918] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[51985.122925] batman_adv: batadv0: Removing interface: batadv_slave_1
+[51985.123008] bridge_slave_1: left allmulticast mode
+[51985.123015] bridge_slave_1: left promiscuous mode
+[51985.123052] bridge0: port 2(bridge_slave_1) entered disabled state
+[51985.143046] bridge_slave_0: left allmulticast mode
+[51985.143059] bridge_slave_0: left promiscuous mode
+[51985.143100] bridge0: port 1(bridge_slave_0) entered disabled state
+[51985.230762] veth1_macvtap: left promiscuous mode
+[51985.230788] veth0_macvtap: left promiscuous mode
+[51985.230807] veth1_vlan: left promiscuous mode
+[51985.230825] veth0_vlan: left promiscuous mode
+[51985.243675] team0 (unregistering): Port device team_slave_1 removed
+[51985.244136] team0 (unregistering): Port device team_slave_0 removed
+[51985.244575] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[51985.271689] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[51985.302157] bond0 (unregistering): Released all slaves
+[51986.506806] Bluetooth: hci2: command tx timeout
+[51988.522798] Bluetooth: hci2: command tx timeout
+[51990.538911] Bluetooth: hci2: command tx timeout
+[51992.554902] Bluetooth: hci2: command tx timeout
+[51994.570882] Bluetooth: hci2: command tx timeout
+[51996.586843] Bluetooth: hci2: command tx timeout
+[52005.324148] KVM: debugfs: duplicate directory 464443-6
+[52005.562523] KVM: debugfs: duplicate directory 464456-4
+[52098.035522] irq bypass consumer (token 000000003cf6998e) registration fails: -16
+[52106.634760] Bluetooth: hci2: command 0x0406 tx timeout
+[52109.002775] Bluetooth: hci2: command 0x0406 tx timeout
+[52118.149767] irq bypass consumer (token 00000000e332e2cc) registration fails: -16
+[52128.253149] irq bypass consumer (token 0000000054f48199) registration fails: -16
+[52128.351851] irq bypass consumer (token 00000000de714a5d) registration fails: -16
+[52128.447801] irq bypass consumer (token 000000002e2a9640) registration fails: -16
+[52128.811730] irq bypass consumer (token 00000000bce36233) registration fails: -16
+[52128.839434] KVM: debugfs: duplicate directory 464796-5
+[52128.855128] irq bypass consumer (token 00000000b73fb1c8) registration fails: -16
+[52139.301358] KVM: debugfs: duplicate directory 464843-4
+[52139.589082] irq bypass consumer (token 000000008dfcb152) registration fails: -16
+[52151.179275] KVM: debugfs: duplicate directory 464923-10
+[52233.341986] KVM: debugfs: duplicate directory 465255-16
+[52314.698887] KVM: debugfs: duplicate directory 465410-12
+[52314.699231] KVM: debugfs: duplicate directory 465410-12
+[52344.934900] KVM: debugfs: duplicate directory 465744-4
+[52346.852257] KVM: debugfs: duplicate directory 465828-9
+[52368.287460] KVM: debugfs: duplicate directory 465900-13
+[52368.288114] KVM: debugfs: duplicate directory 465900-13
+[52378.492035] KVM: debugfs: duplicate directory 465919-6
+[52439.688685] KVM: debugfs: duplicate directory 466341-15
+[52440.346545] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[52440.346593] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[52440.346625] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[52440.346714] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[52440.346770] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[52440.347271] Bluetooth: MGMT ver 1.22
+[52440.391430] chnl_net:caif_netlink_parms(): no params data found
+[52440.398209] bridge0: port 1(bridge_slave_0) entered blocking state
+[52440.398220] bridge0: port 1(bridge_slave_0) entered disabled state
+[52440.398241] bridge_slave_0: entered allmulticast mode
+[52440.398336] bridge_slave_0: entered promiscuous mode
+[52440.398637] bridge0: port 2(bridge_slave_1) entered blocking state
+[52440.398648] bridge0: port 2(bridge_slave_1) entered disabled state
+[52440.398716] bridge_slave_1: entered allmulticast mode
+[52440.398828] bridge_slave_1: entered promiscuous mode
+[52440.400575] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[52440.400815] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[52440.402103] team0: Port device team_slave_0 added
+[52440.402261] team0: Port device team_slave_1 added
+[52440.403484] batman_adv: batadv0: Adding interface: batadv_slave_0
+[52440.403491] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[52440.403501] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[52440.403586] batman_adv: batadv0: Adding interface: batadv_slave_1
+[52440.403591] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[52440.403599] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[52440.426959] hsr_slave_0: entered promiscuous mode
+[52440.458626] hsr_slave_1: entered promiscuous mode
+[52440.492617] bridge0: port 2(bridge_slave_1) entered blocking state
+[52440.492629] bridge0: port 2(bridge_slave_1) entered forwarding state
+[52440.492649] bridge0: port 1(bridge_slave_0) entered blocking state
+[52440.492657] bridge0: port 1(bridge_slave_0) entered forwarding state
+[52440.510026] 8021q: adding VLAN 0 to HW filter on device bond0
+[52440.510887] bridge0: port 1(bridge_slave_0) entered disabled state
+[52440.511074] bridge0: port 2(bridge_slave_1) entered disabled state
+[52440.512096] 8021q: adding VLAN 0 to HW filter on device team0
+[52440.512609] bridge0: port 1(bridge_slave_0) entered blocking state
+[52440.512616] bridge0: port 1(bridge_slave_0) entered forwarding state
+[52440.513061] bridge0: port 2(bridge_slave_1) entered blocking state
+[52440.513069] bridge0: port 2(bridge_slave_1) entered forwarding state
+[52440.685478] 8021q: adding VLAN 0 to HW filter on device batadv0
+[52440.709133] veth0_vlan: entered promiscuous mode
+[52440.709539] veth1_vlan: entered promiscuous mode
+[52440.710983] veth0_macvtap: entered promiscuous mode
+[52440.711238] veth1_macvtap: entered promiscuous mode
+[52440.711907] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[52440.711915] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[52440.712053] batman_adv: batadv0: Interface activated: batadv_slave_0
+[52440.712445] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[52440.712453] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[52440.712589] batman_adv: batadv0: Interface activated: batadv_slave_1
+[52441.010842] hsr_slave_0: left promiscuous mode
+[52441.034613] hsr_slave_1: left promiscuous mode
+[52441.082516] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[52441.082536] batman_adv: batadv0: Removing interface: batadv_slave_0
+[52441.082652] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[52441.082660] batman_adv: batadv0: Removing interface: batadv_slave_1
+[52441.082757] bridge_slave_1: left allmulticast mode
+[52441.082764] bridge_slave_1: left promiscuous mode
+[52441.082819] bridge0: port 2(bridge_slave_1) entered disabled state
+[52441.098835] bridge_slave_0: left allmulticast mode
+[52441.098850] bridge_slave_0: left promiscuous mode
+[52441.098891] bridge0: port 1(bridge_slave_0) entered disabled state
+[52441.186518] veth1_macvtap: left promiscuous mode
+[52441.186543] veth0_macvtap: left promiscuous mode
+[52441.186560] veth1_vlan: left promiscuous mode
+[52441.186576] veth0_vlan: left promiscuous mode
+[52441.199522] team0 (unregistering): Port device team_slave_1 removed
+[52441.199977] team0 (unregistering): Port device team_slave_0 removed
+[52441.200412] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[52441.227256] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[52441.253586] bond0 (unregistering): Released all slaves
+[52442.382515] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[52442.382545] Bluetooth: hci1: command tx timeout
+[52444.394603] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52444.394627] Bluetooth: hci1: command tx timeout
+[52446.410600] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52446.410625] Bluetooth: hci1: command tx timeout
+[52448.430554] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52448.430579] Bluetooth: hci1: command tx timeout
+[52450.442570] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52450.442596] Bluetooth: hci1: command tx timeout
+[52451.056158] KVM: debugfs: duplicate directory 466515-6
+[52452.458562] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52452.458585] Bluetooth: hci1: command tx timeout
+[52454.474555] Bluetooth: hci1: command tx timeout
+[52454.474555] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52456.490505] Bluetooth: hci1: command tx timeout
+[52456.490525] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52458.506595] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52458.506620] Bluetooth: hci1: command 0x0c24 tx timeout
+[52460.522564] Bluetooth: hci1: command 0x0c24 tx timeout
+[52460.522617] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52462.538598] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52462.538621] Bluetooth: hci1: command 0x0c24 tx timeout
+[52464.554629] Bluetooth: hci1: command 0x0c24 tx timeout
+[52464.554677] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52466.570547] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52466.570572] Bluetooth: hci1: command 0x0c24 tx timeout
+[52468.586597] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[52468.586624] Bluetooth: hci1: command 0x0c24 tx timeout
+[52470.602678] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52470.602702] Bluetooth: hci1: command 0x0c24 tx timeout
+[52472.618575] Bluetooth: hci1: command 0x0c24 tx timeout
+[52472.618575] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[52474.634577] Bluetooth: hci1: command 0x0c24 tx timeout
+[52476.650514] Bluetooth: hci1: command 0x0c24 tx timeout
+[52478.666522] Bluetooth: hci1: command 0x0c24 tx timeout
+[52480.682532] Bluetooth: hci1: command 0x0c24 tx timeout
+[52482.698470] Bluetooth: hci1: command 0x0c24 tx timeout
+[52484.714391] Bluetooth: hci1: command 0x0c24 tx timeout
+[52513.321262] KVM: debugfs: duplicate directory 466821-5
+[52513.322109] KVM: debugfs: duplicate directory 466821-5
+[52513.400359] KVM: debugfs: duplicate directory 466823-13
+[52513.417202] KVM: debugfs: duplicate directory 466824-6
+[52513.483848] KVM: debugfs: duplicate directory 466827-6
+[52513.574724] KVM: debugfs: duplicate directory 466832-6
+[52523.699571] KVM: debugfs: duplicate directory 466848-6
+[52563.337816] Bluetooth: hci1: command 0x0c24 tx timeout
+[52565.673838] Bluetooth: hci1: command 0x0c24 tx timeout
+[52634.985224] KVM: debugfs: duplicate directory 473466-9
+[52634.985899] KVM: debugfs: duplicate directory 473466-9
+[52635.291579] irq bypass consumer (token 00000000b6f0f718) registration fails: -16
+[52676.134413] KVM: debugfs: duplicate directory 473570-14
+[52840.183041] KVM: debugfs: duplicate directory 474084-4
+[52850.922779] KVM: debugfs: duplicate directory 474124-6
+[52850.974196] KVM: debugfs: duplicate directory 474127-6
+[52851.001654] KVM: debugfs: duplicate directory 474128-6
+[52851.070301] KVM: debugfs: duplicate directory 474131-6
+[52851.162194] KVM: debugfs: duplicate directory 474136-6
+[52924.891659] ------------[ cut here ]------------
+[52924.891668] WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140
+[52924.891692] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+[52924.892018]  sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[52924.892194] CPU: 0 PID: 474382 Comm: syz.0.6493 Not tainted 6.6.103+ #16
+[52924.892204] Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+[52924.892210] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[52924.892216] pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[52924.892227] pc : kvm_unshare_hyp+0x12c/0x140
+[52924.892239] lr : kvm_unshare_hyp+0x12c/0x140
+[52924.892250] sp : ffff00213254bab0
+[52924.892254] x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+[52924.892269] x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+[52924.892283] x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+[52924.892297] x20: 000000229518d000 x19: 000000229518a000 x18: ffff800081f5eb30
+[52924.892311] x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+[52924.892324] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[52924.892338] x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+[52924.892352] x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+[52924.892365] x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+[52924.892379] x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 0000000000015ab2
+[52924.892393] Call trace:
+[52924.892396]  kvm_unshare_hyp+0x12c/0x140
+[52924.892409]  kvm_arm_vcpu_destroy+0x34/0xf8
+[52924.892421]  kvm_arch_vcpu_destroy+0x5c/0xb0
+[52924.892432]  kvm_destroy_vcpus+0x78/0x120
+[52924.892441]  kvm_arch_destroy_vm+0x8c/0x138
+[52924.892451]  kvm_destroy_vm+0x1bc/0x380
+[52924.892461]  kvm_put_kvm+0x70/0xa8
+[52924.892471]  kvm_vm_release+0x30/0x48
+[52924.892481]  __fput+0xb4/0x388
+[52924.892494]  ____fput+0x24/0x38
+[52924.892504]  task_work_run+0xc4/0x130
+[52924.892513]  do_notify_resume+0x80c/0xd68
+[52924.892527]  el0_svc+0xa8/0xb0
+[52924.892537]  el0t_64_sync_handler+0x118/0x128
+[52924.892547]  el0t_64_sync+0x14c/0x150
+[52924.892556] ---[ end trace 0000000000000000 ]---
+[52924.892566] ------------[ cut here ]------------
+[52924.892569] WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140
+[52924.892586] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+[52924.892873]  sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[52924.893031] CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+[52924.893041] Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+[52924.893046] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[52924.893052] pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[52924.893062] pc : kvm_unshare_hyp+0x12c/0x140
+[52924.893073] lr : kvm_unshare_hyp+0x12c/0x140
+[52924.893085] sp : ffff00213254bab0
+[52924.893089] x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+[52924.893103] x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+[52924.893117] x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+[52924.893131] x20: 000000229518d000 x19: 000000229518b000 x18: ffff800081f5eb30
+[52924.893144] x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+[52924.893158] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[52924.893172] x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+[52924.893185] x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+[52924.893199] x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+[52924.893212] x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 000000000003cfed
+[52924.893226] Call trace:
+[52924.893230]  kvm_unshare_hyp+0x12c/0x140
+[52924.893242]  kvm_arm_vcpu_destroy+0x34/0xf8
+[52924.893254]  kvm_arch_vcpu_destroy+0x5c/0xb0
+[52924.893265]  kvm_destroy_vcpus+0x78/0x120
+[52924.893273]  kvm_arch_destroy_vm+0x8c/0x138
+[52924.893284]  kvm_destroy_vm+0x1bc/0x380
+[52924.893294]  kvm_put_kvm+0x70/0xa8
+[52924.893304]  kvm_vm_release+0x30/0x48
+[52924.893314]  __fput+0xb4/0x388
+[52924.893325]  ____fput+0x24/0x38
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+[52924.893336]  task_work_run+0xc4/0x130
+[52924.893344]  do_notify_resume+0x80c/0xd68
+[52924.893357]  el0_svc+0xa8/0xb0
+[52924.893366]  el0t_64_sync_handler+0x118/0x128
+[52924.893376]  el0t_64_sync+0x14c/0x150
+[52924.893384] ---[ end trace 0000000000000000 ]---
+[52924.893399] ------------[ cut here ]------------
+[52924.893402] WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140
+[52924.893420] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+[52924.893716]  sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[52924.893877] CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+[52924.893887] Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+[52924.893892] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[52924.893898] pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[52924.893908] pc : kvm_unshare_hyp+0x12c/0x140
+[52924.893920] lr : kvm_unshare_hyp+0x12c/0x140
+[52924.893931] sp : ffff00213254bab0
+[52924.893935] x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+[52924.893950] x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+[52924.893964] x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+[52924.893978] x20: 0000002295190000 x19: 000000229518c000 x18: ffff800081f5eb30
+[52924.893993] x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+[52924.894007] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[52924.894021] x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+[52924.894035] x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+[52924.894049] x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+[52924.894063] x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 0000000000064651
+[52924.894076] Call trace:
+[52924.894080]  kvm_unshare_hyp+0x12c/0x140
+[52924.894092]  kvm_arm_vcpu_destroy+0x34/0xf8
+[52924.894104]  kvm_arch_vcpu_destroy+0x5c/0xb0
+[52924.894115]  kvm_destroy_vcpus+0x78/0x120
+[52924.894123]  kvm_arch_destroy_vm+0x8c/0x138
+[52924.894133]  kvm_destroy_vm+0x1bc/0x380
+[52924.894144]  kvm_put_kvm+0x70/0xa8
+[52924.894154]  kvm_vm_release+0x30/0x48
+[52924.894164]  __fput+0xb4/0x388
+[52924.894175]  ____fput+0x24/0x38
+[52924.894186]  task_work_run+0xc4/0x130
+[52924.894193]  do_notify_resume+0x80c/0xd68
+[52924.894208]  el0_svc+0xa8/0xb0
+[52924.894218]  el0t_64_sync_handler+0x118/0x128
+[52924.894228]  el0t_64_sync+0x14c/0x150
+[52924.894236] ---[ end trace 0000000000000000 ]---
+[52925.459770] batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for virt_wifi0
+[52925.460338] hsr_slave_0: left promiscuous mode
+[52925.495611] hsr_slave_1: left promiscuous mode
+[52925.551585] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[52925.551600] batman_adv: batadv0: Removing interface: batadv_slave_0
+[52925.551717] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[52925.551723] batman_adv: batadv0: Removing interface: batadv_slave_1
+[52925.551792] bridge_slave_1: left allmulticast mode
+[52925.551800] bridge_slave_1: left promiscuous mode
+[52925.551839] bridge0: port 2(bridge_slave_1) entered disabled state
+[52925.567741] bridge_slave_0: left allmulticast mode
+[52925.567753] bridge_slave_0: left promiscuous mode
+[52925.567795] bridge0: port 1(bridge_slave_0) entered disabled state
+[52925.648112] veth1_macvtap: left promiscuous mode
+[52925.648140] veth0_macvtap: left promiscuous mode
+[52925.648157] veth1_vlan: left promiscuous mode
+[52925.648173] veth0_vlan: left promiscuous mode
+[52925.660702] team0 (unregistering): Port device team_slave_1 removed
+[52925.661137] team0 (unregistering): Port device team_slave_0 removed
+[52925.661549] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[52925.696324] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[52925.735286] bond0 (unregistering): Released all slaves

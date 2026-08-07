@@ -1,0 +1,332 @@
+KVM: debugfs: duplicate directory 474127-6
+KVM: debugfs: duplicate directory 474128-6
+KVM: debugfs: duplicate directory 474131-6
+KVM: debugfs: duplicate directory 474136-6
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+ sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 0 PID: 474382 Comm: syz.0.6493 Not tainted 6.6.103+ #16
+Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+lr : kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+sp : ffff00213254bab0
+x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+x20: 000000229518d000 x19: 000000229518a000 x18: ffff800081f5eb30
+x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 0000000000015ab2
+Call trace:
+ kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+ kvm_arm_vcpu_destroy+0x34/0xf8 arch/arm64/kvm/reset.c:160
+ kvm_arch_vcpu_destroy+0x5c/0xb0 arch/arm64/kvm/arm.c:536
+ kvm_vcpu_destroy virt/kvm/kvm_main.c:510 [inline]
+ kvm_destroy_vcpus+0x78/0x120 virt/kvm/kvm_main.c:530
+ kvm_arch_destroy_vm+0x8c/0x138 arch/arm64/kvm/arm.c:259
+ kvm_destroy_vm+0x1bc/0x380 virt/kvm/kvm_main.c:1345
+ kvm_put_kvm+0x70/0xa8 virt/kvm/kvm_main.c:1382
+ kvm_vm_release+0x30/0x48 virt/kvm/kvm_main.c:1405
+ __fput+0xb4/0x388 fs/file_table.c:424
+ ____fput+0x24/0x38 fs/file_table.c:452
+ task_work_run+0xc4/0x130 kernel/task_work.c:245
+ resume_user_mode_work include/linux/resume_user_mode.h:52 [inline]
+ do_notify_resume+0x80c/0xd68 arch/arm64/kernel/signal.c:1331
+ exit_to_user_mode_prepare arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:144 [inline]
+ el0_svc+0xa8/0xb0 arch/arm64/kernel/entry-common.c:702
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:720
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+ sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+lr : kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+sp : ffff00213254bab0
+x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+x20: 000000229518d000 x19: 000000229518b000 x18: ffff800081f5eb30
+x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 000000000003cfed
+Call trace:
+ kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+ kvm_arm_vcpu_destroy+0x34/0xf8 arch/arm64/kvm/reset.c:160
+ kvm_arch_vcpu_destroy+0x5c/0xb0 arch/arm64/kvm/arm.c:536
+ kvm_vcpu_destroy virt/kvm/kvm_main.c:510 [inline]
+ kvm_destroy_vcpus+0x78/0x120 virt/kvm/kvm_main.c:530
+ kvm_arch_destroy_vm+0x8c/0x138 arch/arm64/kvm/arm.c:259
+ kvm_destroy_vm+0x1bc/0x380 virt/kvm/kvm_main.c:1345
+ kvm_put_kvm+0x70/0xa8 virt/kvm/kvm_main.c:1382
+ kvm_vm_release+0x30/0x48 virt/kvm/kvm_main.c:1405
+ __fput+0xb4/0x388 fs/file_table.c:424
+ ____fput+0x24/0x38 fs/file_table.c:452
+ task_work_run+0xc4/0x130 kernel/task_work.c:245
+ resume_user_mode_work include/linux/resume_user_mode.h:52 [inline]
+ do_notify_resume+0x80c/0xd68 arch/arm64/kernel/signal.c:1331
+ exit_to_user_mode_prepare arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:144 [inline]
+ el0_svc+0xa8/0xb0 arch/arm64/kernel/entry-common.c:702
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:720
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+ sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+lr : kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+sp : ffff00213254bab0
+x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+x20: 0000002295190000 x19: 000000229518c000 x18: ffff800081f5eb30
+x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 0000000000064651
+Call trace:
+ kvm_unshare_hyp+0x12c/0x140 arch/arm64/kvm/mmu.c:728
+ kvm_arm_vcpu_destroy+0x34/0xf8 arch/arm64/kvm/reset.c:160
+ kvm_arch_vcpu_destroy+0x5c/0xb0 arch/arm64/kvm/arm.c:536
+ kvm_vcpu_destroy virt/kvm/kvm_main.c:510 [inline]
+ kvm_destroy_vcpus+0x78/0x120 virt/kvm/kvm_main.c:530
+ kvm_arch_destroy_vm+0x8c/0x138 arch/arm64/kvm/arm.c:259
+ kvm_destroy_vm+0x1bc/0x380 virt/kvm/kvm_main.c:1345
+ kvm_put_kvm+0x70/0xa8 virt/kvm/kvm_main.c:1382
+ kvm_vm_release+0x30/0x48 virt/kvm/kvm_main.c:1405
+ __fput+0xb4/0x388 fs/file_table.c:424
+ ____fput+0x24/0x38 fs/file_table.c:452
+ task_work_run+0xc4/0x130 kernel/task_work.c:245
+ resume_user_mode_work include/linux/resume_user_mode.h:52 [inline]
+ do_notify_resume+0x80c/0xd68 arch/arm64/kernel/signal.c:1331
+ exit_to_user_mode_prepare arch/arm64/kernel/entry-common.c:137 [inline]
+ exit_to_user_mode arch/arm64/kernel/entry-common.c:144 [inline]
+ el0_svc+0xa8/0xb0 arch/arm64/kernel/entry-common.c:702
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:720
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for virt_wifi0
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+ el0_svc+0xa8/0xb0
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+ sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_unshare_hyp+0x12c/0x140
+lr : kvm_unshare_hyp+0x12c/0x140
+sp : ffff00213254bab0
+x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+x20: 000000229518d000 x19: 000000229518b000 x18: ffff800081f5eb30
+x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 000000000003cfed
+Call trace:
+ kvm_unshare_hyp+0x12c/0x140
+ kvm_arm_vcpu_destroy+0x34/0xf8
+ kvm_arch_vcpu_destroy+0x5c/0xb0
+ kvm_destroy_vcpus+0x78/0x120
+ kvm_arch_destroy_vm+0x8c/0x138
+ kvm_destroy_vm+0x1bc/0x380
+ kvm_put_kvm+0x70/0xa8
+ kvm_vm_release+0x30/0x48
+ __fput+0xb4/0x388
+ ____fput+0x24/0x38
+ task_work_run+0xc4/0x130
+ do_notify_resume+0x80c/0xd68
+ el0_svc+0xa8/0xb0
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+ sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_unshare_hyp+0x12c/0x140
+lr : kvm_unshare_hyp+0x12c/0x140
+sp : ffff00213254bab0
+x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+x20: 0000002295190000 x19: 000000229518c000 x18: ffff800081f5eb30
+x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 0000000000064651
+Call trace:
+ kvm_unshare_hyp+0x12c/0x140
+ kvm_arm_vcpu_destroy+0x34/0xf8
+ kvm_arch_vcpu_destroy+0x5c/0xb0
+ kvm_destroy_vcpus+0x78/0x120
+ kvm_arch_destroy_vm+0x8c/0x138
+ kvm_destroy_vm+0x1bc/0x380
+ kvm_put_kvm+0x70/0xa8
+ kvm_vm_release+0x30/0x48
+ __fput+0xb4/0x388
+ ____fput+0x24/0x38
+ task_work_run+0xc4/0x130
+ do_notify_resume+0x80c/0xd68
+ el0_svc+0xa8/0xb0
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for virt_wifi0
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+ el0_svc+0xa8/0xb0
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728 kvm_unshare_hyp+0x12c/0x140
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core mac80211 hid_multitouch hid_generic btusb btrtl btintel btbcm btmtk cfg80211 snd_hda_codec_conexant bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw882xx crct10dif_ce snd_hda_aw882xx ghash_ce snd_hda_codec_aw883xx sm3_ce snd_hda_aw883xx sha3_ce sha512_ce
+ sha512_arm64 r8152 ecdh_generic sha2_ce snd_hda_codec_generic rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec libarc4 ledtrig_audio snd_soc_pmdk_dp phytium_noc snd_hda_phytium ftv310_vpu_driver i2c_phytium_v2_platform snd_soc_phytium_i2s_v2 tpm_tis i2c_smbus snd_hda_codec thermal phytium_uart_v2 i2c_hid_acpi i2c_hid snd_hda_core hid kylin_extra_button cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap serio_raw ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 0 PID: 474382 Comm: syz.0.6493 Tainted: G        W         ------- ----  6.6.103+ #16
+Source Version: cba248683e5c0c72a46a3cfbb3972b53b4162868
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_unshare_hyp+0x12c/0x140
+lr : kvm_unshare_hyp+0x12c/0x140
+sp : ffff00213254bab0
+x29: ffff00213254bab0 x28: ffff0022befa9400 x27: 0000000000000000
+x26: ffff002352b9ff18 x25: ffff002352b9f940 x24: ffff00217c5c0870
+x23: 0000000000002788 x22: ffff800082551498 x21: 0000000000000000
+x20: 0000002295190000 x19: 000000229518c000 x18: ffff800081f5eb30
+x17: 0000000000000000 x16: fffffe004c3a71a0 x15: 0000000000000000
+x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000000000 x9 : ffff80008006eab8
+x8 : ffff00213254b9e8 x7 : 0000000000000000 x6 : ffff0022befa9400
+x5 : ffff80008144fcd0 x4 : 0000000000000000 x3 : ffff0022befa9400
+x2 : ffff8000e0001000 x1 : 0000000000400000 x0 : 0000000000064651
+Call trace:
+ kvm_unshare_hyp+0x12c/0x140
+ kvm_arm_vcpu_destroy+0x34/0xf8
+ kvm_arch_vcpu_destroy+0x5c/0xb0
+ kvm_destroy_vcpus+0x78/0x120
+ kvm_arch_destroy_vm+0x8c/0x138
+ kvm_destroy_vm+0x1bc/0x380
+ kvm_put_kvm+0x70/0xa8
+ kvm_vm_release+0x30/0x48
+ __fput+0xb4/0x388
+ ____fput+0x24/0x38
+ task_work_run+0xc4/0x130
+ do_notify_resume+0x80c/0xd68
+ el0_svc+0xa8/0xb0
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for virt_wifi0
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+

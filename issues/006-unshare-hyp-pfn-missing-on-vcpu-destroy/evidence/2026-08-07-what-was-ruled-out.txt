@@ -1,0 +1,536 @@
+2026-08-07 — issue 006, first-pass analysis: what is proven, what was
+eliminated, and what is still open.
+
+Written immediately after the observation, before any fix or further
+instrumentation, so that the boundary between evidence and theory is on record
+rather than reconstructed later.
+
+================================================================================
+1. VERIFIED — hardware observation
+================================================================================
+
+Campaign 2026-08-06-n90-full-surface, N90 (10.42.27.17), kernel
+
+    6.6.103+ #16, Source Version cba248683e5c0c72a46a3cfbb3972b53b4162868
+
+At board uptime 52924.893399 s (wall 2026-08-07 05:22:32), three WARNs fired
+back to back, then more later in the same teardown:
+
+    WARNING: CPU: 0 PID: 474382 at arch/arm64/kvm/mmu.c:728
+             kvm_unshare_hyp+0x12c/0x140
+    Comm: syz.0.6493
+
+    kvm_unshare_hyp+0x12c/0x140        arch/arm64/kvm/mmu.c:728
+    kvm_arm_vcpu_destroy+0x34/0xf8     arch/arm64/kvm/reset.c:160
+    kvm_arch_vcpu_destroy+0x5c/0xb0    arch/arm64/kvm/arm.c:536
+    kvm_vcpu_destroy                   virt/kvm/kvm_main.c:510 [inline]
+    kvm_destroy_vcpus+0x78/0x120       virt/kvm/kvm_main.c:530
+    kvm_arch_destroy_vm+0x8c/0x138     arch/arm64/kvm/arm.c:259
+    kvm_destroy_vm+0x1bc/0x380         virt/kvm/kvm_main.c:1345
+    kvm_put_kvm+0x70/0xa8              virt/kvm/kvm_main.c:1382
+    kvm_vm_release+0x30/0x48           virt/kvm/kvm_main.c:1405
+    __fput -> task_work_run -> do_notify_resume -> el0_svc
+
+mmu.c:728 at that revision is, inside kvm_unshare_hyp():
+
+    for (cur = start; cur < end; cur += PAGE_SIZE) {
+            pfn = __phys_to_pfn(cur);
+            WARN_ON(unshare_pfn_hyp(pfn));      <-- :728
+    }
+
+and the only WARN-producing return inside unshare_pfn_hyp() is
+
+    this = find_shared_pfn(pfn, &node, &parent);
+    if (WARN_ON(!this)) {                        <-- fires first, mmu.c:666
+            ret = -ENOENT;
+
+Note both WARN sites can report; the stack shows the :728 one, i.e.
+unshare_pfn_hyp() returned non-zero.
+
+So, stated exactly at the time of first writing: **a page that KVM believed was
+shared host->hyp was not in the hyp_shared_pfns rb-tree, or its unshare
+hypercall failed, at the moment the vCPU structure was being torn down on
+VM-fd close.**
+
+SECTION 6 (added later the same morning) resolves that disjunction from the
+console log: it is the second branch. The pfn WAS in the tree; EL2 rejected the
+hypercall. Read section 6 before acting on anything above.
+
+CALLER IS UNAMBIGUOUS. reset.c:160 is
+
+    kvm_unshare_hyp(vcpu, vcpu + 1);            <-- :160, the vCPU struct
+
+not the SVE range, which is reset.c:168. The line number is in the trace, so
+this needs no inference.
+
+RANGE. Consecutive WARNs carried x19 = 0x229518a000, 0x229518b000,
+0x229518c000 — three consecutive page-aligned physical addresses. x23 = 0x2788
+= 10120 in every frame, which is the plausible size of struct kvm_vcpu on this
+build and would span three pages when unaligned. Register-to-variable mapping
+is INFERRED, not disassembled; treat the exact range as unconfirmed. What is
+solid is that the WARN repeated for several consecutive pages of one vCPU.
+
+NOT FATAL. WARN_ON only. The board stayed up: the campaign continued past the
+event (corpus 753 -> unchanged, exec total still climbing at 110/min, load
+~1.1, 0 D-state tasks) and dmesg shows no BUG/Oops. The
+"SYZFAIL: rpc peer closed connection (EOF)" later in the log is the executor
+being torn down by the manager after the crash was reported, not a kernel
+failure.
+
+================================================================================
+2. VERIFIED — there is NO reproducer
+================================================================================
+
+syzkaller ran its repro extraction for 4m25s and FAILED:
+
+    program crashed: SYZFAIL: rpc peer closed connection (EOF)
+    ignore low priority crash: SYZFAIL: rpc peer closed connection (EOF)
+    replaying the whole log did not cause a kernel crash
+    failed to extract reproducer
+
+`evidence/2026-08-07-repro-attempt-FAILED.txt` is that attempt log, NOT a
+reproducer. It is kept because the 6 candidate programs in it are the best
+available hint at the syscall mix, but nothing in it is known to be causal.
+
+At the time of writing this was a single unreproduced observation. SECTION 7
+records a second one at 07:30:12, whose repro attempt also failed. Two
+occurrences, zero reproducers. Under issues/README.md that is still
+`state: observed`, `diagnosis: symptom-only` — not "reproduced", not
+"root-caused" — but "one-off" is no longer accurate anywhere in this file.
+
+================================================================================
+3. ELIMINATED — hypotheses killed by reading the complete functions
+================================================================================
+
+(a) SVE range mismatch between share and unshare.
+    A share of vcpu->arch.sve_state sized from sve_max_vl at finalize time, and
+    an unshare sized from vcpu_sve_state_size() at destroy time, would unshare
+    pages never shared. DEAD: N90 has no SVE at all —
+
+        Features : fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp
+                   asimdhp cpuid asimdrdm lrcpc dcpop sha3 sm3 sm4 asimddp
+                   sha512
+
+    no `sve` token, so vcpu->arch.sve_state is always NULL, the
+    `if (sve_state)` branch in kvm_arm_vcpu_destroy() never runs, and
+    reset.c:168 is never reached. Independently, the trace names :160.
+
+(b) A failed kvm_share_hyp() at vCPU create leaving an unmatched unshare.
+    DEAD: read virt/kvm/kvm_main.c kvm_vm_ioctl_create_vcpu() in full at this
+    revision —
+
+        r = kvm_arch_vcpu_create(vcpu);
+        if (r)
+                goto vcpu_free_run_page;        <-- SKIPS arch_vcpu_destroy
+
+    The `arch_vcpu_destroy:` label sits below `vcpu_free_run_page:`, so a
+    create-time share failure frees the vCPU without ever calling
+    kvm_arch_vcpu_destroy(). Create/destroy is balanced at the generic layer.
+
+(c) Double unshare of the per-vCPU hyp_reqs page in pkvm.c.
+    There are two kvm_unshare_hyp(hyp_reqs, hyp_reqs + 1) sites, pkvm.c:228
+    (the __pkvm_init_vcpu error path) and pkvm.c:357 (__pkvm_destroy_hyp_vm).
+    DEAD as a double-free-style explanation: :228 is followed by
+    `host_vcpu->arch.hyp_reqs = NULL`, and :357 is guarded by
+    `if (!hyp_reqs) continue;`. They are mutually exclusive.
+    Also irrelevant to this WARN regardless — hyp_reqs is its own
+    __get_free_page(), not part of the vCPU struct range.
+
+(d) find_shared_pfn() searching the rb-tree in the wrong direction.
+    It walks left when this->pfn < pfn, which reads as inverted. NOT A BUG:
+    share_pfn_hyp() inserts through the *same* comparison via the node/parent
+    it returns, so the tree is consistently ordered descending. Self-consistent.
+    Recorded because it looks wrong at a glance and will cost the next reader
+    time.
+
+================================================================================
+4. OPEN — what is NOT known, in priority order
+================================================================================
+
+(1) WHICH WARN — RESOLVED 2026-08-07, see section 6. It is NOT the missing-pfn
+    branch. EL2 rejected the hypercall.
+
+(2) OUR OWN INSTRUMENTATION IS A SUSPECT AND HAS NOT BEEN EXCLUDED.
+    CONFIG_PKVM_EL2_COV shares the 32-page EL2 coverage ring into the SAME
+    hyp_shared_pfns rb-tree, via the same share_pfn_hyp()/unshare path, using
+    our kvm_unshare_hyp_checked(). It is uncommitted, local code.
+    Argument that it is probably innocent: the ring is armed once at boot and
+    was never torn down during this campaign (LOST_IN_RING stayed 0 throughout,
+    i.e. it stayed armed), so its nodes are created once and never erased, and
+    it touches only its own pages.
+    That argument is NOT a control. The clean control is to run the same
+    workload on a kernel built WITHOUT CONFIG_PKVM_EL2_COV and see whether the
+    WARN still occurs. Until that is run, "upstream kernel defect" is not an
+    established classification. Reporting this upstream before running the
+    control would risk reporting our own bug.
+
+(3) PROTECTED VMs ARE NEW HERE. This campaign is the first to enable the
+    protected-VM surface in full (16 descriptors), and the candidate programs
+    in the failed repro attempt are thick with
+    ioctl$KVM_CREATE_VM(..., 0x2e) / ioctl$KVM_CREATE_VCPU_protected /
+    syz_kvm_setup_protected_vm$arm64. REACHABILITY.md predicted the protected
+    path was "comparatively unexplored, not demonstrated clean". This may be
+    the first finding on it. But the repro failed, so THE PROTECTED PATH IS NOT
+    SHOWN TO BE INVOLVED — it is merely present in the workload, which by
+    itself means very little in a 91-syscall campaign.
+
+(4) NOT KNOWN whether this is a first occurrence or was simply invisible
+    before. All three kernel WARN ignores were removed for this campaign, but
+    none of them matched kvm_unshare_hyp, so this signature was never filtered.
+    It has also never appeared anywhere in issues/ or notes/ before today.
+    ~13.5 h of fuzzing produced exactly one occurrence.
+
+================================================================================
+5. WHAT WOULD SETTLE IT
+================================================================================
+
+Cheapest first:
+
+  a. grep the campaign's full console log for `mmu.c:666` to separate
+     "pfn absent" from "hypercall failed". Costs nothing, no reboot.
+  b. Add a pr_err next to both WARNs printing pfn, this->count (when found),
+     and the hypercall return. Needs a rebuild, ends the campaign.
+  c. Run the CONFIG_PKVM_EL2_COV-disabled control (section 4.2).
+  d. Only after (a)-(c): decide whether this is upstream and search ACK/mainline.
+
+Do NOT propose a fix before (a) and (c). The mechanism is unknown, and this
+project's rule is that a mechanism inferred from source is a hypothesis until
+hardware says otherwise.
+
+================================================================================
+6. NARROWED, 2026-08-07 — the host bookkeeping is FINE; EL2 refused
+================================================================================
+
+The cheap check in 5(a) was run and it settled section 4(1).
+
+Across the complete instance console log (log0, 111 KB) and the report:
+
+    occurrences of "mmu.c:728"  : 21
+    occurrences of "mmu.c:666"  :  0
+
+unshare_pfn_hyp() is not inlined into kvm_unshare_hyp() — kvm_unshare_hyp is
+0x140 bytes total, far too small to contain a mutex, an rb-tree walk, rb_erase,
+kfree and a hypercall — so the inner WARN_ON(!this) at mmu.c:666 would have
+emitted its own console line with its own file:line, every time it fired
+(WARN_ON, not WARN_ON_ONCE). It never fired.
+
+Therefore, for all 21 occurrences:
+
+    find_shared_pfn() FOUND the pfn.
+    this->count reached 0, so the node was erased and kfree'd.
+    kvm_call_hyp_nvhe(__pkvm_host_unshare_hyp, pfn, 1) RETURNED NON-ZERO.
+
+That is the opposite of the natural first reading of this WARN. The host's
+share/unshare refcounting is consistent. **EL2 declined to give the page back.**
+
+This is a host<->EL2 state disagreement, and it puts issue 006 in the same
+family as issue 005 (EL2 page-state) and the VMID-flush finding (EL2 returns
+non-success for a host->EL2 hypercall), rather than in the memory-leak /
+refcount family.
+
+CONSEQUENCE WORTH NOTING: the host has already erased and kfree'd its
+hyp_shared_pfn record by the time the hypercall fails, and kvm_unshare_hyp()
+returns void. So the page is now, permanently:
+  - believed unshared and forgotten by the host,
+  - still mapped into the hyp stage-1 as far as EL2 is concerned,
+  - about to be freed back to the buddy allocator by the vCPU teardown.
+That is a page EL2 can still reach being handed back to general kernel use.
+The severity of that has NOT been assessed and MUST NOT be asserted without
+reading what __do_unshare()/check_unshare() left behind — it is entirely
+possible EL2 rejected precisely because it had already unmapped it. Do not
+repeat this paragraph as a security claim until that is established.
+
+FURTHER, WEAKER NARROWING — treat as hypothesis, not established:
+
+__pkvm_host_unshare_hyp (permissions.rs) delegates to do_unshare()
+(transition.rs), which has two failure exits:
+
+    let ret = checked_tx.check_unshare();
+    if ret != 0 { return ret; }                    <-- SILENT
+    let ret = checked_tx.__do_unshare();
+    if warn_on!(ret != 0) != 0 { return ret; }     <-- would trip an EL2 warn_on!
+
+No EL2-side warning accompanied any of the 21 host WARNs in the log. IF EL2's
+warn_on! reaches the host console on this build, that implies the failure is
+the silent one — check_unshare(), i.e. a STATE VALIDATION failure: EL2 does not
+believe the page is in (host SHARED_OWNED, hyp SHARED_BORROWED).
+
+The conditional is load-bearing and UNVERIFIED: whether EL2 warn_on! output
+actually reaches the host console here has not been checked. Check it before
+relying on this. If it does not print, this paragraph proves nothing.
+
+REVISED NEXT STEPS, replacing section 5:
+
+  a. DONE — see above.
+  b. Verify whether EL2 warn_on! reaches the host console at all. Cheap, and it
+     determines whether the check_unshare() narrowing above is worth anything.
+  c. Capture the actual return value. The host discards it — WARN_ON(expr)
+     keeps no value. A one-line change to print it (and the pfn) turns "EL2 said
+     no" into "EL2 said no BECAUSE x". Needs a rebuild; ends the campaign.
+  d. Still run the CONFIG_PKVM_EL2_COV control (section 4.2). The narrowing
+     makes our instrumentation less likely — the ring is not the vCPU struct
+     and was never torn down mid-campaign — but "less likely" is not "excluded",
+     and the cost of being wrong in public is high.
+  e. Only then: search ACK/mainline for the same EL2 rejection.
+
+WHAT THIS DOES NOT ESTABLISH: why the page's EL2 state was wrong, when it went
+wrong, or whether a protected VM was involved. One unreproduced occurrence in
+13.5 h. The mechanism is still unknown.
+
+================================================================================
+7. SECOND OCCURRENCE, 2026-08-07 07:30:12 — same mechanism, different program
+================================================================================
+
+Noticed from the dashboard counter (crash types 1, crashes 2), not from the
+monitor, which deduplicates by signature directory and therefore stayed silent
+on a repeat of an already-reported signature. That filter choice is recorded in
+section 8.
+
+                        occurrence 1            occurrence 2
+    wall time           05:22:32                07:30:12       (+2 h 08 m)
+    PID / comm          474382 / syz.0.6493     543748 / syz.0.9659
+    caller              reset.c:160             reset.c:160    (identical)
+    call path           identical from kvm_unshare_hyp to el0t_64_sync
+    mmu.c:728 in log    21                      3   (log1) / 15 (report1)
+    mmu.c:666 in log     0                      0   (both)
+    repro               FAILED after 4m25s      FAILED after 4m36s
+
+The 666-vs-728 discriminator from section 6 was re-run independently on the
+second occurrence and gives the same answer: **zero hits on mmu.c:666.** The
+rb-tree lookup succeeded again; EL2 rejected the unshare hypercall again.
+
+WHAT THE SECOND SAMPLE ADDS
+
+1. It is NOT a one-off. Two independent hits in ~17 h of fuzzing, from two
+   different syz programs and two different PIDs. Rate is roughly one per two
+   hours at this workload.
+
+2. The mechanism is stable. Same caller line, same discriminator result, same
+   multi-page pattern. This is one defect, not two coincidences.
+
+3. IT RECURS BUT DOES NOT REPRODUCE. Both extraction attempts failed the same
+   way — "replaying the whole log did not cause a kernel crash". A defect that
+   fires reliably at a steady rate across the whole campaign, yet survives
+   replay of the very log that produced it, is evidence AGAINST a single
+   causal syscall sequence and FOR accumulated cross-program state: something
+   earlier leaves a page in an EL2 state the later teardown cannot undo, and
+   the two events are separated by enough unrelated work that syzkaller's
+   log replay does not recreate the pairing.
+
+   This is a HYPOTHESIS about why the repro fails. It is consistent with both
+   samples but not established. What would test it: a targeted program that
+   creates and destroys VMs in a tight loop, with nothing else running, and
+   sees whether the rate changes.
+
+4. It weakens — but still does not exclude — the instrumentation suspicion in
+   section 4(2). Our coverage ring is armed once at boot; a defect whose rate
+   is steady in wall-clock across a 17 h run is more consistent with ordinary
+   VM churn than with a one-time boot-time share. Still not a control.
+
+================================================================================
+8. METHOD NOTE — the monitor's dedup hid the second occurrence
+================================================================================
+
+The background monitor emits one event per NEW crash-signature directory and
+suppresses repeats, to avoid a flood if a known WARN fires continuously. That
+choice cost us the single most informative fact of the morning — that this
+recurs — and the human read it off the dashboard counter first.
+
+The fix is not "report every occurrence" (which is what the dedup exists to
+prevent) but to report on a CHANGE IN COUNT for an already-known signature,
+which is one event per occurrence and carries the rate. Corrected in the
+monitor for the remainder of this campaign.
+
+================================================================================
+9. TIMELINE — four clean windows, then both crashes in the last 3.5 h
+================================================================================
+
+From the manager log (full copy:
+issues/runs/2026-08-06-n90-full-surface/crash-timeline.txt):
+
+    2026/08/06 18:49  VM 0: running for 3h0m, restarting     clean
+    2026/08/06 21:49  VM 0: running for 3h0m, restarting     clean
+    2026/08/07 00:49  VM 0: running for 3h0m, restarting     clean
+    2026/08/07 03:49  VM 0: running for 3h0m, restarting     clean
+    2026/08/07 05:22  VM 0: crash: WARNING in kvm_unshare_hyp
+    2026/08/07 07:30  VM 0: crash: WARNING in kvm_unshare_hyp
+
+The restarts are syzkaller's 3 h executor-session timer, not board reboots —
+board uptime ran continuously (18:12 at snapshot). So the kernel's state was
+never reset across any of this.
+
+Zero occurrences in the first 13.5 h; two in the last 3.5 h.
+
+THIS IS CONSISTENT WITH the accumulation hypothesis in section 7 — something
+building up over the run until teardown starts failing — and accumulation would
+also explain why replaying a single program's log never reproduces it.
+
+IT IS NOT EVIDENCE FOR IT. Two events cannot distinguish accumulation from
+chance clustering, and the within-window offsets (1h33m and 2h07m after their
+respective restarts) show no pattern. If accumulation were the mechanism one
+would also expect the rate to keep climbing; that is a concrete prediction the
+continuing campaign will test for free.
+
+WHAT WOULD ACTUALLY TEST IT: a tight create/destroy VM loop on an otherwise
+idle board, timed from boot. If the first occurrence still takes many hours of
+churn, accumulation is real and the relevant quantity is VM count, not
+wall-clock. If it fires quickly on a freshly booted board, accumulation is dead
+and the trigger is something in the specific syscall mix.
+
+================================================================================
+10. dmesg IS NO LONGER A RECORD OF THIS RUN
+================================================================================
+
+At snapshot time, on the board:
+
+    dmesg | grep -cE "WARNING|BUG:|Oops|Call trace"   ->  0
+    dmesg | grep -c kvm_unshare_hyp                   ->  0
+
+Both WARNs have been pushed out of the kernel ring buffer by 18 h of fuzzing
+output. Anyone re-checking this finding by sshing to the board and running
+dmesg will conclude, wrongly, that it never happened.
+
+THIS DOES NOT MEAN ANYTHING WAS LOST. The events themselves are recorded in
+full, in syzkaller's per-crash console capture:
+
+    crashes/<sig>/log0    kernel time 47492 -> 52925, crash 1, complete
+    crashes/<sig>/log1    kernel time 53323 -> 60675, crash 2, complete
+                          (the crash-2 WARN block begins at log1 line 2082)
+
+Archived verbatim at issues/runs/2026-08-06-n90-full-surface/crashes/.
+
+Telling the two apart: a syzkaller log<N> is the console stream MERGED with
+executor stdout, so it contains untimestamped lines such as
+
+    [60674.419343]  kvm_put_kvm+0x70/0xa8
+    SYZFAIL: rpc peer closed connection (EOF)          <-- no kernel timestamp
+    fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+    [60674.419353]  kvm_vm_release+0x30/0x48
+
+spliced into the middle of a call trace. dmesg cannot produce that line. If you
+see it, you are reading syzkaller's capture, not the board's buffer.
+
+What IS permanently gone is the console of the four sessions that did not crash
+(restarts at 18:49, 21:49, 00:49, 03:49) — syzkaller only retains sessions that
+tripped the reporter. That is ~12 h with no console record, which matters for
+any future claim of the form "X did not happen during this run".
+
+================================================================================
+11. ROOT CAUSE — CONFIRMED ON HARDWARE 2026-08-07 09:14-09:25
+================================================================================
+
+Everything above is superseded by this section. The mechanism is no longer a
+hypothesis.
+
+THE DEFECT (arch/arm64/kvm/hyp/xhypervisor/src/pkvm.rs, init_pkvm_hyp_vcpu;
+identical in arch/arm64/kvm/hyp/nvhe/pkvm.c:574-618):
+
+    hyp_pin_shared_mem(host_vcpu, host_vcpu + 1)     <-- pin taken (line 1816)
+    self.vcpu.arch.hyp_reqs = ...; pin hyp_reqs      <-- field set (line 1824)
+    if host_vcpu.vcpu_idx != vcpu_idx  -> goto_done  <-- error path (1836)
+    mp_state = READ_ONCE(...)
+    if mp_state != RUNNABLE && != STOPPED -> goto_done   <-- error path (1843)
+    self.host_vcpu = host_vcpu;                      <-- ASSIGNED HERE (1849)
+
+    fn unpin_host_vcpu(&mut self) {
+        let host_vcpu = self.host_vcpu;              <-- still NULL on 1836/1843
+        if !host_vcpu.is_null() { hyp_unpin_shared_mem(...) }   <-- SKIPPED
+        let hyp_reqs = self.vcpu.arch.hyp_reqs;      <-- was set, so this runs
+        ...
+    }
+
+The host-vCPU pin is never released. hyp_reqs is released, because its field
+was assigned before the checks. The asymmetry is the whole bug.
+
+THE TRIGGER IS A LEGAL HOST OPERATION. KVM_MP_STATE_SUSPENDED == 10. arm.c's
+kvm_arch_vcpu_ioctl_set_mpstate() ACCEPTS it and stores it:
+
+    case KVM_MP_STATE_SUSPENDED:  kvm_arm_vcpu_suspend(vcpu);
+        -> WRITE_ONCE(vcpu->arch.mp_state.mp_state, KVM_MP_STATE_SUSPENDED);
+
+EL2 accepts only RUNNABLE(0) and STOPPED(5). So any userspace that suspends a
+vCPU before its first KVM_RUN takes the leaking path. My first reading of the
+syzkaller log called the value 0xa "invalid"; it is not — it is SUSPENDED, and
+the host's acceptance of it is what makes this reachable.
+
+HARDWARE CONFIRMATION — repro/probe-mpstate-suspended-pin-leak.c on N90,
+kernel #16 @cba248683e5c, measured via console-continuous.log (dmesg is useless
+here, see below):
+
+    baseline                                    0 WARNs
+    control arm, mp_state = RUNNABLE(0)         0 WARNs   KVM_RUN -> EINTR (our alarm)
+    test arm,    mp_state = SUSPENDED(10)       3 WARNs   KVM_RUN -> EINVAL
+                                                          Comm: probe-mpstate
+
+3 WARNs = the 3 pages of one struct kvm_vcpu, at mmu.c:728, from
+kvm_arm_vcpu_destroy. Reproduced with 3 distinct PIDs (609453, 612458, and one
+more in the repeat runs). The control never warns.
+
+SECOND, WORSE CONSEQUENCE — PAGES ARE POISONED PERMANENTLY. Repeat runs
+eventually produce:
+
+    FATAL: KVM_CREATE_VCPU: Invalid argument
+
+Because the leaked refcount is on the *physical pages*, and those pages go back
+to the slab. A later vCPU landing on a poisoned page cannot even be shared to
+hyp, so kvm_share_hyp() fails inside kvm_arch_vcpu_create() and KVM_CREATE_VCPU
+itself returns -EINVAL. This is unprivileged-reachable resource exhaustion: any
+process with /dev/kvm can poison vcpu-slab pages one VM at a time.
+
+It also explains two things that were open:
+  - WHY RUNS ARE INTERMITTENT: whether a run WARNs depends on whether the slab
+    hands out fresh pages (leak + WARN at teardown) or already-poisoned ones
+    (KVM_CREATE_VCPU fails up front, no WARN).
+  - WHY THE OVERNIGHT RATE CLIMBED: 0 occurrences in 13.5 h then 2 in 3.5 h is
+    poisoned pages accumulating. Section 9 recorded this as an untested guess;
+    it now has a mechanism.
+
+MEASUREMENT CORRECTION. Section 10 said the board's kernel ring buffer "holds
+about 90 minutes" and inferred 58 KB/h of churn. THAT IS WRONG. dmesg is being
+actively CLEARED by the running campaign — vm/isolated/isolated.go:340 runs
+
+    dmesg >> <targetdir>/dmesg-history.log; dmesg -C; dmesg -w
+
+per instance session. Observed directly: dmesg's oldest entry was [67212] and
+newest [67254] — a 42-second window, impossible for a size-based wrap. A larger
+log_buf_len would NOT have helped. Two consequences: (a) any dmesg-based
+measurement on this board during a campaign is unreliable, use
+console-continuous.log; (b) the board keeps its own dmesg-history.log in the
+syzkaller target dir, which is worth collecting.
+
+UPSTREAM — ALREADY FIXED IN ACK, TWO COMMITS, Bug: 357781595:
+
+  2b4d43af6  ANDROID: KVM: arm64: Fix cleanup on partially-initialised pKVM
+             vCPU init failure                              <-- OURS, exactly
+  fe4e0e499  BACKPORT: UPSTREAM: KVM: arm64: Fix pin leak and publication
+             ordering in __pkvm_init_vcpu()
+             (cherry-pick of 73b9c1e5da84, Fixes: 49af6ddb8e5c, Cc: stable)
+
+2b4d43af6's own commit message names our exact path:
+
+    "leak the host_vcpu pin via the mp_state-failure path, which jumps to
+     'done:' before hyp_vcpu->host_vcpu is recorded."
+
+and its fix is the hoist:
+
+    /* Set before mp_state check so 'done:' cleanup can unpin host_vcpu. */
+    hyp_vcpu->host_vcpu = host_vcpu;
+    hyp_vcpu->vcpu.kvm = &hyp_vm->kvm;
+
+2b4d43af6 lists three further leaks on adjacent paths (hyp-pool SVE allocation
+on pkvm_vcpu_init_psci() failure; unpinning never-pinned SVE pages;
+pvmfw_entry_vcpu left dangling). Those are NOT confirmed here — N90 has no SVE
+so the SVE ones are unreachable on this board — but they are in the same
+function and should be carried across together rather than cherry-picking only
+the mp_state hoist.
+
+NOTE ON OUR TREE: the Rust EL2 is a faithful port of the PRE-FIX C. The C in
+this tree (arch/arm64/kvm/hyp/nvhe/pkvm.c) carries the identical bug. So this
+is an inherited upstream defect, NOT an artifact of the Rust rewrite — which
+also retires the section 4(2) worry that our CONFIG_PKVM_EL2_COV instrumentation
+might be responsible. It is not: the trigger is reproducible from a 60-line C
+program that never touches the coverage ring.
+
+TEST HYGIENE: running this probe adds WARNs that the live campaign's console
+reader also sees, so it increments the campaign's crash counter. The 09:20
+"3rd occurrence" reported for the campaign was our probe, not a fuzzer find.
