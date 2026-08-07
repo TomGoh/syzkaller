@@ -1181,9 +1181,9 @@ func (mgr *Manager) MachineChecked(features flatrpc.Feature,
 			Coverage:       mgr.cfg.Cover,
 			FaultInjection: features&flatrpc.FeatureFault != 0,
 			Comparisons:    features&flatrpc.FeatureComparisons != 0,
-			// Stage-2 pKVM serial mode: no collide programs. Collide re-runs calls concurrently to
-			// find races, which reorders/duplicates the KVM_RUN off the single owner CPU and past the
-			// single-page ring -- exactly what the serial mode exists to prevent.
+			// pKVM serial mode: no collide programs. Collide re-runs calls concurrently, which on a
+			// SINGLE-ring EL2 coverage kernel moves the KVM_RUN off the one owner CPU. Per-CPU rings
+			// remove that constraint; leave pkvm_serial off there and collide comes back.
 			Collide:        !mgr.cfg.PkvmSerial,
 			EnabledCalls:   enabledSyscalls,
 			NoMutateCalls:  mgr.cfg.NoMutateCalls,

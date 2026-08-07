@@ -155,13 +155,24 @@ type Config struct {
 	// Disabled by default as it slows down fuzzing.
 	RawCover bool `json:"raw_cover"`
 
-	// PkvmSerial enables the Stage-2 pKVM-EL2-coverage SERIAL execution mode. The single-page/
-	// single-CPU EL2 coverage ring (CONFIG_PKVM_EL2_COV) attributes coverage by `current` and only
-	// collects on its owner CPU, so it REQUIRES strict serialization -- procs:1 is NOT enough on its
-	// own, because the fuzzer otherwise forces ExecFlagThreaded and emits collide programs. When set,
-	// the manager runs one proc, does NOT set ExecFlagThreaded, and generates no collide programs; the
-	// executor additionally honors SYZ_PKVM_OWNER_CPU (see below) to pin its run thread to the ring
-	// owner CPU. Requires procs == 1. Off by default; only meaningful with a CONFIG_PKVM_EL2_COV kernel.
+	// PkvmEL2Cov marks the target as a CONFIG_PKVM_EL2_COV kernel, i.e. one carrying the EL2 coverage
+	// bridge. Its only effect is timeouts: the pKVM paths do a REAL KVM_RUN (pvmfw boot: tens of ms
+	// plus many stage-2 faults), and at slowdown 1 the per-call timeout kills the run before its clean
+	// exit, so the executor discards coverage that the kernel already collected (drains climb while
+	// manager coverage stays 0). Set it whenever the target has the bridge, parallel or not.
+	PkvmEL2Cov bool `json:"pkvm_el2_cov"`
+
+	// PkvmSerial additionally forces SERIAL execution: one proc, no ExecFlagThreaded, no collide
+	// programs. It exists for kernels whose EL2 coverage ring is a SINGLE ring owned by one CPU --
+	// there, any concurrency puts the HVC on a CPU with no ring and the coverage is skipped
+	// (kernel-side skip_not_owner).
+	//
+	// A kernel with PER-CPU rings does not need this: every CPU has its own ring, and the host side
+	// holds preemption across the begin/HVC/end window so a migrating task cannot cross-attribute.
+	// Leave it OFF there -- it costs 7 of 8 cores for nothing (measured: load average 1.07 on an
+	// 8-core board over a 17 h run).
+	//
+	// Requires procs == 1. Off by default.
 	PkvmSerial bool `json:"pkvm_serial"`
 
 	// Reproduce, localize and minimize crashers (default: true).

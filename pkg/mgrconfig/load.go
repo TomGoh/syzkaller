@@ -276,12 +276,16 @@ func (cfg *Config) initTimeouts() {
 		// but a smaller value should be enough to finish at least some syscalls.
 		// Note: the name check is a hack.
 		slowdown = 10
-	case cfg.PkvmSerial:
-		// The pKVM Stage-2 #23 path does a REAL KVM_RUN (pvmfw boot: tens of ms plus many
-		// stage-2 faults); at slowdown 1 the per-call timeout kills the run before its clean
-		// exit, so the executor discards the coverage even though the EL2 faults already
-		// happened kernel-side (drains climb but manager coverage stays 0). Match the manual
-		// smoke's -slowdown=10 so the run completes and its coverage is read out.
+	case cfg.PkvmEL2Cov || cfg.PkvmSerial:
+		// The pKVM paths do a REAL KVM_RUN (pvmfw boot: tens of ms plus many stage-2 faults);
+		// at slowdown 1 the per-call timeout kills the run before its clean exit, so the
+		// executor discards the coverage even though the EL2 faults already happened
+		// kernel-side (drains climb but manager coverage stays 0). Match the manual smoke's
+		// -slowdown=10 so the run completes and its coverage is read out.
+		//
+		// Keyed on PkvmEL2Cov, not PkvmSerial: the timeout need is a property of the KERNEL,
+		// not of how many procs we run. PkvmSerial is still honoured so old configs that only
+		// set that keep their timeouts.
 		slowdown = 10
 	}
 	// Note: we could also consider heavy debug tools (KASAN/KMSAN/KCSAN/KMEMLEAK) if necessary.
