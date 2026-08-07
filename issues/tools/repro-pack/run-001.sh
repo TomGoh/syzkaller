@@ -33,7 +33,8 @@ pack_init 001 "pkvm_unmap_guest() self-deadlock on mmap_lock  [HAZARD: wedges-ta
 TIMEOUT=${TIMEOUT_001:-180}
 SRC=$ISSUES_DIR/001-pkvm-unmap-selfdeadlock/repro/repro-deadlock.c
 
-BIN=$(build_repro "$SRC" repro-deadlock) || exit
+build_repro "$SRC" repro-deadlock
+BIN=$REPRO_BIN
 build_only_stop
 
 need_native

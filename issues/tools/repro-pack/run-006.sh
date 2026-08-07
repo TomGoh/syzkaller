@@ -28,7 +28,8 @@ SETTLE=${SETTLE:-5}
 SRC=$ISSUES_DIR/006-unshare-hyp-pfn-missing-on-vcpu-destroy/repro/probe-mpstate-suspended-pin-leak.c
 
 # Named probe-mpstate to match the Comm the ISSUE.md evidence records.
-BIN=$(build_repro "$SRC" probe-mpstate) || exit
+build_repro "$SRC" probe-mpstate
+BIN=$REPRO_BIN
 build_only_stop
 
 need_native

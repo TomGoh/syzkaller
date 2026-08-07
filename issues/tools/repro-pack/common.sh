@@ -49,6 +49,7 @@ ISSUE_ID="???"
 VERDICT_PRINTED=0
 RC=0
 DMESG_WRAPPED=0
+REPRO_BIN=""
 
 on_exit() {
 	local rc=$?
@@ -81,15 +82,28 @@ note() { printf 'NOTE  %s: %s\n' "$ISSUE_ID" "$*"; }
 
 # ---------------------------------------------------------------- build ------
 
-# build_repro <src.c> <binary-name>  -> echoes the binary path.
+# build_repro <src.c> <binary-name>  -> sets REPRO_BIN to the binary path.
 # Set BINDIR=<dir> to use pre-built binaries instead (a board with no compiler:
 # build on a workstation with run-all.sh --build-only, then copy OUTDIR across).
+#
+# DELIBERATELY NOT an echo-and-capture API. Called as BIN=$(build_repro ...),
+# every verdict below would run in the command-substitution SUBSHELL: the RESULT
+# line would be captured into BIN instead of printed, and `exit` would leave
+# only the subshell. The caller's EXIT trap still prints a generic INCONCLUSIVE,
+# so the verdict CLASS and the exit code stay correct -- but the specific reason
+# is destroyed, and "no compiler: 'aarch64-linux-gnu-gcc' not found -- set CC="
+# is precisely what a colleague on an unfamiliar machine needs to read. Setting
+# a global keeps verdict in the script's own shell. Measured, not theorised:
+# before this change all three failure paths printed
+#   "script exited rc=12 without reaching a verdict -- see the log above"
+# and for the missing-compiler case there was no log above.
 build_repro() {
 	local src=$1 name=$2
 	local bin="$OUTDIR/$name"
+	REPRO_BIN=""
 
 	if [ -n "${BINDIR:-}" ] && [ -x "$BINDIR/$name" ]; then
-		printf '%s\n' "$BINDIR/$name"
+		REPRO_BIN="$BINDIR/$name"
 		return 0
 	fi
 	if [ ! -f "$src" ]; then
@@ -103,7 +117,7 @@ build_repro() {
 		sed 's/^/    /' "$bin.build.log" >&2
 		verdict INCONCLUSIVE "build failed: $CC $CFLAGS_OPT -static $(basename "$src") -- log in $bin.build.log"
 	fi
-	printf '%s\n' "$bin"
+	REPRO_BIN="$bin"
 }
 
 # Call after every build_repro in a script. Building is all --build-only does,

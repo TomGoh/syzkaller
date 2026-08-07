@@ -42,7 +42,8 @@ TIMEOUT=${TIMEOUT_005:-120}
 SETTLE=${SETTLE:-5}
 SRC=$ISSUES_DIR/005-unmap-guest-fails-after-dirty-log/repro/probe-dirtylog-twice.c
 
-BIN=$(build_repro "$SRC" probe-dirtylog-twice) || exit
+build_repro "$SRC" probe-dirtylog-twice
+BIN=$REPRO_BIN
 build_only_stop
 
 need_native

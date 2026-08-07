@@ -28,7 +28,8 @@ TIMEOUT=${TIMEOUT_003:-60}
 REPS=${REPS:-5}
 SRC=$ISSUES_DIR/003-dirty-log-guest-no-huge-page-support/repro/probe-dirtylog-thp.c
 
-BIN=$(build_repro "$SRC" probe-dirtylog-thp) || exit
+build_repro "$SRC" probe-dirtylog-thp
+BIN=$REPRO_BIN
 build_only_stop
 
 need_native

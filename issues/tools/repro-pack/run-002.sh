@@ -31,8 +31,10 @@ pack_init 002 "range TLB flush asks EL2 for a hypercall EL2 has retired"
 TIMEOUT=${TIMEOUT_002:-60}
 DIR=$ISSUES_DIR/002-tlb-range-flush-missing-pkvm-branch/repro
 
-BIN=$(build_repro "$DIR/repro-tlbflush-warn.c" repro-tlbflush) || exit
-VBIN=$(build_repro "$DIR/verify-dirtylog.c" verify-dirtylog) || exit
+build_repro "$DIR/repro-tlbflush-warn.c" repro-tlbflush
+BIN=$REPRO_BIN
+build_repro "$DIR/verify-dirtylog.c" verify-dirtylog
+VBIN=$REPRO_BIN
 build_only_stop
 
 need_native

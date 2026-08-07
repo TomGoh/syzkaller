@@ -35,7 +35,8 @@ SETTLE=${SETTLE:-5}
 PATTERN='donations to the nVHE hyp|nVHE hyp donation accounting'
 SRC=$ISSUES_DIR/004-hyp-donation-accounting-imbalance/repro/probe-dirtylog-thp.c
 
-BIN=$(build_repro "$SRC" probe-dirtylog-thp) || exit
+build_repro "$SRC" probe-dirtylog-thp
+BIN=$REPRO_BIN
 build_only_stop
 
 need_native
