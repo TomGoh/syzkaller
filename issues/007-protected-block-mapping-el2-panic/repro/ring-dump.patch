@@ -1,0 +1,84 @@
+diff --git a/arch/arm64/kvm/pkvm_cov.c b/arch/arm64/kvm/pkvm_cov.c
+index cd4791c186ef..873f33d5c016 100644
+--- a/arch/arm64/kvm/pkvm_cov.c
++++ b/arch/arm64/kvm/pkvm_cov.c
+@@ -767,6 +767,71 @@ static int pkvm_cov_stats_show(struct seq_file *s, void *unused)
+ }
+ DEFINE_SHOW_ATTRIBUTE(pkvm_cov_stats);
+ 
++/*
++ * kvm/pkvm_cov/ring_dump — the raw, UNDRAINED contents of every CPU's ring.
++ *
++ * pkvm_cov_end() is what converts these PCs and hands them to KCOV, and it only
++ * runs once the HVC returns. When a hypercall never returns -- EL2 spinning, the
++ * CPU no longer answering IPIs or even NMI -- the drain never happens, and the
++ * PCs sit stranded in host memory. They are then the ONLY record of what the
++ * hypervisor was executing, and a wedged EL2 has no other channel: it cannot
++ * print, and the host cannot interrupt it. So expose them read-only, and let a
++ * still-healthy CPU read the stuck CPU's ring.
++ *
++ * Deliberately takes no lock against the producer and does not wait for the
++ * window to close: the whole point is to read a ring whose owner is stuck, so
++ * synchronising with that owner would defeat the purpose. Values may be torn and
++ * the last entry may be half-written; treat the tail as approximate.
++ */
++#define PKVM_COV_DUMP_MAX 512		/* tail entries per CPU; the tail is what matters */
++
++static int pkvm_cov_ring_dump_show(struct seq_file *s, void *unused)
++{
++	int cpu;
++
++	if (!READ_ONCE(pkvm_cov_live)) {
++		seq_puts(s, "# not armed\n");
++		return 0;
++	}
++
++	for_each_possible_cpu(cpu) {
++		struct pkvm_cov_ring *ring =
++			rcu_dereference_raw(*per_cpu_ptr(&pkvm_cov_host_ring, cpu));
++		u32 count, capacity, first, i;
++
++		if (!ring)
++			continue;
++
++		capacity = READ_ONCE(ring->capacity);
++		count = READ_ONCE(ring->count);
++		if (count > capacity)
++			count = capacity;
++
++		/*
++		 * flags still carrying ENABLED means begin() armed this ring and
++		 * end() never ran -- i.e. this CPU is (or was) inside an HVC that
++		 * did not come back. That is the signature to look for.
++		 */
++		seq_printf(s, "cpu%d flags=0x%x count=%u hits=%u dropped=%u nested=%u capacity=%u\n",
++			   cpu, READ_ONCE(ring->flags), count,
++			   READ_ONCE(ring->hits), READ_ONCE(ring->dropped),
++			   READ_ONCE(ring->nested), capacity);
++
++		first = count > PKVM_COV_DUMP_MAX ? count - PKVM_COV_DUMP_MAX : 0;
++		if (first)
++			seq_printf(s, "cpu%d ... %u earlier entries omitted\n", cpu, first);
++		for (i = first; i < count; i++) {
++			u64 pc = READ_ONCE(ring->pcs[i]);
++			unsigned long link = pkvm_cov_runtime_to_link((unsigned long)pc);
++
++			seq_printf(s, "cpu%d %u 0x%llx %pS\n", cpu, i,
++				   (unsigned long long)pc, (void *)link);
++		}
++	}
++	return 0;
++}
++DEFINE_SHOW_ATTRIBUTE(pkvm_cov_ring_dump);
++
+ static int pkvm_cov_stats_reset_set(void *data, u64 val)
+ {
+ 	if (val)
+@@ -845,6 +910,7 @@ static int __init pkvm_cov_debugfs_init(void)
+ 	debugfs_create_file("enable", 0200, dir, NULL, &pkvm_cov_enable_fops);
+ 	debugfs_create_file("owner_cpu", 0400, dir, NULL, &pkvm_cov_owner_fops);
+ 	debugfs_create_file("stats", 0400, dir, NULL, &pkvm_cov_stats_fops);
++	debugfs_create_file("ring_dump", 0400, dir, NULL, &pkvm_cov_ring_dump_fops);
+ 	debugfs_create_file("stats_reset", 0200, dir, NULL, &pkvm_cov_stats_reset_fops);
+ 	debugfs_create_file("nr_pages", 0600, dir, NULL, &pkvm_cov_nr_pages_fops);
+ 	debugfs_create_file("fault_inject", 0600, dir, NULL, &pkvm_cov_fi_fops);

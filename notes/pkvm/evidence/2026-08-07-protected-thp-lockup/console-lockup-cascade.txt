@@ -1,0 +1,1259 @@
+[ 2319.570382] veth1_vlan: left promiscuous mode
+[ 2319.570394] veth0_vlan: left promiscuous mode
+[ 2319.583131] team0 (unregistering): Port device team_slave_1 removed
+[ 2319.583607] team0 (unregistering): Port device team_slave_0 removed
+[ 2319.584064] bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+[ 2319.734762] bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+[ 2319.793027] bond0 (unregistering): Released all slaves
+[ 3770.335533] Adding 124996k swap on ./swap-file.  Priority:0 extents:1 across:124996k SS
+[ 3770.826738] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[ 3770.826797] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[ 3770.826834] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[ 3770.826937] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[ 3770.827000] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[ 3770.827355] Bluetooth: MGMT ver 1.22
+[ 3770.829020] Bluetooth: hci1: unexpected cc 0x0c13 length: 249 > 1
+[ 3770.829156] Bluetooth: hci1: unexpected cc 0x0c24 length: 249 > 1
+[ 3770.829439] Bluetooth: hci1: unexpected cc 0x0c24 length: 249 > 1
+[ 3770.830157] Bluetooth: hci1: unexpected cc 0x0c24 length: 249 > 1
+[ 3771.078150] chnl_net:caif_netlink_parms(): no params data found
+[ 3771.085155] bridge0: port 1(bridge_slave_0) entered blocking state
+[ 3771.085171] bridge0: port 1(bridge_slave_0) entered disabled state
+[ 3771.085214] bridge_slave_0: entered allmulticast mode
+[ 3771.085335] bridge_slave_0: entered promiscuous mode
+[ 3771.086007] bridge0: port 2(bridge_slave_1) entered blocking state
+[ 3771.086016] bridge0: port 2(bridge_slave_1) entered disabled state
+[ 3771.086066] bridge_slave_1: entered allmulticast mode
+[ 3771.086173] bridge_slave_1: entered promiscuous mode
+[ 3771.087761] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[ 3771.087969] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[ 3771.089181] team0: Port device team_slave_0 added
+[ 3771.089338] team0: Port device team_slave_1 added
+[ 3771.090568] batman_adv: batadv0: Adding interface: batadv_slave_0
+[ 3771.090574] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[ 3771.090583] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[ 3771.090689] batman_adv: batadv0: Adding interface: batadv_slave_1
+[ 3771.090694] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[ 3771.090703] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[ 3771.370093] hsr_slave_0: entered promiscuous mode
+[ 3771.509778] hsr_slave_1: entered promiscuous mode
+[ 3771.699078] bridge0: port 2(bridge_slave_1) entered blocking state
+[ 3771.699090] bridge0: port 2(bridge_slave_1) entered forwarding state
+[ 3771.699110] bridge0: port 1(bridge_slave_0) entered blocking state
+[ 3771.699118] bridge0: port 1(bridge_slave_0) entered forwarding state
+[ 3771.714935] 8021q: adding VLAN 0 to HW filter on device bond0
+[ 3771.715732] bridge0: port 1(bridge_slave_0) entered disabled state
+[ 3771.715896] bridge0: port 2(bridge_slave_1) entered disabled state
+[ 3771.716724] 8021q: adding VLAN 0 to HW filter on device team0
+[ 3771.717144] bridge0: port 1(bridge_slave_0) entered blocking state
+[ 3771.717153] bridge0: port 1(bridge_slave_0) entered forwarding state
+[ 3771.717570] bridge0: port 2(bridge_slave_1) entered blocking state
+[ 3771.717610] bridge0: port 2(bridge_slave_1) entered forwarding state
+[ 3771.763206] 8021q: adding VLAN 0 to HW filter on device batadv0
+[ 3771.788084] veth0_vlan: entered promiscuous mode
+[ 3771.788484] veth1_vlan: entered promiscuous mode
+[ 3771.789938] veth0_macvtap: entered promiscuous mode
+[ 3771.790228] veth1_macvtap: entered promiscuous mode
+[ 3771.790974] batman_adv: batadv0: Interface activated: batadv_slave_0
+[ 3771.791510] batman_adv: batadv0: Interface activated: batadv_slave_1
+[ 3771.944904] Bluetooth: hci1: unexpected cc 0x0c03 length: 249 > 1
+[ 3771.944966] Bluetooth: hci1: unexpected cc 0x1003 length: 249 > 9
+[ 3771.945008] Bluetooth: hci1: unexpected cc 0x1001 length: 249 > 9
+[ 3771.945120] Bluetooth: hci1: unexpected cc 0x0c23 length: 249 > 4
+[ 3771.945190] Bluetooth: hci1: unexpected cc 0x0c38 length: 249 > 2
+[ 3771.945674] Bluetooth: MGMT ver 1.22
+[ 3772.294063] chnl_net:caif_netlink_parms(): no params data found
+[ 3772.301115] bridge0: port 1(bridge_slave_0) entered blocking state
+[ 3772.301131] bridge0: port 1(bridge_slave_0) entered disabled state
+[ 3772.301158] bridge_slave_0: entered allmulticast mode
+[ 3772.301280] bridge_slave_0: entered promiscuous mode
+[ 3772.301574] bridge0: port 2(bridge_slave_1) entered blocking state
+[ 3772.301631] bridge0: port 2(bridge_slave_1) entered disabled state
+[ 3772.302079] bridge_slave_1: entered allmulticast mode
+[ 3772.302203] bridge_slave_1: entered promiscuous mode
+[ 3772.303969] bond0: (slave bond_slave_0): Enslaving as an active interface with an up link
+[ 3772.304188] bond0: (slave bond_slave_1): Enslaving as an active interface with an up link
+[ 3772.305527] team0: Port device team_slave_0 added
+[ 3772.306031] team0: Port device team_slave_1 added
+[ 3772.307314] batman_adv: batadv0: Adding interface: batadv_slave_0
+[ 3772.307320] batman_adv: batadv0: The MTU of interface batadv_slave_0 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[ 3772.307329] batman_adv: batadv0: Not using interface batadv_slave_0 (retrying later): interface not active
+[ 3772.307426] batman_adv: batadv0: Adding interface: batadv_slave_1
+[ 3772.307431] batman_adv: batadv0: The MTU of interface batadv_slave_1 is too small (1500) to handle the transport of batman-adv packets. Packets going over this interface will be fragmented on layer2 which could impact the performance. Setting the MTU to 1560 would solve the problem.
+[ 3772.307440] batman_adv: batadv0: Not using interface batadv_slave_1 (retrying later): interface not active
+[ 3772.525994] hsr_slave_0: entered promiscuous mode
+[ 3772.609687] hsr_slave_1: entered promiscuous mode
+[ 3772.805598] debugfs: Directory 'hsr0' with parent 'hsr' already present!
+[ 3772.805607] Cannot create hsr debugfs directory
+[ 3772.833096] 8021q: adding VLAN 0 to HW filter on device bond0
+[ 3772.833894] 8021q: adding VLAN 0 to HW filter on device team0
+[ 3772.834340] bridge0: port 1(bridge_slave_0) entered blocking state
+[ 3772.834350] bridge0: port 1(bridge_slave_0) entered forwarding state
+[ 3772.834831] bridge0: port 2(bridge_slave_1) entered blocking state
+[ 3772.834840] bridge0: port 2(bridge_slave_1) entered forwarding state
+[ 3772.878551] 8021q: adding VLAN 0 to HW filter on device batadv0
+[ 3772.902427] veth0_vlan: entered promiscuous mode
+[ 3772.902835] veth1_vlan: entered promiscuous mode
+[ 3772.904217] veth0_macvtap: entered promiscuous mode
+[ 3772.904479] veth1_macvtap: entered promiscuous mode
+[ 3772.905171] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3e) already exists on: batadv_slave_0
+[ 3772.905178] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[ 3772.905265] batman_adv: batadv0: Interface activated: batadv_slave_0
+[ 3772.905674] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[ 3772.905681] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[ 3772.905763] batman_adv: batadv0: Interface activated: batadv_slave_1
+[ 3773.965596] Bluetooth: hci1: Opcode 0x0c13 failed: -110
+[ 3775.981599] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3777.997607] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3780.013614] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3782.029615] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3784.045620] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3786.061626] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3788.077633] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3790.093642] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3792.109646] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3794.125654] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3796.141661] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3796.849650] watchdog: BUG: soft lockup - CPU#0 stuck for 23s! [kworker/u32:2:53347]
+[ 3796.858437] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3796.858691]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3796.858832] CPU: 0 PID: 53347 Comm: kworker/u32:2 Not tainted 6.6.103+ #25
+[ 3796.858840] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3796.858844] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3796.858850] Workqueue: netns cleanup_net
+[ 3796.858862] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3796.858870] pc : smp_call_function_single+0xfc/0x200
+[ 3796.858880] lr : smp_call_function_single+0xdc/0x200
+[ 3796.858886] sp : ffff002177ae3bf0
+[ 3796.858889] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 3796.858901] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 3796.858912] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 3796.858923] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 3796.858934] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 3796.858945] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 3796.858956] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 3796.858967] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 3796.858978] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 3796.858989] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 3796.859000] Call trace:
+[ 3796.859003]  smp_call_function_single+0xfc/0x200
+[ 3796.859010]  rcu_barrier+0x1bc/0x3a0
+[ 3796.859021]  cleanup_net+0x470/0x6a8
+[ 3796.859028]  process_one_work+0x1dc/0x4b0
+[ 3796.859039]  worker_thread+0x36c/0x5a8
+[ 3796.859048]  kthread+0x100/0x110
+[ 3796.859056]  ret_from_fork+0x10/0x20
+[ 3796.859065] Sending NMI from CPU 0 to CPUs 1-7:
+[ 3798.157666] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3800.173671] Bluetooth: hci1: Opcode 0x0c1a failed: -110
+[ 3802.189684] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3804.205683] Bluetooth: hci1: Opcode 0x0c24 failed: -110
+[ 3816.929726] sched: DL replenish lagged too much
+[ 3832.849797] watchdog: BUG: soft lockup - CPU#0 stuck for 56s! [kworker/u32:2:53347]
+[ 3832.858582] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3832.858826]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3832.858961] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3832.858969] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3832.858972] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3832.858978] Workqueue: netns cleanup_net
+[ 3832.858990] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3832.858997] pc : smp_call_function_single+0xfc/0x200
+[ 3832.859007] lr : smp_call_function_single+0xdc/0x200
+[ 3832.859014] sp : ffff002177ae3bf0
+[ 3832.859017] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 3832.859028] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 3832.859040] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 3832.859051] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 3832.859062] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 3832.859073] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 3832.859084] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 3832.859096] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 3832.859106] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 3832.859117] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 3832.859128] Call trace:
+[ 3832.859131]  smp_call_function_single+0xfc/0x200
+[ 3832.859138]  rcu_barrier+0x1bc/0x3a0
+[ 3832.859148]  cleanup_net+0x470/0x6a8
+[ 3832.859155]  process_one_work+0x1dc/0x4b0
+[ 3832.859166]  worker_thread+0x36c/0x5a8
+[ 3832.859175]  kthread+0x100/0x110
+[ 3832.859183]  ret_from_fork+0x10/0x20
+[ 3832.859192] Sending NMI from CPU 0 to CPUs 1-7:
+[ 3832.989796] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+[ 3832.989801] rcu: 	2-...0: (1 GPs behind) idle=e60c/1/0x4000000000000000 softirq=63406/63407 fqs=7469
+[ 3832.989811] rcu: 	(detected by 3, t=15002 jiffies, g=79985, q=18259 ncpus=8)
+[ 3844.881857] watchdog: BUG: soft lockup - CPU#4 stuck for 26s! [kworker/4:2:109]
+[ 3844.890295] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3844.890540]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3844.890676] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3844.890684] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3844.890688] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3844.890693] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 3844.890705] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3844.890712] pc : smp_call_function_single+0x184/0x200
+[ 3844.890721] lr : smp_call_function_single+0x164/0x200
+[ 3844.890728] sp : ffff00208870fc20
+[ 3844.890731] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 3844.890743] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 3844.890754] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 3844.890765] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 3844.890776] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 3844.890787] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 3844.890798] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 3844.890809] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 3844.890820] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 3844.890831] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 3844.890842] Call trace:
+[ 3844.890845]  smp_call_function_single+0x184/0x200
+[ 3844.890852]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 3844.890864]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 3844.890874]  wait_rcu_exp_gp+0x1c/0x38
+[ 3844.890880]  process_one_work+0x1dc/0x4b0
+[ 3844.890890]  worker_thread+0x36c/0x5a8
+[ 3844.890899]  kthread+0x100/0x110
+[ 3844.890907]  ret_from_fork+0x10/0x20
+[ 3844.890916] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 3864.849967] watchdog: BUG: soft lockup - CPU#0 stuck for 86s! [kworker/u32:2:53347]
+[ 3864.858750] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3864.858991]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3864.859122] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3864.859130] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3864.859134] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3864.859139] Workqueue: netns cleanup_net
+[ 3864.859151] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3864.859159] pc : smp_call_function_single+0xfc/0x200
+[ 3864.859167] lr : smp_call_function_single+0xdc/0x200
+[ 3864.859173] sp : ffff002177ae3bf0
+[ 3864.859176] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 3864.859188] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 3864.859199] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 3864.859210] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 3864.859221] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 3864.859232] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 3864.859243] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 3864.859254] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 3864.859265] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 3864.859276] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 3864.859287] Call trace:
+[ 3864.859290]  smp_call_function_single+0xfc/0x200
+[ 3864.859296]  rcu_barrier+0x1bc/0x3a0
+[ 3864.859307]  cleanup_net+0x470/0x6a8
+[ 3864.859314]  process_one_work+0x1dc/0x4b0
+[ 3864.859324]  worker_thread+0x36c/0x5a8
+[ 3864.859334]  kthread+0x100/0x110
+[ 3864.859341]  ret_from_fork+0x10/0x20
+[ 3864.859350] Sending NMI from CPU 0 to CPUs 1-7:
+[ 3876.894040] watchdog: BUG: soft lockup - CPU#5 stuck for 33s! [sshd:58019]
+[ 3876.902043] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3876.902281]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3876.902413] CPU: 5 PID: 58019 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3876.902420] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3876.902424] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3876.902429] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3876.902437] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 3876.902447] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 3876.902453] sp : ffff0023690978e0
+[ 3876.902456] x29: ffff0023690978e0 x28: 0000000000000000 x27: ffff0026fff7ee08
+[ 3876.902468] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 3876.902480] x23: 0000000000000002 x22: ffff0026fff14500 x21: ffff0026fff7ee00
+[ 3876.902491] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 3876.902503] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 3876.902514] x14: 7fff000000000006 x13: 0000000000000095 x12: 00000000000000b4
+[ 3876.902525] x11: 0000000000000000 x10: 0000000000000000 x9 : ffff800080a70c5c
+[ 3876.902536] x8 : 0000000000000000 x7 : 00000000000063eb x6 : 0000000000000040
+[ 3876.902547] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff7ee28
+[ 3876.902558] x2 : 0000000000000002 x1 : ffff0026fff14508 x0 : 0000000000000000
+[ 3876.902569] Call trace:
+[ 3876.902572]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 3876.902579]  kick_all_cpus_sync+0x38/0x48
+[ 3876.902586]  __text_poke+0x11c/0x160
+[ 3876.902597]  aarch64_insn_copy+0x28/0x38
+[ 3876.902607]  bpf_arch_text_copy+0x2c/0x58
+[ 3876.902617]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 3876.902625]  bpf_int_jit_compile+0x384/0x700
+[ 3876.902634]  bpf_prog_select_runtime+0x108/0x150
+[ 3876.902641]  bpf_prepare_filter+0x578/0x708
+[ 3876.902650]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 3876.902658]  do_seccomp+0x3c0/0xf08
+[ 3876.902665]  prctl_set_seccomp+0x50/0x80
+[ 3876.902672]  __arm64_sys_prctl+0x530/0x9c8
+[ 3876.902680]  invoke_syscall.constprop.0+0x74/0x170
+[ 3876.902689]  el0_svc_common.constprop.0+0x108/0x138
+[ 3876.902699]  do_el0_svc+0x2c/0x40
+[ 3876.902708]  el0_svc+0x20/0xb0
+[ 3876.902715]  el0t_64_sync_handler+0x118/0x128
+[ 3876.902723]  el0t_64_sync+0x14c/0x150
+[ 3876.902730] Sending NMI from CPU 5 to CPUs 0-4,6-7:
+[ 3888.882117] watchdog: BUG: soft lockup - CPU#4 stuck for 67s! [kworker/4:2:109]
+[ 3888.890552] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3888.890778]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3888.890903] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3888.890911] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3888.890914] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3888.890920] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 3888.890928] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3888.890936] pc : smp_call_function_single+0x184/0x200
+[ 3888.890944] lr : smp_call_function_single+0x164/0x200
+[ 3888.890950] sp : ffff00208870fc20
+[ 3888.890954] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 3888.890965] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 3888.890976] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 3888.890987] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 3888.890999] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 3888.891010] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 3888.891021] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 3888.891032] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 3888.891043] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 3888.891054] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 3888.891065] Call trace:
+[ 3888.891068]  smp_call_function_single+0x184/0x200
+[ 3888.891075]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 3888.891086]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 3888.891096]  wait_rcu_exp_gp+0x1c/0x38
+[ 3888.891102]  process_one_work+0x1dc/0x4b0
+[ 3888.891112]  worker_thread+0x36c/0x5a8
+[ 3888.891121]  kthread+0x100/0x110
+[ 3888.891129]  ret_from_fork+0x10/0x20
+[ 3888.891137] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 3897.134509] INFO: task kworker/u32:1:57319 blocked for more than 123 seconds.
+[ 3897.134518]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3897.134524] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3897.134528] task:kworker/u32:1   state:D stack:0     pid:57319 tgid:57319 ppid:2      flags:0x00000608
+[ 3897.134540] Workqueue: events_unbound fsnotify_connector_destroy_workfn
+[ 3897.134555] Call trace:
+[ 3897.134558]  __switch_to+0x10c/0x158
+[ 3897.134570]  __schedule+0x3c0/0x12e8
+[ 3897.134580]  schedule+0x28/0x120
+[ 3897.134589]  schedule_timeout+0x1b0/0x1c8
+[ 3897.134597]  __wait_for_common+0xf8/0x270
+[ 3897.134608]  wait_for_completion+0x24/0x38
+[ 3897.134618]  __synchronize_srcu+0xd0/0xe8
+[ 3897.134628]  synchronize_srcu+0xa0/0x148
+[ 3897.134637]  fsnotify_connector_destroy_workfn+0x64/0xb0
+[ 3897.134647]  process_one_work+0x1dc/0x4b0
+[ 3897.134657]  worker_thread+0x36c/0x5a8
+[ 3897.134666]  kthread+0x100/0x110
+[ 3897.134674]  ret_from_fork+0x10/0x20
+[ 3897.134689] INFO: task kworker/u32:3:57810 blocked for more than 123 seconds.
+[ 3897.134695]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3897.134700] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3897.134703] task:kworker/u32:3   state:D stack:0     pid:57810 tgid:57810 ppid:2      flags:0x00000608
+[ 3897.134714] Workqueue: events_unbound fsnotify_mark_destroy_workfn
+[ 3897.134725] Call trace:
+[ 3897.134727]  __switch_to+0x10c/0x158
+[ 3897.134737]  __schedule+0x3c0/0x12e8
+[ 3897.134747]  schedule+0x28/0x120
+[ 3897.134756]  schedule_timeout+0x1b0/0x1c8
+[ 3897.134764]  __wait_for_common+0xf8/0x270
+[ 3897.134774]  wait_for_completion+0x24/0x38
+[ 3897.134784]  __synchronize_srcu+0xd0/0xe8
+[ 3897.134793]  synchronize_srcu+0xa0/0x148
+[ 3897.134803]  fsnotify_mark_destroy_workfn+0xa8/0x190
+[ 3897.134817]  process_one_work+0x1dc/0x4b0
+[ 3897.134827]  worker_thread+0x36c/0x5a8
+[ 3897.134836]  kthread+0x100/0x110
+[ 3897.134844]  ret_from_fork+0x10/0x20
+[ 3900.850200] watchdog: BUG: soft lockup - CPU#0 stuck for 119s! [kworker/u32:2:53347]
+[ 3900.859069] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3900.859298]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3900.859427] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3900.859435] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3900.859438] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3900.859444] Workqueue: netns cleanup_net
+[ 3900.859455] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3900.859463] pc : smp_call_function_single+0xfc/0x200
+[ 3900.859472] lr : smp_call_function_single+0xdc/0x200
+[ 3900.859478] sp : ffff002177ae3bf0
+[ 3900.859481] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 3900.859493] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 3900.859504] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 3900.859515] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 3900.859526] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 3900.859537] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 3900.859548] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 3900.859559] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 3900.859570] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 3900.859581] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 3900.859592] Call trace:
+[ 3900.859594]  smp_call_function_single+0xfc/0x200
+[ 3900.859601]  rcu_barrier+0x1bc/0x3a0
+[ 3900.859612]  cleanup_net+0x470/0x6a8
+[ 3900.859619]  process_one_work+0x1dc/0x4b0
+[ 3900.859630]  worker_thread+0x36c/0x5a8
+[ 3900.859639]  kthread+0x100/0x110
+[ 3900.859646]  ret_from_fork+0x10/0x20
+[ 3900.859655] Sending NMI from CPU 0 to CPUs 1-7:
+[ 3912.894288] watchdog: BUG: soft lockup - CPU#5 stuck for 67s! [sshd:58019]
+[ 3912.902291] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3912.902534]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3912.902668] CPU: 5 PID: 58019 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3912.902676] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3912.902679] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3912.902684] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3912.902692] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 3912.902703] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 3912.902709] sp : ffff0023690978e0
+[ 3912.902712] x29: ffff0023690978e0 x28: 0000000000000000 x27: ffff0026fff7ee08
+[ 3912.902724] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 3912.902736] x23: 0000000000000002 x22: ffff0026fff14500 x21: ffff0026fff7ee00
+[ 3912.902747] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 3912.902758] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 3912.902770] x14: 7fff000000000006 x13: 0000000000000095 x12: 00000000000000b4
+[ 3912.902781] x11: 0000000000000000 x10: 0000000000000000 x9 : ffff800080a70c5c
+[ 3912.902792] x8 : 0000000000000000 x7 : 00000000000063eb x6 : 0000000000000040
+[ 3912.902804] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff7ee28
+[ 3912.902815] x2 : 0000000000000002 x1 : ffff0026fff14508 x0 : 0000000000000000
+[ 3912.902826] Call trace:
+[ 3912.902829]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 3912.902836]  kick_all_cpus_sync+0x38/0x48
+[ 3912.902843]  __text_poke+0x11c/0x160
+[ 3912.902853]  aarch64_insn_copy+0x28/0x38
+[ 3912.902862]  bpf_arch_text_copy+0x2c/0x58
+[ 3912.902872]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 3912.902881]  bpf_int_jit_compile+0x384/0x700
+[ 3912.902890]  bpf_prog_select_runtime+0x108/0x150
+[ 3912.902897]  bpf_prepare_filter+0x578/0x708
+[ 3912.902906]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 3912.902914]  do_seccomp+0x3c0/0xf08
+[ 3912.902922]  prctl_set_seccomp+0x50/0x80
+[ 3912.902929]  __arm64_sys_prctl+0x530/0x9c8
+[ 3912.902937]  invoke_syscall.constprop.0+0x74/0x170
+[ 3912.902947]  el0_svc_common.constprop.0+0x108/0x138
+[ 3912.902957]  do_el0_svc+0x2c/0x40
+[ 3912.902966]  el0_svc+0x20/0xb0
+[ 3912.902973]  el0t_64_sync_handler+0x118/0x128
+[ 3912.902980]  el0t_64_sync+0x14c/0x150
+[ 3912.902988] Sending NMI from CPU 5 to CPUs 0-4,6-7:
+[ 3917.614342] INFO: task systemd:1 blocked for more than 122 seconds.
+[ 3917.614351]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3917.614356] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3917.614360] task:systemd         state:D stack:0     pid:1     tgid:1     ppid:0      flags:0x00000604
+[ 3917.614371] Call trace:
+[ 3917.614374]  __switch_to+0x10c/0x158
+[ 3917.614387]  __schedule+0x3c0/0x12e8
+[ 3917.614397]  schedule+0x28/0x120
+[ 3917.614406]  schedule_preempt_disabled+0x14/0x28
+[ 3917.614417]  __mutex_lock.constprop.0+0x3c4/0x7d8
+[ 3917.614428]  __mutex_lock_slowpath+0x18/0x28
+[ 3917.614439]  mutex_lock+0x54/0x68
+[ 3917.614449]  cgroup_kn_lock_live+0x70/0x190
+[ 3917.614458]  cgroup_rmdir+0x30/0x1a0
+[ 3917.614466]  kernfs_iop_rmdir+0x78/0xb0
+[ 3917.614477]  vfs_rmdir+0xc0/0x2a0
+[ 3917.614488]  do_rmdir+0x1cc/0x1f0
+[ 3917.614498]  __arm64_sys_unlinkat+0xf8/0x140
+[ 3917.614508]  invoke_syscall.constprop.0+0x74/0x170
+[ 3917.614519]  el0_svc_common.constprop.0+0x108/0x138
+[ 3917.614529]  do_el0_svc+0x2c/0x40
+[ 3917.614538]  el0_svc+0x20/0xb0
+[ 3917.614546]  el0t_64_sync_handler+0x118/0x128
+[ 3917.614555]  el0t_64_sync+0x14c/0x150
+[ 3917.614770] INFO: task systemd:1 is blocked on a mutex likely owned by task systemd:3340.
+[ 3917.614776] task:systemd         state:D stack:0     pid:3340  tgid:3340  ppid:1      flags:0x00000604
+[ 3917.614787] Call trace:
+[ 3917.614790]  __switch_to+0x10c/0x158
+[ 3917.614799]  __schedule+0x3c0/0x12e8
+[ 3917.614809]  schedule+0x28/0x120
+[ 3917.614818]  schedule_timeout+0x1b0/0x1c8
+[ 3917.614826]  __wait_for_common+0xf8/0x270
+[ 3917.614837]  wait_for_completion+0x24/0x38
+[ 3917.614847]  __wait_rcu_gp+0x19c/0x210
+[ 3917.614856]  synchronize_rcu+0x108/0x120
+[ 3917.614867]  rcu_sync_enter+0x84/0x148
+[ 3917.614875]  percpu_down_write+0x34/0x1a8
+[ 3917.614882]  cgroup_procs_write_start+0x94/0x208
+[ 3917.614890]  __cgroup_procs_write+0x70/0x1f8
+[ 3917.614898]  cgroup_procs_write+0x2c/0x58
+[ 3917.614905]  cgroup_file_write+0xe0/0x200
+[ 3917.614915]  kernfs_fop_write_iter+0x184/0x248
+[ 3917.614926]  vfs_write+0x230/0x3f8
+[ 3917.614935]  ksys_write+0x90/0x148
+[ 3917.614944]  __arm64_sys_write+0x28/0x38
+[ 3917.614953]  invoke_syscall.constprop.0+0x74/0x170
+[ 3917.614963]  el0_svc_common.constprop.0+0x108/0x138
+[ 3917.614973]  do_el0_svc+0x2c/0x40
+[ 3917.614983]  el0_svc+0x20/0xb0
+[ 3917.614990]  el0t_64_sync_handler+0x118/0x128
+[ 3917.614999]  el0t_64_sync+0x14c/0x150
+[ 3917.615112] INFO: task khugepaged:73 blocked for more than 122 seconds.
+[ 3917.615120]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3917.615125] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3917.615128] task:khugepaged      state:D stack:0     pid:73    tgid:73    ppid:2      flags:0x00000608
+[ 3917.615139] Call trace:
+[ 3917.615142]  __switch_to+0x10c/0x158
+[ 3917.615152]  __schedule+0x3c0/0x12e8
+[ 3917.615162]  schedule+0x28/0x120
+[ 3917.615171]  schedule_timeout+0x1b0/0x1c8
+[ 3917.615179]  __wait_for_common+0xf8/0x270
+[ 3917.615189]  wait_for_completion+0x24/0x38
+[ 3917.615199]  __flush_work+0x2a8/0x478
+[ 3917.615209]  flush_work+0x2c/0x40
+[ 3917.615217]  __lru_add_drain_all+0x1a8/0x268
+[ 3917.615225]  lru_add_drain_all+0x1c/0x30
+[ 3917.615233]  khugepaged+0x98/0xa70
+[ 3917.615243]  kthread+0x100/0x110
+[ 3917.615252]  ret_from_fork+0x10/0x20
+[ 3917.615443] INFO: task systemd:3340 blocked for more than 122 seconds.
+[ 3917.615450]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3917.615455] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3917.615458] task:systemd         state:D stack:0     pid:3340  tgid:3340  ppid:1      flags:0x00000604
+[ 3917.615469] Call trace:
+[ 3917.615472]  __switch_to+0x10c/0x158
+[ 3917.615482]  __schedule+0x3c0/0x12e8
+[ 3917.615491]  schedule+0x28/0x120
+[ 3917.615501]  schedule_timeout+0x1b0/0x1c8
+[ 3917.615508]  __wait_for_common+0xf8/0x270
+[ 3917.615518]  wait_for_completion+0x24/0x38
+[ 3917.615528]  __wait_rcu_gp+0x19c/0x210
+[ 3917.615536]  synchronize_rcu+0x108/0x120
+[ 3917.615547]  rcu_sync_enter+0x84/0x148
+[ 3917.615555]  percpu_down_write+0x34/0x1a8
+[ 3917.615562]  cgroup_procs_write_start+0x94/0x208
+[ 3917.615570]  __cgroup_procs_write+0x70/0x1f8
+[ 3917.615578]  cgroup_procs_write+0x2c/0x58
+[ 3917.615586]  cgroup_file_write+0xe0/0x200
+[ 3917.615595]  kernfs_fop_write_iter+0x184/0x248
+[ 3917.615606]  vfs_write+0x230/0x3f8
+[ 3917.615615]  ksys_write+0x90/0x148
+[ 3917.615623]  __arm64_sys_write+0x28/0x38
+[ 3917.615633]  invoke_syscall.constprop.0+0x74/0x170
+[ 3917.615643]  el0_svc_common.constprop.0+0x108/0x138
+[ 3917.615653]  do_el0_svc+0x2c/0x40
+[ 3917.615662]  el0_svc+0x20/0xb0
+[ 3917.615670]  el0t_64_sync_handler+0x118/0x128
+[ 3917.615678]  el0t_64_sync+0x14c/0x150
+[ 3917.615777] INFO: task kworker/u32:1:57319 blocked for more than 143 seconds.
+[ 3917.615784]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3917.615788] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3917.615792] task:kworker/u32:1   state:D stack:0     pid:57319 tgid:57319 ppid:2      flags:0x00000608
+[ 3917.615803] Workqueue: events_unbound fsnotify_connector_destroy_workfn
+[ 3917.615815] Call trace:
+[ 3917.615818]  __switch_to+0x10c/0x158
+[ 3917.615828]  __schedule+0x3c0/0x12e8
+[ 3917.615838]  schedule+0x28/0x120
+[ 3917.615847]  schedule_timeout+0x1b0/0x1c8
+[ 3917.615855]  __wait_for_common+0xf8/0x270
+[ 3917.615865]  wait_for_completion+0x24/0x38
+[ 3917.615875]  __synchronize_srcu+0xd0/0xe8
+[ 3917.615884]  synchronize_srcu+0xa0/0x148
+[ 3917.615893]  fsnotify_connector_destroy_workfn+0x64/0xb0
+[ 3917.615904]  process_one_work+0x1dc/0x4b0
+[ 3917.615913]  worker_thread+0x36c/0x5a8
+[ 3917.615922]  kthread+0x100/0x110
+[ 3917.615930]  ret_from_fork+0x10/0x20
+[ 3917.615972] INFO: task kworker/u32:3:57810 blocked for more than 143 seconds.
+[ 3917.615978]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3917.615983] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3917.615986] task:kworker/u32:3   state:D stack:0     pid:57810 tgid:57810 ppid:2      flags:0x00000608
+[ 3917.615997] Workqueue: events_unbound fsnotify_mark_destroy_workfn
+[ 3917.616008] Call trace:
+[ 3917.616010]  __switch_to+0x10c/0x158
+[ 3917.616020]  __schedule+0x3c0/0x12e8
+[ 3917.616030]  schedule+0x28/0x120
+[ 3917.616039]  schedule_timeout+0x1b0/0x1c8
+[ 3917.616047]  __wait_for_common+0xf8/0x270
+[ 3917.616057]  wait_for_completion+0x24/0x38
+[ 3917.616067]  __synchronize_srcu+0xd0/0xe8
+[ 3917.616077]  synchronize_srcu+0xa0/0x148
+[ 3917.616086]  fsnotify_mark_destroy_workfn+0xa8/0x190
+[ 3917.616096]  process_one_work+0x1dc/0x4b0
+[ 3917.616105]  worker_thread+0x36c/0x5a8
+[ 3917.616114]  kthread+0x100/0x110
+[ 3917.616122]  ret_from_fork+0x10/0x20
+[ 3917.616160] INFO: task (TService):57973 blocked for more than 122 seconds.
+[ 3917.616166]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3917.616171] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3917.616174] task:(TService)      state:D stack:0     pid:57973 tgid:57973 ppid:3340   flags:0x00000604
+[ 3917.616185] Call trace:
+[ 3917.616188]  __switch_to+0x10c/0x158
+[ 3917.616198]  __schedule+0x3c0/0x12e8
+[ 3917.616208]  schedule+0x28/0x120
+[ 3917.616217]  schedule_preempt_disabled+0x14/0x28
+[ 3917.616227]  __mutex_lock.constprop.0+0x3c4/0x7d8
+[ 3917.616238]  __mutex_lock_slowpath+0x18/0x28
+[ 3917.616249]  mutex_lock+0x54/0x68
+[ 3917.616259]  cgroup_kn_lock_live+0x70/0x190
+[ 3917.616267]  __cgroup_procs_write+0x54/0x1f8
+[ 3917.616275]  cgroup_procs_write+0x2c/0x58
+[ 3917.616283]  cgroup_file_write+0xe0/0x200
+[ 3917.616292]  kernfs_fop_write_iter+0x184/0x248
+[ 3917.616303]  vfs_write+0x230/0x3f8
+[ 3917.616311]  ksys_write+0x90/0x148
+[ 3917.616320]  __arm64_sys_write+0x28/0x38
+[ 3917.616329]  invoke_syscall.constprop.0+0x74/0x170
+[ 3917.616340]  el0_svc_common.constprop.0+0x108/0x138
+[ 3917.616350]  do_el0_svc+0x2c/0x40
+[ 3917.616359]  el0_svc+0x20/0xb0
+[ 3917.616366]  el0t_64_sync_handler+0x118/0x128
+[ 3917.616375]  el0t_64_sync+0x14c/0x150
+[ 3917.616525] INFO: task (TService):57973 is blocked on a mutex likely owned by task systemd:3340.
+[ 3917.616531] task:systemd         state:D stack:0     pid:3340  tgid:3340  ppid:1      flags:0x00000604
+[ 3917.616541] Call trace:
+[ 3917.616544]  __switch_to+0x10c/0x158
+[ 3917.616554]  __schedule+0x3c0/0x12e8
+[ 3917.616563]  schedule+0x28/0x120
+[ 3917.616572]  schedule_timeout+0x1b0/0x1c8
+[ 3917.616580]  __wait_for_common+0xf8/0x270
+[ 3917.616590]  wait_for_completion+0x24/0x38
+[ 3917.616600]  __wait_rcu_gp+0x19c/0x210
+[ 3917.616608]  synchronize_rcu+0x108/0x120
+[ 3917.616618]  rcu_sync_enter+0x84/0x148
+[ 3917.616627]  percpu_down_write+0x34/0x1a8
+[ 3917.616634]  cgroup_procs_write_start+0x94/0x208
+[ 3917.616641]  __cgroup_procs_write+0x70/0x1f8
+[ 3917.616649]  cgroup_procs_write+0x2c/0x58
+[ 3917.616657]  cgroup_file_write+0xe0/0x200
+[ 3917.616667]  kernfs_fop_write_iter+0x184/0x248
+[ 3917.616677]  vfs_write+0x230/0x3f8
+[ 3917.616686]  ksys_write+0x90/0x148
+[ 3917.616695]  __arm64_sys_write+0x28/0x38
+[ 3917.616704]  invoke_syscall.constprop.0+0x74/0x170
+[ 3917.616714]  el0_svc_common.constprop.0+0x108/0x138
+[ 3917.616724]  do_el0_svc+0x2c/0x40
+[ 3917.616733]  el0_svc+0x20/0xb0
+[ 3917.616741]  el0t_64_sync_handler+0x118/0x128
+[ 3917.616749]  el0t_64_sync+0x14c/0x150
+[ 3924.882380] watchdog: BUG: soft lockup - CPU#4 stuck for 101s! [kworker/4:2:109]
+[ 3924.890902] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3924.891135]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3924.891264] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3924.891271] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3924.891275] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3924.891280] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 3924.891290] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3924.891297] pc : smp_call_function_single+0x184/0x200
+[ 3924.891305] lr : smp_call_function_single+0x164/0x200
+[ 3924.891312] sp : ffff00208870fc20
+[ 3924.891315] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 3924.891326] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 3924.891337] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 3924.891348] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 3924.891359] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 3924.891370] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 3924.891381] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 3924.891393] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 3924.891404] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 3924.891415] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 3924.891426] Call trace:
+[ 3924.891428]  smp_call_function_single+0x184/0x200
+[ 3924.891435]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 3924.891446]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 3924.891456]  wait_rcu_exp_gp+0x1c/0x38
+[ 3924.891462]  process_one_work+0x1dc/0x4b0
+[ 3924.891472]  worker_thread+0x36c/0x5a8
+[ 3924.891481]  kthread+0x100/0x110
+[ 3924.891489]  ret_from_fork+0x10/0x20
+[ 3924.891497] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 3936.850476] watchdog: BUG: soft lockup - CPU#0 stuck for 153s! [kworker/u32:2:53347]
+[ 3936.859346] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3936.859577]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3936.859705] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3936.859713] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3936.859717] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3936.859722] Workqueue: netns cleanup_net
+[ 3936.859733] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3936.859741] pc : smp_call_function_single+0xfc/0x200
+[ 3936.859749] lr : smp_call_function_single+0xdc/0x200
+[ 3936.859756] sp : ffff002177ae3bf0
+[ 3936.859759] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 3936.859771] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 3936.859782] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 3936.859793] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 3936.859804] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 3936.859815] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 3936.859827] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 3936.859838] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 3936.859849] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 3936.859860] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 3936.859871] Call trace:
+[ 3936.859873]  smp_call_function_single+0xfc/0x200
+[ 3936.859880]  rcu_barrier+0x1bc/0x3a0
+[ 3936.859890]  cleanup_net+0x470/0x6a8
+[ 3936.859897]  process_one_work+0x1dc/0x4b0
+[ 3936.859907]  worker_thread+0x36c/0x5a8
+[ 3936.859916]  kthread+0x100/0x110
+[ 3936.859924]  ret_from_fork+0x10/0x20
+[ 3936.859933] Sending NMI from CPU 0 to CPUs 1-7:
+[ 3938.094509] INFO: task systemd:1 blocked for more than 143 seconds.
+[ 3938.094517]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3938.094523] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3938.094526] task:systemd         state:D stack:0     pid:1     tgid:1     ppid:0      flags:0x00000604
+[ 3938.094538] Call trace:
+[ 3938.094541]  __switch_to+0x10c/0x158
+[ 3938.094553]  __schedule+0x3c0/0x12e8
+[ 3938.094564]  schedule+0x28/0x120
+[ 3938.094573]  schedule_preempt_disabled+0x14/0x28
+[ 3938.094584]  __mutex_lock.constprop.0+0x3c4/0x7d8
+[ 3938.094595]  __mutex_lock_slowpath+0x18/0x28
+[ 3938.094606]  mutex_lock+0x54/0x68
+[ 3938.094616]  cgroup_kn_lock_live+0x70/0x190
+[ 3938.094625]  cgroup_rmdir+0x30/0x1a0
+[ 3938.094633]  kernfs_iop_rmdir+0x78/0xb0
+[ 3938.094644]  vfs_rmdir+0xc0/0x2a0
+[ 3938.094655]  do_rmdir+0x1cc/0x1f0
+[ 3938.094665]  __arm64_sys_unlinkat+0xf8/0x140
+[ 3938.094676]  invoke_syscall.constprop.0+0x74/0x170
+[ 3938.094687]  el0_svc_common.constprop.0+0x108/0x138
+[ 3938.094697]  do_el0_svc+0x2c/0x40
+[ 3938.094707]  el0_svc+0x20/0xb0
+[ 3938.094715]  el0t_64_sync_handler+0x118/0x128
+[ 3938.094724]  el0t_64_sync+0x14c/0x150
+[ 3938.094943] INFO: task systemd:1 is blocked on a mutex likely owned by task systemd:3340.
+[ 3938.094950] task:systemd         state:D stack:0     pid:3340  tgid:3340  ppid:1      flags:0x00000604
+[ 3938.094960] Call trace:
+[ 3938.094963]  __switch_to+0x10c/0x158
+[ 3938.094973]  __schedule+0x3c0/0x12e8
+[ 3938.094982]  schedule+0x28/0x120
+[ 3938.094992]  schedule_timeout+0x1b0/0x1c8
+[ 3938.095000]  __wait_for_common+0xf8/0x270
+[ 3938.095010]  wait_for_completion+0x24/0x38
+[ 3938.095020]  __wait_rcu_gp+0x19c/0x210
+[ 3938.095029]  synchronize_rcu+0x108/0x120
+[ 3938.095039]  rcu_sync_enter+0x84/0x148
+[ 3938.095048]  percpu_down_write+0x34/0x1a8
+[ 3938.095055]  cgroup_procs_write_start+0x94/0x208
+[ 3938.095063]  __cgroup_procs_write+0x70/0x1f8
+[ 3938.095071]  cgroup_procs_write+0x2c/0x58
+[ 3938.095079]  cgroup_file_write+0xe0/0x200
+[ 3938.095089]  kernfs_fop_write_iter+0x184/0x248
+[ 3938.095099]  vfs_write+0x230/0x3f8
+[ 3938.095109]  ksys_write+0x90/0x148
+[ 3938.095118]  __arm64_sys_write+0x28/0x38
+[ 3938.095127]  invoke_syscall.constprop.0+0x74/0x170
+[ 3938.095137]  el0_svc_common.constprop.0+0x108/0x138
+[ 3938.095147]  do_el0_svc+0x2c/0x40
+[ 3938.095157]  el0_svc+0x20/0xb0
+[ 3938.095164]  el0t_64_sync_handler+0x118/0x128
+[ 3938.095173]  el0t_64_sync+0x14c/0x150
+[ 3938.095190] INFO: task khugepaged:73 blocked for more than 143 seconds.
+[ 3938.095195]       Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3938.095200] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 3938.095203] task:khugepaged      state:D stack:0     pid:73    tgid:73    ppid:2      flags:0x00000608
+[ 3938.095213] Call trace:
+[ 3938.095216]  __switch_to+0x10c/0x158
+[ 3938.095226]  __schedule+0x3c0/0x12e8
+[ 3938.095235]  schedule+0x28/0x120
+[ 3938.095245]  schedule_timeout+0x1b0/0x1c8
+[ 3938.095252]  __wait_for_common+0xf8/0x270
+[ 3938.095262]  wait_for_completion+0x24/0x38
+[ 3938.095273]  __flush_work+0x2a8/0x478
+[ 3938.095282]  flush_work+0x2c/0x40
+[ 3938.095290]  __lru_add_drain_all+0x1a8/0x268
+[ 3938.095299]  lru_add_drain_all+0x1c/0x30
+[ 3938.095306]  khugepaged+0x98/0xa70
+[ 3938.095316]  kthread+0x100/0x110
+[ 3938.095325]  ret_from_fork+0x10/0x20
+[ 3938.095333] Future hung task reports are suppressed, see sysctl kernel.hung_task_warnings
+[ 3948.894580] watchdog: BUG: soft lockup - CPU#5 stuck for 100s! [sshd:58019]
+[ 3948.902692] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3948.902927]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3948.903059] CPU: 5 PID: 58019 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3948.903067] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3948.903071] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3948.903076] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3948.903084] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 3948.903095] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 3948.903101] sp : ffff0023690978e0
+[ 3948.903104] x29: ffff0023690978e0 x28: 0000000000000000 x27: ffff0026fff7ee08
+[ 3948.903116] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 3948.903127] x23: 0000000000000002 x22: ffff0026fff14500 x21: ffff0026fff7ee00
+[ 3948.903138] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 3948.903149] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 3948.903160] x14: 7fff000000000006 x13: 0000000000000095 x12: 00000000000000b4
+[ 3948.903171] x11: 0000000000000000 x10: 0000000000000000 x9 : ffff800080a70c5c
+[ 3948.903182] x8 : 0000000000000000 x7 : 00000000000063eb x6 : 0000000000000040
+[ 3948.903193] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff7ee28
+[ 3948.903204] x2 : 0000000000000002 x1 : ffff0026fff14508 x0 : 0000000000000000
+[ 3948.903215] Call trace:
+[ 3948.903218]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 3948.903225]  kick_all_cpus_sync+0x38/0x48
+[ 3948.903232]  __text_poke+0x11c/0x160
+[ 3948.903243]  aarch64_insn_copy+0x28/0x38
+[ 3948.903253]  bpf_arch_text_copy+0x2c/0x58
+[ 3948.903264]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 3948.903272]  bpf_int_jit_compile+0x384/0x700
+[ 3948.903281]  bpf_prog_select_runtime+0x108/0x150
+[ 3948.903288]  bpf_prepare_filter+0x578/0x708
+[ 3948.903298]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 3948.903306]  do_seccomp+0x3c0/0xf08
+[ 3948.903313]  prctl_set_seccomp+0x50/0x80
+[ 3948.903321]  __arm64_sys_prctl+0x530/0x9c8
+[ 3948.903329]  invoke_syscall.constprop.0+0x74/0x170
+[ 3948.903338]  el0_svc_common.constprop.0+0x108/0x138
+[ 3948.903348]  do_el0_svc+0x2c/0x40
+[ 3948.903357]  el0_svc+0x20/0xb0
+[ 3948.903364]  el0t_64_sync_handler+0x118/0x128
+[ 3948.903372]  el0t_64_sync+0x14c/0x150
+[ 3948.903380] Sending NMI from CPU 5 to CPUs 0-4,6-7:
+[ 3960.882680] watchdog: BUG: soft lockup - CPU#4 stuck for 134s! [kworker/4:2:109]
+[ 3960.891205] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3960.891437]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3960.891564] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3960.891572] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3960.891575] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3960.891581] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 3960.891591] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3960.891599] pc : smp_call_function_single+0x184/0x200
+[ 3960.891608] lr : smp_call_function_single+0x164/0x200
+[ 3960.891614] sp : ffff00208870fc20
+[ 3960.891617] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 3960.891628] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 3960.891640] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 3960.891651] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 3960.891662] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 3960.891673] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 3960.891684] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 3960.891695] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 3960.891706] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 3960.891717] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 3960.891728] Call trace:
+[ 3960.891731]  smp_call_function_single+0x184/0x200
+[ 3960.891738]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 3960.891749]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 3960.891759]  wait_rcu_exp_gp+0x1c/0x38
+[ 3960.891765]  process_one_work+0x1dc/0x4b0
+[ 3960.891774]  worker_thread+0x36c/0x5a8
+[ 3960.891783]  kthread+0x100/0x110
+[ 3960.891791]  ret_from_fork+0x10/0x20
+[ 3960.891799] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 3972.850790] watchdog: BUG: soft lockup - CPU#0 stuck for 187s! [kworker/u32:2:53347]
+[ 3972.859659] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3972.859900]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3972.860032] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3972.860041] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3972.860044] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3972.860050] Workqueue: netns cleanup_net
+[ 3972.860061] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3972.860068] pc : smp_call_function_single+0xfc/0x200
+[ 3972.860077] lr : smp_call_function_single+0xdc/0x200
+[ 3972.860083] sp : ffff002177ae3bf0
+[ 3972.860087] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 3972.860098] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 3972.860110] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 3972.860121] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 3972.860132] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 3972.860143] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 3972.860154] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 3972.860165] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 3972.860176] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 3972.860187] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 3972.860198] Call trace:
+[ 3972.860201]  smp_call_function_single+0xfc/0x200
+[ 3972.860208]  rcu_barrier+0x1bc/0x3a0
+[ 3972.860217]  cleanup_net+0x470/0x6a8
+[ 3972.860224]  process_one_work+0x1dc/0x4b0
+[ 3972.860233]  worker_thread+0x36c/0x5a8
+[ 3972.860242]  kthread+0x100/0x110
+[ 3972.860249]  ret_from_fork+0x10/0x20
+[ 3972.860258] Sending NMI from CPU 0 to CPUs 1-7:
+[ 3984.894902] watchdog: BUG: soft lockup - CPU#5 stuck for 134s! [sshd:58019]
+[ 3984.902988] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3984.903224]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3984.903353] CPU: 5 PID: 58019 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3984.903361] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3984.903364] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3984.903369] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3984.903377] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 3984.903386] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 3984.903392] sp : ffff0023690978e0
+[ 3984.903395] x29: ffff0023690978e0 x28: 0000000000000000 x27: ffff0026fff7ee08
+[ 3984.903407] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 3984.903419] x23: 0000000000000002 x22: ffff0026fff14500 x21: ffff0026fff7ee00
+[ 3984.903430] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 3984.903441] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 3984.903452] x14: 7fff000000000006 x13: 0000000000000095 x12: 00000000000000b4
+[ 3984.903463] x11: 0000000000000000 x10: 0000000000000000 x9 : ffff800080a70c5c
+[ 3984.903475] x8 : 0000000000000000 x7 : 00000000000063eb x6 : 0000000000000040
+[ 3984.903485] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff7ee28
+[ 3984.903496] x2 : 0000000000000002 x1 : ffff0026fff14508 x0 : 0000000000000000
+[ 3984.903507] Call trace:
+[ 3984.903510]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 3984.903517]  kick_all_cpus_sync+0x38/0x48
+[ 3984.903524]  __text_poke+0x11c/0x160
+[ 3984.903535]  aarch64_insn_copy+0x28/0x38
+[ 3984.903545]  bpf_arch_text_copy+0x2c/0x58
+[ 3984.903554]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 3984.903563]  bpf_int_jit_compile+0x384/0x700
+[ 3984.903571]  bpf_prog_select_runtime+0x108/0x150
+[ 3984.903579]  bpf_prepare_filter+0x578/0x708
+[ 3984.903588]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 3984.903596]  do_seccomp+0x3c0/0xf08
+[ 3984.903604]  prctl_set_seccomp+0x50/0x80
+[ 3984.903611]  __arm64_sys_prctl+0x530/0x9c8
+[ 3984.903619]  invoke_syscall.constprop.0+0x74/0x170
+[ 3984.903629]  el0_svc_common.constprop.0+0x108/0x138
+[ 3984.903638]  do_el0_svc+0x2c/0x40
+[ 3984.903648]  el0_svc+0x20/0xb0
+[ 3984.903654]  el0t_64_sync_handler+0x118/0x128
+[ 3984.903662]  el0t_64_sync+0x14c/0x150
+[ 3984.903669] Sending NMI from CPU 5 to CPUs 0-4,6-7:
+[ 3996.883019] watchdog: BUG: soft lockup - CPU#4 stuck for 168s! [kworker/4:2:109]
+[ 3996.891539] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 3996.891766]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 3996.891893] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 3996.891901] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 3996.891904] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 3996.891910] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 3996.891918] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 3996.891925] pc : smp_call_function_single+0x184/0x200
+[ 3996.891933] lr : smp_call_function_single+0x164/0x200
+[ 3996.891939] sp : ffff00208870fc20
+[ 3996.891942] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 3996.891954] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 3996.891965] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 3996.891976] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 3996.891987] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 3996.891998] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 3996.892009] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 3996.892020] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 3996.892032] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 3996.892042] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 3996.892053] Call trace:
+[ 3996.892056]  smp_call_function_single+0x184/0x200
+[ 3996.892063]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 3996.892074]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 3996.892084]  wait_rcu_exp_gp+0x1c/0x38
+[ 3996.892089]  process_one_work+0x1dc/0x4b0
+[ 3996.892099]  worker_thread+0x36c/0x5a8
+[ 3996.892108]  kthread+0x100/0x110
+[ 3996.892116]  ret_from_fork+0x10/0x20
+[ 3996.892124] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 4008.851140] watchdog: BUG: soft lockup - CPU#0 stuck for 220s! [kworker/u32:2:53347]
+[ 4008.860009] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4008.860239]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4008.860367] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4008.860375] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4008.860379] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4008.860384] Workqueue: netns cleanup_net
+[ 4008.860394] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4008.860402] pc : smp_call_function_single+0xfc/0x200
+[ 4008.860410] lr : smp_call_function_single+0xdc/0x200
+[ 4008.860417] sp : ffff002177ae3bf0
+[ 4008.860420] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 4008.860432] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 4008.860443] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 4008.860454] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 4008.860465] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 4008.860476] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 4008.860487] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 4008.860498] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 4008.860509] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 4008.860520] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 4008.860531] Call trace:
+[ 4008.860533]  smp_call_function_single+0xfc/0x200
+[ 4008.860540]  rcu_barrier+0x1bc/0x3a0
+[ 4008.860550]  cleanup_net+0x470/0x6a8
+[ 4008.860557]  process_one_work+0x1dc/0x4b0
+[ 4008.860567]  worker_thread+0x36c/0x5a8
+[ 4008.860575]  kthread+0x100/0x110
+[ 4008.860583]  ret_from_fork+0x10/0x20
+[ 4008.860592] Sending NMI from CPU 0 to CPUs 1-7:
+[ 4013.011181] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+[ 4013.011188] rcu: 	2-...0: (1 GPs behind) idle=e60c/1/0x4000000000000000 softirq=63406/63407 fqs=29885
+[ 4013.011201] rcu: 	(detected by 5, t=60007 jiffies, g=79985, q=23437 ncpus=8)
+[ 4028.883349] watchdog: BUG: soft lockup - CPU#4 stuck for 198s! [kworker/4:2:109]
+[ 4028.891871] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4028.892103]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4028.892231] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4028.892239] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4028.892242] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4028.892248] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 4028.892256] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4028.892264] pc : smp_call_function_single+0x184/0x200
+[ 4028.892272] lr : smp_call_function_single+0x164/0x200
+[ 4028.892278] sp : ffff00208870fc20
+[ 4028.892281] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 4028.892293] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 4028.892304] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 4028.892315] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 4028.892326] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 4028.892337] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 4028.892348] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 4028.892359] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 4028.892370] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 4028.892381] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 4028.892392] Call trace:
+[ 4028.892395]  smp_call_function_single+0x184/0x200
+[ 4028.892402]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 4028.892412]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 4028.892423]  wait_rcu_exp_gp+0x1c/0x38
+[ 4028.892429]  process_one_work+0x1dc/0x4b0
+[ 4028.892438]  worker_thread+0x36c/0x5a8
+[ 4028.892447]  kthread+0x100/0x110
+[ 4028.892454]  ret_from_fork+0x10/0x20
+[ 4028.892462] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 4040.851479] watchdog: BUG: soft lockup - CPU#0 stuck for 250s! [kworker/u32:2:53347]
+[ 4040.860349] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4040.860588]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4040.860720] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4040.860728] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4040.860732] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4040.860737] Workqueue: netns cleanup_net
+[ 4040.860748] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4040.860756] pc : smp_call_function_single+0xfc/0x200
+[ 4040.860765] lr : smp_call_function_single+0xdc/0x200
+[ 4040.860771] sp : ffff002177ae3bf0
+[ 4040.860774] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 4040.860786] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 4040.860797] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 4040.860808] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 4040.860819] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 4040.860830] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 4040.860842] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 4040.860853] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 4040.860864] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 4040.860875] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 4040.860886] Call trace:
+[ 4040.860888]  smp_call_function_single+0xfc/0x200
+[ 4040.860895]  rcu_barrier+0x1bc/0x3a0
+[ 4040.860905]  cleanup_net+0x470/0x6a8
+[ 4040.860912]  process_one_work+0x1dc/0x4b0
+[ 4040.860923]  worker_thread+0x36c/0x5a8
+[ 4040.860932]  kthread+0x100/0x110
+[ 4040.860940]  ret_from_fork+0x10/0x20
+[ 4040.860949] Sending NMI from CPU 0 to CPUs 1-7:
+[ 4052.875612] watchdog: BUG: soft lockup - CPU#3 stuck for 33s! [sshd:58141]
+[ 4052.883611] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4052.883776]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4052.883867] CPU: 3 PID: 58141 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4052.883873] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4052.883875] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4052.883879] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4052.883884] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 4052.883892] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 4052.883897] sp : ffff0022a13fb8e0
+[ 4052.883899] x29: ffff0022a13fb8e0 x28: 0000000000000000 x27: ffff0026fff34e08
+[ 4052.883907] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 4052.883915] x23: 0000000000000002 x22: ffff0026fff144c0 x21: ffff0026fff34e00
+[ 4052.883922] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 4052.883930] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 4052.883938] x14: 7fff000000000006 x13: 1f0e15a8142e96af x12: f17c32ff60b2c70d
+[ 4052.883946] x11: 00000000853688f3 x10: 00000000286228b0 x9 : ffff800080a70c5c
+[ 4052.883953] x8 : ffff0022a13fb948 x7 : 0000000000000000 x6 : 0000000000000040
+[ 4052.883961] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff34e28
+[ 4052.883968] x2 : 0000000000000002 x1 : ffff0026fff144c8 x0 : 0000000000000000
+[ 4052.883976] Call trace:
+[ 4052.883978]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 4052.883983]  kick_all_cpus_sync+0x38/0x48
+[ 4052.883987]  __text_poke+0x11c/0x160
+[ 4052.883995]  aarch64_insn_copy+0x28/0x38
+[ 4052.884002]  bpf_arch_text_copy+0x2c/0x58
+[ 4052.884009]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 4052.884015]  bpf_int_jit_compile+0x384/0x700
+[ 4052.884021]  bpf_prog_select_runtime+0x108/0x150
+[ 4052.884026]  bpf_prepare_filter+0x578/0x708
+[ 4052.884032]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 4052.884038]  do_seccomp+0x3c0/0xf08
+[ 4052.884043]  prctl_set_seccomp+0x50/0x80
+[ 4052.884048]  __arm64_sys_prctl+0x530/0x9c8
+[ 4052.884053]  invoke_syscall.constprop.0+0x74/0x170
+[ 4052.884059]  el0_svc_common.constprop.0+0x108/0x138
+[ 4052.884066]  do_el0_svc+0x2c/0x40
+[ 4052.884072]  el0_svc+0x20/0xb0
+[ 4052.884076]  el0t_64_sync_handler+0x118/0x128
+[ 4052.884082]  el0t_64_sync+0x14c/0x150
+[ 4052.884087] Sending NMI from CPU 3 to CPUs 0-2,4-7:
+[ 4064.883749] watchdog: BUG: soft lockup - CPU#4 stuck for 231s! [kworker/4:2:109]
+[ 4064.892272] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4064.892502]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4064.892628] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4064.892636] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4064.892640] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4064.892645] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 4064.892654] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4064.892662] pc : smp_call_function_single+0x184/0x200
+[ 4064.892669] lr : smp_call_function_single+0x164/0x200
+[ 4064.892675] sp : ffff00208870fc20
+[ 4064.892679] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 4064.892690] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 4064.892701] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 4064.892713] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 4064.892724] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 4064.892735] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 4064.892746] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 4064.892757] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 4064.892768] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 4064.892779] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 4064.892790] Call trace:
+[ 4064.892792]  smp_call_function_single+0x184/0x200
+[ 4064.892799]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 4064.892810]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 4064.892820]  wait_rcu_exp_gp+0x1c/0x38
+[ 4064.892826]  process_one_work+0x1dc/0x4b0
+[ 4064.892835]  worker_thread+0x36c/0x5a8
+[ 4064.892844]  kthread+0x100/0x110
+[ 4064.892852]  ret_from_fork+0x10/0x20
+[ 4064.892860] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 4076.851890] watchdog: BUG: soft lockup - CPU#0 stuck for 283s! [kworker/u32:2:53347]
+[ 4076.860759] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4076.860991]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4076.861119] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4076.861127] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4076.861130] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4076.861136] Workqueue: netns cleanup_net
+[ 4076.861146] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4076.861154] pc : smp_call_function_single+0xfc/0x200
+[ 4076.861162] lr : smp_call_function_single+0xdc/0x200
+[ 4076.861168] sp : ffff002177ae3bf0
+[ 4076.861171] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 4076.861182] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 4076.861194] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 4076.861205] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 4076.861216] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 4076.861227] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 4076.861238] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 4076.861249] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 4076.861260] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 4076.861271] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 4076.861282] Call trace:
+[ 4076.861285]  smp_call_function_single+0xfc/0x200
+[ 4076.861292]  rcu_barrier+0x1bc/0x3a0
+[ 4076.861302]  cleanup_net+0x470/0x6a8
+[ 4076.861309]  process_one_work+0x1dc/0x4b0
+[ 4076.861319]  worker_thread+0x36c/0x5a8
+[ 4076.861328]  kthread+0x100/0x110
+[ 4076.861336]  ret_from_fork+0x10/0x20
+[ 4076.861344] Sending NMI from CPU 0 to CPUs 1-7:
+[ 4088.876033] watchdog: BUG: soft lockup - CPU#3 stuck for 67s! [sshd:58141]
+[ 4088.884031] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4088.884190]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4088.884278] CPU: 3 PID: 58141 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4088.884283] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4088.884286] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4088.884289] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4088.884294] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 4088.884301] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 4088.884306] sp : ffff0022a13fb8e0
+[ 4088.884308] x29: ffff0022a13fb8e0 x28: 0000000000000000 x27: ffff0026fff34e08
+[ 4088.884315] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 4088.884323] x23: 0000000000000002 x22: ffff0026fff144c0 x21: ffff0026fff34e00
+[ 4088.884331] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 4088.884338] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 4088.884346] x14: 7fff000000000006 x13: 1f0e15a8142e96af x12: f17c32ff60b2c70d
+[ 4088.884354] x11: 00000000853688f3 x10: 00000000286228b0 x9 : ffff800080a70c5c
+[ 4088.884362] x8 : ffff0022a13fb948 x7 : 0000000000000000 x6 : 0000000000000040
+[ 4088.884369] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff34e28
+[ 4088.884377] x2 : 0000000000000002 x1 : ffff0026fff144c8 x0 : 0000000000000000
+[ 4088.884384] Call trace:
+[ 4088.884386]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 4088.884391]  kick_all_cpus_sync+0x38/0x48
+[ 4088.884395]  __text_poke+0x11c/0x160
+[ 4088.884403]  aarch64_insn_copy+0x28/0x38
+[ 4088.884410]  bpf_arch_text_copy+0x2c/0x58
+[ 4088.884416]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 4088.884422]  bpf_int_jit_compile+0x384/0x700
+[ 4088.884428]  bpf_prog_select_runtime+0x108/0x150
+[ 4088.884433]  bpf_prepare_filter+0x578/0x708
+[ 4088.884439]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 4088.884444]  do_seccomp+0x3c0/0xf08
+[ 4088.884449]  prctl_set_seccomp+0x50/0x80
+[ 4088.884454]  __arm64_sys_prctl+0x530/0x9c8
+[ 4088.884460]  invoke_syscall.constprop.0+0x74/0x170
+[ 4088.884466]  el0_svc_common.constprop.0+0x108/0x138
+[ 4088.884472]  do_el0_svc+0x2c/0x40
+[ 4088.884478]  el0_svc+0x20/0xb0
+[ 4088.884483]  el0t_64_sync_handler+0x118/0x128
+[ 4088.884489]  el0t_64_sync+0x14c/0x150
+[ 4088.884494] Sending NMI from CPU 3 to CPUs 0-2,4-7:
+[ 4100.884181] watchdog: BUG: soft lockup - CPU#4 stuck for 265s! [kworker/4:2:109]
+[ 4100.892706] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4100.892946]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4100.893077] CPU: 4 PID: 109 Comm: kworker/4:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4100.893085] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4100.893089] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4100.893094] Workqueue: rcu_gp wait_rcu_exp_gp
+[ 4100.893105] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4100.893113] pc : smp_call_function_single+0x184/0x200
+[ 4100.893121] lr : smp_call_function_single+0x164/0x200
+[ 4100.893128] sp : ffff00208870fc20
+[ 4100.893131] x29: ffff00208870fc60 x28: 00000000000000ed x27: 0000000000000001
+[ 4100.893142] x26: ffff800081e9db40 x25: ffff0026fff34b40 x24: 0000000000000003
+[ 4100.893154] x23: 0000000000000003 x22: 0000000000000000 x21: ffff8000801a99b8
+[ 4100.893165] x20: ffff0026fff59e80 x19: 0000000000000001 x18: ffff800081f5eb30
+[ 4100.893176] x17: 42555300302d7874 x16: fffffe0044038c20 x15: 0000000000000001
+[ 4100.893187] x14: 0000000000000000 x13: 0000000000000030 x12: 0101010101010101
+[ 4100.893198] x11: ffff80267e12b000 x10: ffff800081e93f68 x9 : ffff8000801a50e4
+[ 4100.893209] x8 : ffff800081f5ebcc x7 : 0000000000000040 x6 : ffff800081e83008
+[ 4100.893220] x5 : ffff800081e83008 x4 : ffff800081e93000 x3 : 0000000000000000
+[ 4100.893231] x2 : 0000000000000004 x1 : ffff0026fff59e88 x0 : 0000000000000000
+[ 4100.893242] Call trace:
+[ 4100.893245]  smp_call_function_single+0x184/0x200
+[ 4100.893252]  __sync_rcu_exp_select_node_cpus+0x264/0x410
+[ 4100.893263]  sync_rcu_exp_select_cpus+0x178/0x340
+[ 4100.893273]  wait_rcu_exp_gp+0x1c/0x38
+[ 4100.893279]  process_one_work+0x1dc/0x4b0
+[ 4100.893289]  worker_thread+0x36c/0x5a8
+[ 4100.893298]  kthread+0x100/0x110
+[ 4100.893306]  ret_from_fork+0x10/0x20
+[ 4100.893315] Sending NMI from CPU 4 to CPUs 0-3,5-7:
+[ 4112.852331] watchdog: BUG: soft lockup - CPU#0 stuck for 317s! [kworker/u32:2:53347]
+[ 4112.861199] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4112.861435]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4112.861563] CPU: 0 PID: 53347 Comm: kworker/u32:2 Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4112.861571] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4112.861575] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4112.861581] Workqueue: netns cleanup_net
+[ 4112.861592] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4112.861600] pc : smp_call_function_single+0xfc/0x200
+[ 4112.861608] lr : smp_call_function_single+0xdc/0x200
+[ 4112.861615] sp : ffff002177ae3bf0
+[ 4112.861617] x29: ffff002177ae3c30 x28: ffff80008230dcc0 x27: ffff0026fff0fb40
+[ 4112.861629] x26: ffff80008230fcc0 x25: 0000000000000001 x24: ffff800081f62fe8
+[ 4112.861640] x23: 0000000000000002 x22: 0000000000000002 x21: 0000000000000000
+[ 4112.861651] x20: ffff002177ae3c00 x19: 0000000000000011 x18: ffff800081f5eb30
+[ 4112.861662] x17: 0000000000000000 x16: fffffe00471b3e20 x15: 0000000000000001
+[ 4112.861674] x14: 0000036e7777edac x13: ffff80267e028000 x12: ffff800081f62fe8
+[ 4112.861685] x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff800080a70c5c
+[ 4112.861696] x8 : ffff00222bf65fb0 x7 : 0000000000000000 x6 : ffff002177ae3bb8
+[ 4112.861707] x5 : ffff0026ffec5bf8 x4 : ffff800081e9db40 x3 : 0000000000000001
+[ 4112.861718] x2 : 0000000000000003 x1 : 0000000000000000 x0 : ffff002177ae3c08
+[ 4112.861729] Call trace:
+[ 4112.861731]  smp_call_function_single+0xfc/0x200
+[ 4112.861738]  rcu_barrier+0x1bc/0x3a0
+[ 4112.861749]  cleanup_net+0x470/0x6a8
+[ 4112.861756]  process_one_work+0x1dc/0x4b0
+[ 4112.861766]  worker_thread+0x36c/0x5a8
+[ 4112.861775]  kthread+0x100/0x110
+[ 4112.861782]  ret_from_fork+0x10/0x20
+[ 4112.861791] Sending NMI from CPU 0 to CPUs 1-7:
+[ 4124.876483] watchdog: BUG: soft lockup - CPU#3 stuck for 100s! [sshd:58141]
+[ 4124.884568] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge stp llc ip6_gre gre ip6_tunnel tunnel6 hci_vhci iptable_security iptable_raw iptable_mangle iptable_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core r8153_ecm cdc_ether usbnet mac80211 hid_multitouch hid_generic btusb snd_hda_codec_conexant btrtl btintel btbcm btmtk snd_hda_codec_aw882xx snd_hda_aw882xx bluetooth aes_ce_blk aes_ce_cipher snd_hda_codec_aw883xx crct10dif_ce cfg80211 snd_hda_aw883xx ghash_ce sm3_ce sha3_ce sha512_ce
+[ 4124.884729]  sha512_arm64 ecdh_generic r8152 snd_hda_codec_generic sha2_ce rfkill sha256_arm64 sha1_ce sbsa_gwdt mii ecc snd_soc_hdmi_codec ledtrig_audio libarc4 tpm_tis snd_soc_pmdk_dp i2c_hid_acpi snd_hda_phytium ftv310_vpu_driver phytium_uart_v2 kylin_extra_button snd_hda_codec i2c_hid i2c_phytium_v2_platform snd_hda_core snd_soc_phytium_i2s_v2 cppc_cpufreq hid i2c_smbus phytium_noc thermal dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw ftd330_drm_dc ftg340 drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[ 4124.884818] CPU: 3 PID: 58141 Comm: sshd Tainted: G             L    ------- ----  6.6.103+ #25
+[ 4124.884823] Source Version: a89de9c463bc6171298b1a902b22cffd09b03fc0
+[ 4124.884826] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[ 4124.884829] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[ 4124.884834] pc : smp_call_function_many_cond+0x1c0/0x6a8
+[ 4124.884841] lr : smp_call_function_many_cond+0x1a0/0x6a8
+[ 4124.884845] sp : ffff0022a13fb8e0
+[ 4124.884847] x29: ffff0022a13fb8e0 x28: 0000000000000000 x27: ffff0026fff34e08
+[ 4124.884855] x26: ffff800081f5ea30 x25: ffff800081f62fe8 x24: ffff800081f62fe8
+[ 4124.884863] x23: 0000000000000002 x22: ffff0026fff144c0 x21: ffff0026fff34e00
+[ 4124.884870] x20: ffff800081f5eca0 x19: 0000000000000011 x18: 0000000000000000
+[ 4124.884878] x17: 0000000000000000 x16: 0000000000000000 x15: 000000d201000015
+[ 4124.884886] x14: 7fff000000000006 x13: 1f0e15a8142e96af x12: f17c32ff60b2c70d
+[ 4124.884893] x11: 00000000853688f3 x10: 00000000286228b0 x9 : ffff800080a70c5c
+[ 4124.884901] x8 : ffff0022a13fb948 x7 : 0000000000000000 x6 : 0000000000000040
+[ 4124.884908] x5 : 0000000000000006 x4 : 0000000000000000 x3 : ffff0026fff34e28
+[ 4124.884916] x2 : 0000000000000002 x1 : ffff0026fff144c8 x0 : 0000000000000000
+[ 4124.884923] Call trace:
+[ 4124.884925]  smp_call_function_many_cond+0x1c0/0x6a8
+[ 4124.884930]  kick_all_cpus_sync+0x38/0x48
+[ 4124.884935]  __text_poke+0x11c/0x160
+[ 4124.884943]  aarch64_insn_copy+0x28/0x38
+[ 4124.884950]  bpf_arch_text_copy+0x2c/0x58
+[ 4124.884957]  bpf_jit_binary_pack_finalize+0x38/0xa0
+[ 4124.884963]  bpf_int_jit_compile+0x384/0x700
+[ 4124.884969]  bpf_prog_select_runtime+0x108/0x150
+[ 4124.884974]  bpf_prepare_filter+0x578/0x708
+[ 4124.884980]  bpf_prog_create_from_user+0xf0/0x1c0
+[ 4124.884986]  do_seccomp+0x3c0/0xf08
+[ 4124.884991]  prctl_set_seccomp+0x50/0x80
+[ 4124.884996]  __arm64_sys_prctl+0x530/0x9c8
+[ 4124.885001]  invoke_syscall.constprop.0+0x74/0x170
+[ 4124.885008]  el0_svc_common.constprop.0+0x108/0x138
+[ 4124.885015]  do_el0_svc+0x2c/0x40
+[ 4124.885021]  el0_svc+0x20/0xb0
+[ 4124.885025]  el0t_64_sync_handler+0x118/0x128
+[ 4124.885031]  el0t_64_sync+0x14c/0x150
+[ 4124.885036] Sending NMI from CPU 3 to CPUs 0-2,4-7:

@@ -1,0 +1,265 @@
+ 6)               |  pkvm_destroy_hyp_vm() {
+ 6)               |    irq_enter_rcu() {
+ 6)   0.840 us    |      irqtime_account_irq();
+ 6)   2.300 us    |    }
+ 6)               |    do_interrupt_handler() {
+ 6)   ==========> |
+ 6)               |      gic_handle_irq() {
+ 6)               |        generic_handle_domain_irq() {
+ 6)   0.840 us    |          __irq_resolve_mapping();
+ 6)               |          handle_irq_desc() {
+ 6)               |            handle_percpu_devid_irq() {
+ 6)               |              ipi_handler() {
+ 6)               |                __wake_up() {
+ 6)               |                  __wake_up_common() {
+ 6)   6.400 us    |                    autoremove_wake_function();
+ 6)   7.580 us    |                  }
+ 6)   8.660 us    |                }
+ 6) + 10.260 us   |              }
+ 6)   0.800 us    |              gic_eoimode1_eoi_irq();
+ 6) + 12.620 us   |            }
+ 6) + 13.860 us   |          }
+ 6) + 16.260 us   |        }
+ 6) + 17.340 us   |      }
+ 6)   <========== |
+ 6) + 18.400 us   |    }
+ 6)               |    irq_exit_rcu() {
+ 6)   0.720 us    |      irqtime_account_irq();
+ 6)   0.620 us    |      sched_core_idle_cpu();
+ 6)   2.760 us    |    }
+ 6)               |    mutex_lock() {
+ 6)               |      __cond_resched() {
+ 6)   0.560 us    |        rcu_all_qs();
+ 6)   1.740 us    |      }
+ 6)   2.840 us    |    }
+ 6)               |    __pkvm_destroy_hyp_vm() {
+ 6)   0.600 us    |      pkvm_cov_begin();
+ 6)               |      kvm_pinned_pages_iter_first() {
+ 6)   0.620 us    |        kvm_pinned_pages_subtree_search();
+ 6)   1.920 us    |      }
+ 6)               |      pkvm_call_hyp_nvhe_ppage() {
+ 6)               |        __reclaim_dying_guest_page_call() {
+ 6)   0.560 us    |          pkvm_cov_begin();
+ 6) + 12.520 us   |        }
+ 6) + 13.900 us   |      }
+ 6)               |      __cond_resched() {
+ 6)   0.580 us    |        rcu_all_qs();
+ 6)   1.680 us    |      }
+ 6)               |      unpin_user_pages_dirty_lock() {
+ 6)               |        __cond_resched() {
+ 6)   0.560 us    |          rcu_all_qs();
+ 6)   1.620 us    |        }
+ 6)               |        folio_mark_dirty() {
+ 6)   0.620 us    |          folio_mapping();
+ 6)   1.720 us    |        }
+ 6)   0.580 us    |        folio_unlock();
+ 6)               |        gup_put_folio() {
+ 6)   0.720 us    |          mod_node_page_state();
+ 6)   2.480 us    |        }
+ 6)   9.260 us    |      }
+ 6)   0.900 us    |      kvm_pinned_pages_iter_next();
+ 6)               |      kvm_pinned_pages_remove() {
+ 6)   0.620 us    |        kvm_pinned_pages_augment_rotate();
+ 6)   2.760 us    |      }
+ 6)               |      kfree() {
+ 6)               |        __slab_free() {
+ 6)   0.740 us    |          put_cpu_partial();
+ 6)   1.940 us    |        }
+ 6)   3.220 us    |      }
+ 6)               |      pkvm_call_hyp_nvhe_ppage() {
+ 6)               |        __reclaim_dying_guest_page_call() {
+ 6)   0.780 us    |          pkvm_cov_begin();
+ 6)   8.720 us    |        }
+ 6)   9.960 us    |      }
+ 6)               |      __cond_resched() {
+ 6)   0.560 us    |        rcu_all_qs();
+ 6)   1.720 us    |      }
+ 6)               |      unpin_user_pages_dirty_lock() {
+ 6)               |        __cond_resched() {
+ 6)   0.620 us    |          rcu_all_qs();
+ 6)   1.720 us    |        }
+ 6)               |        folio_mark_dirty() {
+ 6)   0.640 us    |          folio_mapping();
+ 6)   1.660 us    |        }
+ 6)   0.560 us    |        folio_unlock();
+ 6)               |        gup_put_folio() {
+ 6)   0.560 us    |          mod_node_page_state();
+ 6)   1.620 us    |        }
+ 6)   8.280 us    |      }
+ 6)   0.580 us    |      kvm_pinned_pages_iter_next();
+ 6)   0.720 us    |      kvm_pinned_pages_remove();
+ 6)               |      kfree() {
+ 6)   0.600 us    |        __slab_free();
+ 6)   1.660 us    |      }
+ 6)               |      pkvm_call_hyp_nvhe_ppage() {
+ 6)               |        __reclaim_dying_guest_page_call() {
+ 6)   0.560 us    |          pkvm_cov_begin();
+ 6)   7.520 us    |        }
+ 6)   8.860 us    |      }
+ 6)               |      __cond_resched() {
+ 6)   0.660 us    |        rcu_all_qs();
+ 6)   1.700 us    |      }
+ 6)               |      unpin_user_pages_dirty_lock() {
+ 6)               |        __cond_resched() {
+ 6)   0.560 us    |          rcu_all_qs();
+ 6)   1.680 us    |        }
+ 6)               |        folio_mark_dirty() {
+ 6)   0.580 us    |          folio_mapping();
+ 6)   1.760 us    |        }
+ 6)   0.580 us    |        folio_unlock();
+ 6)               |        gup_put_folio() {
+ 6)   0.580 us    |          mod_node_page_state();
+ 6)   1.660 us    |        }
+ 6)   8.380 us    |      }
+ 6)               |      kvm_pinned_pages_iter_next() {
+ 6)   0.600 us    |        kvm_pinned_pages_subtree_search();
+ 6)   1.780 us    |      }
+ 6)   0.640 us    |      kvm_pinned_pages_remove();
+ 6)               |      kfree() {
+ 6)   0.580 us    |        __slab_free();
+ 6)   1.720 us    |      }
+ 6)               |      pkvm_call_hyp_nvhe_ppage() {
+ 6)               |        __reclaim_dying_guest_page_call() {
+ 6)   0.680 us    |          pkvm_cov_begin();
+ 6) + 16.380 us   |        }
+ 6) + 17.640 us   |      }
+ 6)               |      __cond_resched() {
+ 6)   0.620 us    |        rcu_all_qs();
+ 6)   1.700 us    |      }
+ 6)               |      unpin_user_pages_dirty_lock() {
+ 6)               |        __cond_resched() {
+ 6)   0.560 us    |          rcu_all_qs();
+ 6)   1.680 us    |        }
+ 6)               |        folio_mark_dirty() {
+ 6)   0.580 us    |          folio_mapping();
+ 6)   1.700 us    |        }
+ 6)   0.580 us    |        folio_unlock();
+ 6)               |        gup_put_folio() {
+ 6)   0.580 us    |          mod_node_page_state();
+ 6)   1.740 us    |        }
+ 6)   8.640 us    |      }
+ 6)   0.580 us    |      kvm_pinned_pages_iter_next();
+ 6)   0.660 us    |      kvm_pinned_pages_remove();
+ 6)               |      kfree() {
+ 6)   0.600 us    |        __slab_free();
+ 6)   1.640 us    |      }
+ 6)               |      account_locked_vm() {
+ 6)               |        down_write() {
+ 6)               |          __cond_resched() {
+ 6)   0.580 us    |            rcu_all_qs();
+ 6)   1.720 us    |          }
+ 6)   2.840 us    |        }
+ 6)               |        capable() {
+ 6)               |          security_capable() {
+ 6)               |            cap_capable() {
+ 6)   0.680 us    |              ksaf_cap_capable();
+ 6)   1.880 us    |            }
+ 6)   0.600 us    |            ksaf_capable();
+ 6)   0.620 us    |            bpf_lsm_capable();
+ 6)   5.320 us    |          }
+ 6)   6.420 us    |        }
+ 6)   0.680 us    |        __account_locked_vm();
+ 6)   0.580 us    |        up_write();
+ 6) + 13.380 us   |      }
+ 6)   0.580 us    |      pkvm_cov_begin();
+ 6)               |      free_hyp_memcache() {
+ 6)               |        __lruvec_stat_mod_folio() {
+ 6)   0.700 us    |          __mod_node_page_state();
+ 6)   1.760 us    |        }
+ 6)               |        free_pages() {
+ 6)               |          __free_pages() {
+ 6)               |            free_unref_page() {
+ 6)   0.760 us    |              get_pfnblock_flags_mask();
+ 6)   0.600 us    |              kymm_pool_fill();
+ 6)   0.680 us    |              free_unref_page_commit();
+ 6)   4.380 us    |            }
+ 6)   5.540 us    |          }
+ 6)   6.680 us    |        }
+ 6)               |        __lruvec_stat_mod_folio() {
+ 6)   0.560 us    |          __mod_node_page_state();
+ 6)   1.700 us    |        }
+ 6)               |        free_pages() {
+ 6)               |          __free_pages() {
+ 6)               |            free_unref_page() {
+ 6)   0.600 us    |              get_pfnblock_flags_mask();
+ 6)   0.580 us    |              kymm_pool_fill();
+ 6)   0.620 us    |              free_unref_page_commit();
+ 6)   4.380 us    |            }
+ 6)   5.520 us    |          }
+ 6)   6.600 us    |        }
+ 6)               |        __lruvec_stat_mod_folio() {
+ 6)   0.560 us    |          __mod_node_page_state();
+ 6)   1.580 us    |        }
+ 6)               |        free_pages() {
+ 6)               |          __free_pages() {
+ 6)               |            free_unref_page() {
+ 6)   0.580 us    |              get_pfnblock_flags_mask();
+ 6)   0.580 us    |              kymm_pool_fill();
+ 6)   0.580 us    |              free_unref_page_commit();
+ 6)   3.920 us    |            }
+ 6)   4.980 us    |          }
+ 6)   5.960 us    |        }
+ 6)               |        __lruvec_stat_mod_folio() {
+ 6)   0.660 us    |          __mod_node_page_state();
+ 6)   1.680 us    |        }
+ 6)               |        free_pages() {
+ 6)               |          __free_pages() {
+ 6)               |            free_unref_page() {
+ 6)   0.580 us    |              get_pfnblock_flags_mask();
+ 6)   0.580 us    |              kymm_pool_fill();
+ 6)   0.580 us    |              free_unref_page_commit();
+ 6)   3.700 us    |            }
+ 6)   4.720 us    |          }
+ 6)   5.860 us    |        }
+ 6)               |        __lruvec_stat_mod_folio() {
+ 6)   0.580 us    |          __mod_node_page_state();
+ 6)   1.660 us    |        }
+ 6)               |        free_pages() {
+ 6)               |          __free_pages() {
+ 6)               |            free_unref_page() {
+ 6)   0.640 us    |              get_pfnblock_flags_mask();
+ 6)   0.560 us    |              kymm_pool_fill();
+ 6)   0.580 us    |              free_unref_page_commit();
+ 6)   4.000 us    |            }
+ 6)   5.080 us    |          }
+ 6)   6.080 us    |        }
+ 6)               |        __lruvec_stat_mod_folio() {
+ 6)   0.640 us    |          __mod_node_page_state();
+ 6)   1.660 us    |        }
+ 6)               |        free_pages() {
+ 6)               |          __free_pages() {
+ 6)               |            free_unref_page() {
+ 6)   0.700 us    |              get_pfnblock_flags_mask();
+ 6)   0.620 us    |              kymm_pool_fill();
+ 6)   0.740 us    |              free_unref_page_commit();
+ 6)   4.020 us    |            }
+ 6)   5.180 us    |          }
+ 6)   6.280 us    |        }
+ 6) + 55.020 us   |      }
+ 6)               |      kvm_unshare_hyp() {
+ 6)   0.580 us    |        kvm_host_owns_hyp_mappings();
+ 6)               |        unshare_pfn_hyp() {
+ 6)               |          mutex_lock() {
+ 6)               |            __cond_resched() {
+ 6)   0.580 us    |              rcu_all_qs();
+ 6)   1.660 us    |            }
+ 6)   2.900 us    |          }
+ 6)               |          kfree() {
+ 6)   0.580 us    |            __slab_free();
+ 6)   1.740 us    |          }
+ 6)   0.620 us    |          pkvm_cov_begin();
+ 6)   0.640 us    |          mutex_unlock();
+ 6) + 13.040 us   |        }
+ 6) + 15.620 us   |      }
+ 6)               |      free_pages() {
+ 6)               |        __free_pages() {
+ 6)               |          free_unref_page() {
+ 6)   0.640 us    |            get_pfnblock_flags_mask();
+ 6)   0.560 us    |            kymm_pool_fill();
+ 6)   0.580 us    |            free_unref_page_commit();
+ 6)   3.900 us    |          }
+ 6)   4.960 us    |        }
+ 6)   5.940 us    |      }
+ 6) ! 250.180 us  |    }
+ 6)   0.560 us    |    mutex_unlock();
+ 6) ! 285.620 us  |  }

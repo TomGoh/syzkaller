@@ -1,0 +1,143 @@
+RINGHDR[early] cpu0 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu1 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu2 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu3 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu4 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu5 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu6 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu7 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGDUMP[early] complete
+RINGHDR[early] cpu0 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu1 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu2 flags=0x0 count=70 hits=70 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu3 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu4 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu5 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu6 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[early] cpu7 flags=0x1 count=57 hits=57 dropped=0 nested=0 capacity=16381
+RINGPC[early] cpu7 flags=0x1 count=57 hits=57 dropped=0 nested=0 capacity=16381
+RINGPC[early] cpu7 0 0x80005a650910 __kvm_nvhe_handle_trap+0x24/0x1420
+RINGPC[early] cpu7 1 0x80005a650960 __kvm_nvhe_handle_trap+0x74/0x1420
+RINGPC[early] cpu7 2 0x80005a65096c __kvm_nvhe_handle_trap+0x80/0x1420
+RINGPC[early] cpu7 3 0x80005a650b10 __kvm_nvhe_handle_trap+0x224/0x1420
+RINGPC[early] cpu7 4 0x80005a651c04 __kvm_nvhe_handle_trap+0x1318/0x1420
+RINGPC[early] cpu7 5 0x80005a651c64 __kvm_nvhe_handle_trap+0x1378/0x1420
+RINGPC[early] cpu7 6 0x80005a651c98 __kvm_nvhe_handle_trap+0x13ac/0x1420
+RINGPC[early] cpu7 7 0x80005a64b62c __kvm_nvhe__ZN11xhypervisor8hyp_main70_$LT$impl$u20$xhypervisor..bindings..bindings_raw..kvm_cpu_context$GT$38handle___pkvm_reclaim_dying_guest_page17hb5c4a7ef707c0590E+0xc/0x2c
+RINGPC[early] cpu7 8 0x80005a65baa8 __kvm_nvhe___pkvm_reclaim_dying_guest_page+0x30/0x560
+RINGPC[early] cpu7 9 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[early] cpu7 10 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[early] cpu7 11 0x80005a653548 __kvm_nvhe_guest_stage2_pte_is_counted+0xc/0x1c
+RINGPC[early] cpu7 12 0x80005a667c14 __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x1c/0xac
+RINGPC[early] cpu7 13 0x80005a667788 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x1c/0x25c
+RINGPC[early] cpu7 14 0x80005a667800 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x94/0x25c
+RINGPC[early] cpu7 15 0x80005a66781c __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0xb0/0x25c
+RINGPC[early] cpu7 16 0x80005a6678a0 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x134/0x25c
+RINGPC[early] cpu7 17 0x80005a6678ec __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x180/0x25c
+RINGPC[early] cpu7 18 0x80005a667c6c __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x74/0xac
+RINGPC[early] cpu7 19 0x80005a6679d8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x10/0x1a4
+RINGPC[early] cpu7 20 0x80005a667a38 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x70/0x1a4
+RINGPC[early] cpu7 21 0x80005a667ad8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x110/0x1a4
+RINGPC[early] cpu7 22 0x80005a6530d0 __kvm_nvhe_guest_s2_put_page+0x10/0x74
+RINGPC[early] cpu7 23 0x80005a653114 __kvm_nvhe_guest_s2_put_page+0x54/0x74
+RINGPC[early] cpu7 24 0x80005a65b1d8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x24/0x2c8
+RINGPC[early] cpu7 25 0x80005a6429d4 __kvm_nvhe_stage2_unmap_walker+0x9c/0x1d8
+RINGPC[early] cpu7 26 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[early] cpu7 27 0x80005a653154 __kvm_nvhe_clean_dcache_guest_page+0x20/0x1bc
+RINGPC[early] cpu7 28 0x80005a6531f0 __kvm_nvhe_clean_dcache_guest_page+0xbc/0x1bc
+RINGPC[early] cpu7 29 0x80005a653258 __kvm_nvhe_clean_dcache_guest_page+0x124/0x1bc
+RINGPC[early] cpu7 30 0x80005a652eec __kvm_nvhe___fixunmap_guest_page+0x10/0x18c
+RINGPC[early] cpu7 31 0x80005a652f34 __kvm_nvhe___fixunmap_guest_page+0x58/0x18c
+RINGPC[early] cpu7 32 0x80005a642a14 __kvm_nvhe_stage2_unmap_walker+0xdc/0x1d8
+RINGPC[early] cpu7 33 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[early] cpu7 34 0x80005a667e78 __kvm_nvhe_hyp_page_count+0x10/0x58
+RINGPC[early] cpu7 35 0x80005a667e88 __kvm_nvhe_hyp_page_count+0x20/0x58
+RINGPC[early] cpu7 36 0x80005a653548 __kvm_nvhe_guest_stage2_pte_is_counted+0xc/0x1c
+RINGPC[early] cpu7 37 0x80005a667c14 __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x1c/0xac
+RINGPC[early] cpu7 38 0x80005a667788 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x1c/0x25c
+RINGPC[early] cpu7 39 0x80005a667800 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x94/0x25c
+RINGPC[early] cpu7 40 0x80005a66781c __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0xb0/0x25c
+RINGPC[early] cpu7 41 0x80005a6678a0 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x134/0x25c
+RINGPC[early] cpu7 42 0x80005a6678ec __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x180/0x25c
+RINGPC[early] cpu7 43 0x80005a667c6c __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x74/0xac
+RINGPC[early] cpu7 44 0x80005a6679d8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x10/0x1a4
+RINGPC[early] cpu7 45 0x80005a667a38 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x70/0x1a4
+RINGPC[early] cpu7 46 0x80005a667ad8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x110/0x1a4
+RINGPC[early] cpu7 47 0x80005a6530d0 __kvm_nvhe_guest_s2_put_page+0x10/0x74
+RINGPC[early] cpu7 48 0x80005a653114 __kvm_nvhe_guest_s2_put_page+0x54/0x74
+RINGPC[early] cpu7 49 0x80005a65b1d8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x24/0x2c8
+RINGPC[early] cpu7 50 0x80005a6429d4 __kvm_nvhe_stage2_unmap_walker+0x9c/0x1d8
+RINGPC[early] cpu7 51 0x80005a6530d0 __kvm_nvhe_guest_s2_put_page+0x10/0x74
+RINGPC[early] cpu7 52 0x80005a653114 __kvm_nvhe_guest_s2_put_page+0x54/0x74
+RINGPC[early] cpu7 53 0x80005a65b1d8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x24/0x2c8
+RINGPC[early] cpu7 54 0x80005a65b2e8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x134/0x2c8
+RINGPC[early] cpu7 55 0x80005a65bfd4 __kvm_nvhe___pkvm_reclaim_dying_guest_page+0x55c/0x560
+RINGPC[early] cpu7 56 0x80005a667f14 __kvm_nvhe__RNvCs3eCUXezVS3A_7___rustc17rust_begin_unwind+0x8/0xc
+RINGDUMP[early] complete
+RINGHDR[late] cpu0 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu1 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu2 flags=0x0 count=70 hits=70 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu3 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu4 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu5 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu6 flags=0x0 count=0 hits=0 dropped=0 nested=0 capacity=16381
+RINGHDR[late] cpu7 flags=0x1 count=57 hits=57 dropped=0 nested=0 capacity=16381
+RINGPC[late] cpu7 flags=0x1 count=57 hits=57 dropped=0 nested=0 capacity=16381
+RINGPC[late] cpu7 0 0x80005a650910 __kvm_nvhe_handle_trap+0x24/0x1420
+RINGPC[late] cpu7 1 0x80005a650960 __kvm_nvhe_handle_trap+0x74/0x1420
+RINGPC[late] cpu7 2 0x80005a65096c __kvm_nvhe_handle_trap+0x80/0x1420
+RINGPC[late] cpu7 3 0x80005a650b10 __kvm_nvhe_handle_trap+0x224/0x1420
+RINGPC[late] cpu7 4 0x80005a651c04 __kvm_nvhe_handle_trap+0x1318/0x1420
+RINGPC[late] cpu7 5 0x80005a651c64 __kvm_nvhe_handle_trap+0x1378/0x1420
+RINGPC[late] cpu7 6 0x80005a651c98 __kvm_nvhe_handle_trap+0x13ac/0x1420
+RINGPC[late] cpu7 7 0x80005a64b62c __kvm_nvhe__ZN11xhypervisor8hyp_main70_$LT$impl$u20$xhypervisor..bindings..bindings_raw..kvm_cpu_context$GT$38handle___pkvm_reclaim_dying_guest_page17hb5c4a7ef707c0590E+0xc/0x2c
+RINGPC[late] cpu7 8 0x80005a65baa8 __kvm_nvhe___pkvm_reclaim_dying_guest_page+0x30/0x560
+RINGPC[late] cpu7 9 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[late] cpu7 10 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[late] cpu7 11 0x80005a653548 __kvm_nvhe_guest_stage2_pte_is_counted+0xc/0x1c
+RINGPC[late] cpu7 12 0x80005a667c14 __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x1c/0xac
+RINGPC[late] cpu7 13 0x80005a667788 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x1c/0x25c
+RINGPC[late] cpu7 14 0x80005a667800 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x94/0x25c
+RINGPC[late] cpu7 15 0x80005a66781c __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0xb0/0x25c
+RINGPC[late] cpu7 16 0x80005a6678a0 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x134/0x25c
+RINGPC[late] cpu7 17 0x80005a6678ec __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x180/0x25c
+RINGPC[late] cpu7 18 0x80005a667c6c __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x74/0xac
+RINGPC[late] cpu7 19 0x80005a6679d8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x10/0x1a4
+RINGPC[late] cpu7 20 0x80005a667a38 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x70/0x1a4
+RINGPC[late] cpu7 21 0x80005a667ad8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x110/0x1a4
+RINGPC[late] cpu7 22 0x80005a6530d0 __kvm_nvhe_guest_s2_put_page+0x10/0x74
+RINGPC[late] cpu7 23 0x80005a653114 __kvm_nvhe_guest_s2_put_page+0x54/0x74
+RINGPC[late] cpu7 24 0x80005a65b1d8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x24/0x2c8
+RINGPC[late] cpu7 25 0x80005a6429d4 __kvm_nvhe_stage2_unmap_walker+0x9c/0x1d8
+RINGPC[late] cpu7 26 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[late] cpu7 27 0x80005a653154 __kvm_nvhe_clean_dcache_guest_page+0x20/0x1bc
+RINGPC[late] cpu7 28 0x80005a6531f0 __kvm_nvhe_clean_dcache_guest_page+0xbc/0x1bc
+RINGPC[late] cpu7 29 0x80005a653258 __kvm_nvhe_clean_dcache_guest_page+0x124/0x1bc
+RINGPC[late] cpu7 30 0x80005a652eec __kvm_nvhe___fixunmap_guest_page+0x10/0x18c
+RINGPC[late] cpu7 31 0x80005a652f34 __kvm_nvhe___fixunmap_guest_page+0x58/0x18c
+RINGPC[late] cpu7 32 0x80005a642a14 __kvm_nvhe_stage2_unmap_walker+0xdc/0x1d8
+RINGPC[late] cpu7 33 0x80005a667e34 __kvm_nvhe_hyp_phys_to_virt+0xc/0x20
+RINGPC[late] cpu7 34 0x80005a667e78 __kvm_nvhe_hyp_page_count+0x10/0x58
+RINGPC[late] cpu7 35 0x80005a667e88 __kvm_nvhe_hyp_page_count+0x20/0x58
+RINGPC[late] cpu7 36 0x80005a653548 __kvm_nvhe_guest_stage2_pte_is_counted+0xc/0x1c
+RINGPC[late] cpu7 37 0x80005a667c14 __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x1c/0xac
+RINGPC[late] cpu7 38 0x80005a667788 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x1c/0x25c
+RINGPC[late] cpu7 39 0x80005a667800 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x94/0x25c
+RINGPC[late] cpu7 40 0x80005a66781c __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0xb0/0x25c
+RINGPC[late] cpu7 41 0x80005a6678a0 __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x134/0x25c
+RINGPC[late] cpu7 42 0x80005a6678ec __kvm_nvhe__ZN11xhypervisor3tlb18enter_vmid_context17h42b4cbe4d44b2ba5E+0x180/0x25c
+RINGPC[late] cpu7 43 0x80005a667c6c __kvm_nvhe___kvm_tlb_flush_vmid_ipa+0x74/0xac
+RINGPC[late] cpu7 44 0x80005a6679d8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x10/0x1a4
+RINGPC[late] cpu7 45 0x80005a667a38 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x70/0x1a4
+RINGPC[late] cpu7 46 0x80005a667ad8 __kvm_nvhe__ZN11xhypervisor3tlb17exit_vmid_context17h1018c2bb700fb7bcE+0x110/0x1a4
+RINGPC[late] cpu7 47 0x80005a6530d0 __kvm_nvhe_guest_s2_put_page+0x10/0x74
+RINGPC[late] cpu7 48 0x80005a653114 __kvm_nvhe_guest_s2_put_page+0x54/0x74
+RINGPC[late] cpu7 49 0x80005a65b1d8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x24/0x2c8
+RINGPC[late] cpu7 50 0x80005a6429d4 __kvm_nvhe_stage2_unmap_walker+0x9c/0x1d8
+RINGPC[late] cpu7 51 0x80005a6530d0 __kvm_nvhe_guest_s2_put_page+0x10/0x74
+RINGPC[late] cpu7 52 0x80005a653114 __kvm_nvhe_guest_s2_put_page+0x54/0x74
+RINGPC[late] cpu7 53 0x80005a65b1d8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x24/0x2c8
+RINGPC[late] cpu7 54 0x80005a65b2e8 __kvm_nvhe__ZN11xhypervisor10page_alloc7HypPool14__hyp_put_page17h9c6d5105bf17807fE+0x134/0x2c8
+RINGPC[late] cpu7 55 0x80005a65bfd4 __kvm_nvhe___pkvm_reclaim_dying_guest_page+0x55c/0x560
+RINGPC[late] cpu7 56 0x80005a667f14 __kvm_nvhe__RNvCs3eCUXezVS3A_7___rustc17rust_begin_unwind+0x8/0xc
+RINGDUMP[late] complete
