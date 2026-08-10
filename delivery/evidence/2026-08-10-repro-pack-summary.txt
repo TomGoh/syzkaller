@@ -1,0 +1,5 @@
+RESULT 002: REPRODUCED  (4 new dmesg line(s) naming kvm_tlb_flush_vmid_range, 1 of the surrounding blocks tagged Comm: repro-tlbflush)
+RESULT 003: REPRODUCED  (5/5 default-THP runs: second KVM_RUN returned -1/errno=7 (E2BIG) after KVM_MEM_LOG_DIRTY_PAGES)
+RESULT 004: REPRODUCED  (1 donation-accounting message(s) at VM teardown after dirty logging)
+RESULT 005: REPRODUCED  (page A's round-3 write under dirty logging is absent from the bitmap (A=0, B=1), and 1 teardown WARN(s) in __unmap_stage2_range)
+RESULT 006: REPRODUCED  (12 new WARN(s) naming kvm_unshare_hyp after the control+test pair, 3 block(s) tagged Comm: probe-mpstate (see the header: this script cannot attribute them to the SUSPENDED arm on its own))

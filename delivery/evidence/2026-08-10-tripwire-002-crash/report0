@@ -1,0 +1,444 @@
+batman_adv: batadv0: Interface activated: batadv_slave_1
+veth0_vlan: entered promiscuous mode
+veth1_vlan: entered promiscuous mode
+veth0_macvtap: entered promiscuous mode
+------------[ cut here ]------------
+WARNING: CPU: 6 PID: 16196 at arch/arm64/kvm/hyp/pgtable.c:654 kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat ip6_gre nf_nat gre nf_conntrack ip6_tunnel tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 hci_vhci iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b r8153_ecm rtw89_8852b_common cdc_ether rtw89_pci usbnet rtw89_core mac80211 btusb hid_multitouch btrtl hid_generic btintel btbcm btmtk cfg80211 bluetooth snd_hda_codec_conexant aes_ce_blk aes_ce_cipher crct10dif_ce snd_hda_codec_aw882xx ghash_ce snd_hda_aw882xx sm3_ce sha3_ce sha512_ce r8152 sha512_arm64 snd_hda_codec_aw883xx
+ sha2_ce sha256_arm64 sha1_ce sbsa_gwdt ecdh_generic mii ecc snd_soc_hdmi_codec snd_hda_aw883xx rfkill libarc4 snd_hda_codec_generic ledtrig_audio ftv310_vpu_driver i2c_phytium_v2_platform phytium_uart_v2 i2c_smbus snd_soc_pmdk_dp snd_hda_phytium snd_soc_phytium_i2s_v2 tpm_tis cppc_cpufreq snd_hda_codec phytium_noc i2c_hid_acpi i2c_hid thermal hid snd_hda_core kylin_extra_button dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay ftd330_drm_dc sm4_ce_gcm drm_display_helper sm4_ce_ccm atkbd ftg340 libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 6 PID: 16196 Comm: syz.6.46 Not tainted 6.6.103+ #27
+Source Version: 1f52c77ba6244f411d52ad0fb876c53575165d4a
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+lr : kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+sp : ffff002091897aa0
+x29: ffff002091897ac0 x28: ffff002361e3e000 x27: 00000000dddd2fff
+x26: 0000000040000000 x25: ffff002361e3e028 x24: 00000000dddd3000
+x23: ffff002088c03c00 x22: 00000000dddd1000 x21: ffff002361e3e000
+x20: ffff002088c03c00 x19: ffffffffffffffff x18: ffff800081f5eb30
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff0020857da010
+x14: 00000013e0677b24 x13: ffff80267e106000 x12: ffff800081f62fe8
+x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff8000800ae2b4
+x8 : ffff002091897a38 x7 : 0000000000000000 x6 : ffff0021ac87d000
+x5 : ffff80008144fc8c x4 : 0000000000000000 x3 : 000000000000051b
+x2 : ffff8000ea006000 x1 : 0000000000400000 x0 : 0000000000000a18
+Call trace:
+ kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+ kvm_arch_flush_remote_tlbs_range+0x34/0x48 arch/arm64/kvm/mmu.c:193
+ kvm_flush_remote_tlbs_range virt/kvm/kvm_main.c:371 [inline]
+ kvm_flush_remote_tlbs_memslot+0x2c/0xa0 virt/kvm/kvm_main.c:393
+ kvm_mmu_wp_memory_region arch/arm64/kvm/mmu.c:1389 [inline]
+ kvm_arch_commit_memory_region+0x2e4/0x338 arch/arm64/kvm/mmu.c:2513
+ kvm_commit_memory_region virt/kvm/kvm_main.c:1711 [inline]
+ kvm_set_memslot+0x1f0/0x728 virt/kvm/kvm_main.c:1954
+ __kvm_set_memory_region+0x46c/0x550 virt/kvm/kvm_main.c:2089
+ kvm_set_memory_region virt/kvm/kvm_main.c:2110 [inline]
+ kvm_vm_ioctl_set_memory_region virt/kvm/kvm_main.c:2122 [inline]
+ kvm_vm_ioctl+0xf08/0x1ca8 virt/kvm/kvm_main.c:5150
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:871 [inline]
+ __se_sys_ioctl fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x108/0x128 fs/ioctl.c:857
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall.constprop.0+0x74/0x170 arch/arm64/kernel/syscall.c:55
+ el0_svc_common.constprop.0+0x108/0x138 arch/arm64/kernel/syscall.c:139
+ do_el0_svc+0x2c/0x40 arch/arm64/kernel/syscall.c:158
+ el0_svc+0x20/0xb0 arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:720
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+------------[ cut here ]------------
+WARNING: CPU: 4 PID: 16204 at arch/arm64/kvm/hyp/pgtable.c:654 kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat ip6_gre nf_nat gre nf_conntrack ip6_tunnel tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 hci_vhci iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b r8153_ecm rtw89_8852b_common cdc_ether rtw89_pci usbnet rtw89_core mac80211 btusb hid_multitouch btrtl hid_generic btintel btbcm btmtk cfg80211 bluetooth snd_hda_codec_conexant aes_ce_blk aes_ce_cipher crct10dif_ce snd_hda_codec_aw882xx ghash_ce snd_hda_aw882xx sm3_ce sha3_ce sha512_ce r8152 sha512_arm64 snd_hda_codec_aw883xx
+ sha2_ce sha256_arm64 sha1_ce sbsa_gwdt ecdh_generic mii ecc snd_soc_hdmi_codec snd_hda_aw883xx rfkill libarc4 snd_hda_codec_generic ledtrig_audio ftv310_vpu_driver i2c_phytium_v2_platform phytium_uart_v2 i2c_smbus snd_soc_pmdk_dp snd_hda_phytium snd_soc_phytium_i2s_v2 tpm_tis cppc_cpufreq snd_hda_codec phytium_noc i2c_hid_acpi i2c_hid thermal hid snd_hda_core kylin_extra_button dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay ftd330_drm_dc sm4_ce_gcm drm_display_helper sm4_ce_ccm atkbd ftg340 libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 4 PID: 16204 Comm: syz.5.47 Tainted: G        W         ------- ----  6.6.103+ #27
+Source Version: 1f52c77ba6244f411d52ad0fb876c53575165d4a
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+lr : kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+sp : ffff0022ac8cfaa0
+x29: ffff0022ac8cfac0 x28: ffff002089627000 x27: 00000000dddd2fff
+x26: 0000000040000000 x25: ffff002089627028 x24: 00000000dddd3000
+x23: ffff0022982c4900 x22: 00000000dddd1000 x21: ffff002089627000
+x20: ffff0022982c4900 x19: ffffffffffffffff x18: ffff800081f5eb30
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff002361e4d090
+x14: 00000013e1326f50 x13: ffff80267e0bc000 x12: 0000000000000000
+x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff8000800ae2b4
+x8 : ffff0022ac8cfa38 x7 : 0000000000000000 x6 : ffff002361e4d000
+x5 : ffff80008144fc8c x4 : 0000000000000000 x3 : 00000000000004fb
+x2 : ffff8000ee008000 x1 : 0000000000400000 x0 : 0000000000000e20
+Call trace:
+ kvm_tlb_flush_vmid_range+0x74/0xe0 arch/arm64/kvm/hyp/pgtable.c:654
+ kvm_arch_flush_remote_tlbs_range+0x34/0x48 arch/arm64/kvm/mmu.c:193
+ kvm_flush_remote_tlbs_range virt/kvm/kvm_main.c:371 [inline]
+ kvm_flush_remote_tlbs_memslot+0x2c/0xa0 virt/kvm/kvm_main.c:393
+ kvm_mmu_wp_memory_region arch/arm64/kvm/mmu.c:1389 [inline]
+ kvm_arch_commit_memory_region+0x2e4/0x338 arch/arm64/kvm/mmu.c:2513
+ kvm_commit_memory_region virt/kvm/kvm_main.c:1711 [inline]
+ kvm_set_memslot+0x1f0/0x728 virt/kvm/kvm_main.c:1954
+ __kvm_set_memory_region+0x46c/0x550 virt/kvm/kvm_main.c:2089
+ kvm_set_memory_region virt/kvm/kvm_main.c:2110 [inline]
+ kvm_vm_ioctl_set_memory_region virt/kvm/kvm_main.c:2122 [inline]
+ kvm_vm_ioctl+0xf08/0x1ca8 virt/kvm/kvm_main.c:5150
+ vfs_ioctl fs/ioctl.c:51 [inline]
+ __do_sys_ioctl fs/ioctl.c:871 [inline]
+ __se_sys_ioctl fs/ioctl.c:857 [inline]
+ __arm64_sys_ioctl+0x108/0x128 fs/ioctl.c:857
+ __invoke_syscall arch/arm64/kernel/syscall.c:38 [inline]
+ invoke_syscall.constprop.0+0x74/0x170 arch/arm64/kernel/syscall.c:55
+ el0_svc_common.constprop.0+0x108/0x138 arch/arm64/kernel/syscall.c:139
+ do_el0_svc+0x2c/0x40 arch/arm64/kernel/syscall.c:158
+ el0_svc+0x20/0xb0 arch/arm64/kernel/entry-common.c:701
+ el0t_64_sync_handler+0x118/0x128 arch/arm64/kernel/entry-common.c:720
+ el0t_64_sync+0x14c/0x150 arch/arm64/kernel/entry.S:599
+---[ end trace 0000000000000000 ]---
+veth1_macvtap: entered promiscuous mode
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+Bluetooth: hci6: command tx timeout
+Bluetooth: hci6: Opcode 0x0c13 failed: -110
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for virt_wifi0
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan0
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan1
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan2
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan3
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan4
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
+------------[ cut here ]------------
+WARNING: CPU: 4 PID: 16204 at arch/arm64/kvm/hyp/pgtable.c:654 kvm_tlb_flush_vmid_range+0x74/0xe0
+Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat ip6_gre nf_nat gre nf_conntrack ip6_tunnel tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 hci_vhci iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat rtw89_8852be rtw89_8852b r8153_ecm rtw89_8852b_common cdc_ether rtw89_pci usbnet rtw89_core mac80211 btusb hid_multitouch btrtl hid_generic btintel btbcm btmtk cfg80211 bluetooth snd_hda_codec_conexant aes_ce_blk aes_ce_cipher crct10dif_ce snd_hda_codec_aw882xx ghash_ce snd_hda_aw882xx sm3_ce sha3_ce sha512_ce r8152 sha512_arm64 snd_hda_codec_aw883xx
+ sha2_ce sha256_arm64 sha1_ce sbsa_gwdt ecdh_generic mii ecc snd_soc_hdmi_codec snd_hda_aw883xx rfkill libarc4 snd_hda_codec_generic ledtrig_audio ftv310_vpu_driver i2c_phytium_v2_platform phytium_uart_v2 i2c_smbus snd_soc_pmdk_dp snd_hda_phytium snd_soc_phytium_i2s_v2 tpm_tis cppc_cpufreq snd_hda_codec phytium_noc i2c_hid_acpi i2c_hid thermal hid snd_hda_core kylin_extra_button dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay ftd330_drm_dc sm4_ce_gcm drm_display_helper sm4_ce_ccm atkbd ftg340 libps2 sm4_ce vivaldi_fmap sm4_ce_cipher serio_raw cec drm_kms_helper drm drm_panel_orientation_quirks
+CPU: 4 PID: 16204 Comm: syz.5.47 Tainted: G        W         ------- ----  6.6.103+ #27
+Source Version: 1f52c77ba6244f411d52ad0fb876c53575165d4a
+Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+pc : kvm_tlb_flush_vmid_range+0x74/0xe0
+lr : kvm_tlb_flush_vmid_range+0x74/0xe0
+sp : ffff0022ac8cfaa0
+x29: ffff0022ac8cfac0 x28: ffff002089627000 x27: 00000000dddd2fff
+x26: 0000000040000000 x25: ffff002089627028 x24: 00000000dddd3000
+x23: ffff0022982c4900 x22: 00000000dddd1000 x21: ffff002089627000
+x20: ffff0022982c4900 x19: ffffffffffffffff x18: ffff800081f5eb30
+x17: 0000000000000000 x16: 0000000000000000 x15: ffff002361e4d090
+x14: 00000013e1326f50 x13: ffff80267e0bc000 x12: 0000000000000000
+x11: 00000000000000c0 x10: 0000000000000f50 x9 : ffff8000800ae2b4
+x8 : ffff0022ac8cfa38 x7 : 0000000000000000 x6 : ffff002361e4d000
+x5 : ffff80008144fc8c x4 : 0000000000000000 x3 : 00000000000004fb
+x2 : ffff8000ee008000 x1 : 0000000000400000 x0 : 0000000000000e20
+Call trace:
+ kvm_tlb_flush_vmid_range+0x74/0xe0
+ kvm_arch_flush_remote_tlbs_range+0x34/0x48
+ kvm_flush_remote_tlbs_memslot+0x2c/0xa0
+ kvm_arch_commit_memory_region+0x2e4/0x338
+ kvm_set_memslot+0x1f0/0x728
+ __kvm_set_memory_region+0x46c/0x550
+ kvm_vm_ioctl+0xf08/0x1ca8
+ __arm64_sys_ioctl+0x108/0x128
+ invoke_syscall.constprop.0+0x74/0x170
+ el0_svc_common.constprop.0+0x108/0x138
+ do_el0_svc+0x2c/0x40
+ el0_svc+0x20/0xb0
+ el0t_64_sync_handler+0x118/0x128
+ el0t_64_sync+0x14c/0x150
+---[ end trace 0000000000000000 ]---
+veth1_macvtap: entered promiscuous mode
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+Bluetooth: hci6: command tx timeout
+Bluetooth: hci6: Opcode 0x0c13 failed: -110
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for virt_wifi0
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan0
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan1
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan2
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan3
+batman_adv: Cannot find parent device. Skipping batadv-on-batadv check for wlan4
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+hsr_slave_0: left promiscuous mode
+hsr_slave_1: left promiscuous mode
+batman_adv: batadv0: Interface deactivated: batadv_slave_0
+batman_adv: batadv0: Removing interface: batadv_slave_0
+batman_adv: batadv0: Interface deactivated: batadv_slave_1
+batman_adv: batadv0: Removing interface: batadv_slave_1
+bridge_slave_1: left allmulticast mode
+bridge_slave_1: left promiscuous mode
+bridge0: port 2(bridge_slave_1) entered disabled state
+bridge_slave_0: left allmulticast mode
+bridge_slave_0: left promiscuous mode
+bridge0: port 1(bridge_slave_0) entered disabled state
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+veth1_macvtap: left promiscuous mode
+veth0_macvtap: left promiscuous mode
+veth1_vlan: left promiscuous mode
+veth0_vlan: left promiscuous mode
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+team0 (unregistering): Port device team_slave_1 removed
+team0 (unregistering): Port device team_slave_0 removed
+bond0 (unregistering): (slave bond_slave_1): Releasing backup interface
+bond0 (unregistering): (slave bond_slave_0): Releasing backup interface
+bond0 (unregistering): Released all slaves
+
+<<<<<<<<<<<<<<< tail report >>>>>>>>>>>>>>>
+
