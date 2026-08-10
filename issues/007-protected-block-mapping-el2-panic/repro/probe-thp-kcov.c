@@ -65,18 +65,29 @@ int main(int argc, char **argv)
 
 	kmsg = open("/dev/kmsg", O_WRONLY);
 
-	// Arm KCOV first and never disable it: the window that matters is the one
-	// pkvm_cov_begin() opens inside close(vm), long after the last KVM ioctl.
+	// KCOV is OPTIONAL and its absence is not a failure. Reproducing the hang
+	// needs only the VM lifecycle below; KCOV matters solely for the companion
+	// kvm/pkvm_cov/ring_dump capture, which arms the EL2 coverage ring for this
+	// task (pkvm_cov_begin() bails unless kcov_current_trace_pc() is true) and
+	// is how the hypervisor panic was originally located. A kernel built
+	// without CONFIG_KCOV -- i.e. most kernels this reproducer will be handed
+	// to -- must still be able to run it, so failure here only downgrades the
+	// evidence, it does not stop the test.
+	//
+	// Once armed it is never disabled: the window that matters opens inside
+	// close(vm), long after the last KVM ioctl.
 	int kcov = open("/sys/kernel/debug/kcov", O_RDWR);
 	if (kcov < 0 || ioctl(kcov, KCOV_INIT_TRACE, COVER_SIZE)) {
-		mark("RPGPROBE: KCOV setup failed: %s\n", strerror(errno));
-		return 1;
-	}
-	void *cover = mmap(NULL, COVER_SIZE * sizeof(unsigned long),
-			   PROT_READ | PROT_WRITE, MAP_SHARED, kcov, 0);
-	if (cover == MAP_FAILED || ioctl(kcov, KCOV_ENABLE, KCOV_TRACE_PC)) {
-		mark("RPGPROBE: KCOV enable failed: %s\n", strerror(errno));
-		return 1;
+		mark("RPGPROBE: KCOV unavailable (%s) -- reproducing without it\n",
+		     strerror(errno));
+	} else {
+		void *cover = mmap(NULL, COVER_SIZE * sizeof(unsigned long),
+				   PROT_READ | PROT_WRITE, MAP_SHARED, kcov, 0);
+		if (cover == MAP_FAILED || ioctl(kcov, KCOV_ENABLE, KCOV_TRACE_PC))
+			mark("RPGPROBE: KCOV enable failed (%s) -- reproducing without it\n",
+			     strerror(errno));
+		else
+			mark("RPGPROBE: KCOV armed; ring_dump will show the EL2 tail\n");
 	}
 
 	int kvmfd = open("/dev/kvm", O_RDWR);

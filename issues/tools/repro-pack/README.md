@@ -109,17 +109,25 @@ Nothing is ever compiled into the work tree: `OUTDIR` defaults to a fresh `mktem
 
 ```
 ./run-all.sh                      # issues 002 003 004 005 006, in that order
-./run-all.sh --include-hazardous  # ... then 001
+./run-all.sh --include-hazardous  # ... then 001, then 007
 ./run-all.sh --build-only         # compile everything, execute nothing
 ```
 
-The order is not arbitrary. 002–005 are harmless and do not perturb each other. **006 leaks EL2 pins permanently** — each triggering VM poisons a few more pages of the vCPU slab, nothing recovers them short of a reboot, and eventually `KVM_CREATE_VCPU` itself starts failing — so it runs after everything that needs a working vCPU, and you should reboot before re-running it or before testing a fix for it. **001 is last and opt-in**, because it wedges the machine.
+The order is not arbitrary. 002–005 are harmless and do not perturb each other. **006 leaks EL2 pins permanently** — each triggering VM poisons a few more pages of the vCPU slab, nothing recovers them short of a reboot, and eventually `KVM_CREATE_VCPU` itself starts failing — so it runs after everything that needs a working vCPU, and you should reboot before re-running it or before testing a fix for it. **001 and 007 are last and opt-in**, because both wedge the machine — and 007 goes after 001, being the less recoverable of the two.
 
 ### The 001 warning, in full
 
 `hazard: wedges-target`. On an affected kernel `run-001.sh` leaves a task in `D` state holding `mmap_lock` for read while it waits to take the same rwsem for write. It is unkillable. Linux rwsems are fair, so every subsequent *reader* of that `mm` queues behind a writer that can never be granted: `ps`, `pgrep`, and ordinary system daemons that walk `/proc` freeze one after another, and the board decays on a timer. This was measured, not assumed — a stock Kylin `OptiDaemon` wedged with no help from the test. Recovery is sysrq over an ssh session that is still alive, or **physical access**. Do not run it on a board you cannot power-cycle, and run nothing else from this pack afterwards until it has rebooted.
 
-`run-all.sh` requires `--include-hazardous`, prints the warning, and counts down ten seconds (`--yes` skips the countdown). Without the flag, 001 shows as `SKIPPED` in the table.
+`run-all.sh` requires `--include-hazardous`, prints the per-issue warning, and counts down ten seconds (`--yes` skips the countdown). Without the flag, 001 and 007 show as `SKIPPED` in the table. `--build-only` compiles them anyway: building executes nothing, and a pack shipped without those two binaries is not a complete pack.
+
+### The 007 warning, in full
+
+`hazard: wedges-target`, and **strictly worse than 001**. The CPU is spinning inside the Rust EL2 panic handler (`loop {}`) with interrupts masked, so it answers neither IPI nor RCU nor NMI. Nothing on the host side can reach it: the task cannot be killed, the CPU cannot be offlined, and sysrq is useless — the sysrq path itself needs the CPU to take an interrupt. The board answers ping and refuses ssh, because sshd's seccomp setup calls `kick_all_cpus_sync()`. **Recovery is a power cycle, every time.**
+
+It also produces **no crash report at all** — no WARN, no Oops, no panic message. dmesg eventually fills with soft lockups in unrelated tasks (`cleanup_net`, `sshd`, `khugepaged`), but those are downstream victims, not the event. Do not wait for a report; read the `RESULT` line.
+
+`run-007.sh` therefore takes its verdict from the reproducer's own phase markers rather than from dmesg, and runs a 4 KiB **control arm first**. The control arm must complete. Without it a failure has two explanations — "this kernel has 007" and "protected VMs are broken here for some other reason" — and the script could not choose between them.
 
 ---
 

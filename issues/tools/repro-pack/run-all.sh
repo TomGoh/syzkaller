@@ -7,11 +7,14 @@
 #   006               harmless to this boot, but it leaks EL2 pins PERMANENTLY
 #                     and can make later KVM_CREATE_VCPU fail, so it goes after
 #                     everything that needs a working vCPU
-#   001               LAST, opt-in only: it wedges the machine
+#   001 007           LAST, opt-in only: both wedge the machine, and 007 goes
+#                     after 001 because it is the less recoverable of the two --
+#                     001 can sometimes still be rescued over a live ssh, 007
+#                     spins at EL2 with interrupts masked and cannot.
 #
 # Usage:
 #   ./run-all.sh                        002-006
-#   ./run-all.sh --include-hazardous    ... then 001, which can wedge the board
+#   ./run-all.sh --include-hazardous    ... then 001 and 007, which wedge the board
 #   ./run-all.sh --build-only           cross-build everything, run nothing
 #   ./run-all.sh --yes                  skip the countdown before 001
 #
@@ -21,7 +24,7 @@ set -uo pipefail
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 SAFE_ISSUES="002 003 004 005 006"
-HAZARDOUS_ISSUES="001"
+HAZARDOUS_ISSUES="001 007"
 
 INCLUDE_HAZ=0
 ASSUME_YES=0
@@ -79,18 +82,41 @@ for id in $SAFE_ISSUES; do
 	run_one "$id"
 done
 
-if [ "$INCLUDE_HAZ" = 1 ]; then
+# --build-only compiles the hazardous reproducers too: building executes
+# nothing (each run-*.sh calls build_only_stop right after build_repro), and a
+# pack that ships without 001/007 binaries is not a complete pack.
+if [ "$INCLUDE_HAZ" = 1 ] || [ "$BUILD_ONLY" = 1 ]; then
 	for id in $HAZARDOUS_ISSUES; do
 		echo
+		if [ "$BUILD_ONLY" = 1 ]; then
+			run_one "$id"
+			continue
+		fi
 		echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 		echo "!!  ISSUE $id HAS hazard: wedges-target."
 		echo "!!"
-		echo "!!  On an affected kernel this WEDGES THE MACHINE. The blocked task is"
-		echo "!!  in D state and unkillable; it holds mmap_lock, and rwsem fairness"
-		echo "!!  then queues every later reader of that mm behind a writer that can"
-		echo "!!  never be granted -- so ps, pgrep and ordinary system daemons freeze"
-		echo "!!  one after another. Recovery needs sysrq over a still-live ssh, or"
-		echo "!!  PHYSICAL ACCESS to the board."
+		case $id in
+		001)
+			echo "!!  On an affected kernel this WEDGES THE MACHINE. The blocked task is"
+			echo "!!  in D state and unkillable; it holds mmap_lock, and rwsem fairness"
+			echo "!!  then queues every later reader of that mm behind a writer that can"
+			echo "!!  never be granted -- so ps, pgrep and ordinary system daemons freeze"
+			echo "!!  one after another. Recovery needs sysrq over a still-live ssh, or"
+			echo "!!  PHYSICAL ACCESS to the board."
+			;;
+		007)
+			echo "!!  On an affected kernel this WEDGES THE MACHINE, and unlike 001 there"
+			echo "!!  is NO software recovery at all. The CPU is spinning inside the EL2"
+			echo "!!  panic handler with interrupts masked: it answers neither IPI nor RCU"
+			echo "!!  nor NMI, so the task cannot be killed, the CPU cannot be offlined and"
+			echo "!!  sysrq cannot reach it. The board answers ping and refuses ssh."
+			echo "!!"
+			echo "!!  Recovery is a POWER CYCLE. Every time."
+			echo "!!"
+			echo "!!  It also produces NO crash report -- no WARN, no Oops. Do not wait for"
+			echo "!!  one; read the RESULT line."
+			;;
+		esac
 		echo "!!"
 		echo "!!  Do NOT run this on a machine you cannot power-cycle, and do not run"
 		echo "!!  anything else from this pack afterwards until it has rebooted."
@@ -106,7 +132,9 @@ if [ "$INCLUDE_HAZ" = 1 ]; then
 		run_one "$id"
 	done
 else
-	RESULTS="$RESULTS""001|SKIPPED|-|hazard: wedges-target; pass --include-hazardous to run it"$'\n'
+	for id in $HAZARDOUS_ISSUES; do
+		RESULTS="$RESULTS$id|SKIPPED|-|hazard: wedges-target; pass --include-hazardous to run it"$'\n'
+	done
 fi
 
 # ------------------------------------------------------------- summary -------
