@@ -1,0 +1,40 @@
+[ 1070.824798] INFO: task syz.6.13224:71470 blocked for more than 122 seconds.
+[ 1070.824810]       Not tainted 6.6.103+ #27
+[ 1070.824815] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 1070.824819] task:syz.6.13224     state:D stack:0     pid:71470 tgid:71431 ppid:62195  flags:0x00000201
+[ 1070.824831] Call trace:
+[ 1070.824834]  __switch_to+0x10c/0x158
+[ 1070.824850]  __schedule+0x3c0/0x12e8
+[ 1070.824860]  schedule+0x28/0x120
+[ 1070.824869]  schedule_preempt_disabled+0x14/0x28
+[ 1070.824880]  rwsem_down_write_slowpath+0x234/0x710
+[ 1070.824888]  down_write+0x60/0x78
+[ 1070.824895]  account_locked_vm+0x4c/0x108
+[ 1070.824906]  __unmap_stage2_range+0x230/0x2e8
+[ 1070.824918]  stage2_unmap_vm+0x178/0x298
+[ 1070.824928]  kvm_arch_vcpu_ioctl+0x41c/0xc30
+[ 1070.824937]  kvm_vcpu_ioctl+0x5e4/0xac8
+[ 1070.824946]  __arm64_sys_ioctl+0x108/0x128
+--
+[ 1091.308704] INFO: task syz.6.13224:71431 blocked for more than 122 seconds.
+[ 1091.308717]       Not tainted 6.6.103+ #27
+[ 1091.308721] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 1091.308725] task:syz.6.13224     state:D stack:0     pid:71431 tgid:71431 ppid:62195  flags:0x00000209
+[ 1091.308737] Call trace:
+[ 1091.308740]  __switch_to+0x10c/0x158
+[ 1091.308756]  __schedule+0x3c0/0x12e8
+[ 1091.308766]  schedule+0x28/0x120
+[ 1091.308776]  schedule_preempt_disabled+0x14/0x28
+[ 1091.308786]  rwsem_down_read_slowpath+0x224/0x508
+[ 1091.308794]  down_read+0x48/0xc8
+[ 1091.308801]  do_exit+0x2d4/0xcb0
+[ 1091.308811]  do_group_exit+0x44/0xc0
+[ 1091.308820]  get_signal+0xb98/0xba0
+[ 1091.308831]  do_notify_resume+0x244/0xd68
+[ 1091.308842]  el0_svc+0xa8/0xb0
+[ 1091.308850]  el0t_64_sync_handler+0x118/0x128
+--
+[ 1091.308870] INFO: task syz.6.13224:71432 blocked for more than 122 seconds.
+[ 1091.308876]       Not tainted 6.6.103+ #27
+[ 1091.308880] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 1091.308883] task:syz.6.13224     state:D stack:0     pid:71432 tgid:71431 ppid:62195  flags:0x00000209

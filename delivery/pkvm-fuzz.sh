@@ -69,7 +69,12 @@ cmd_check() {
 	# manager 与 executor 版本不一致时，要等 RPC 握手后才报错，现象像“程序卡住”
 	local rev
 	rev=$(cd "$REPO" && git rev-parse HEAD)
-	strings "$REPO/bin/linux_arm64/syz-executor" 2>/dev/null | grep -qE "^${rev}\+?$" \
+	# grep -c，不用 grep -q：-q 命中后立即退出，strings 收到 SIGPIPE 返回 141，
+	# 而 set -o pipefail 会把整条管道判为失败 —— 于是这条检查在版本正确时反而报错，
+	# 挡住每一次合法运行。
+	local hit
+	hit=$(strings "$REPO/bin/linux_arm64/syz-executor" 2>/dev/null | grep -cE "^${rev}\+?$")
+	[ "${hit:-0}" -gt 0 ] \
 		&& ok "executor 与 HEAD 同版本" \
 		|| bad "executor 不是从当前 HEAD 构建的 —— 版本不一致会在握手后才报错，先重新构建"
 
