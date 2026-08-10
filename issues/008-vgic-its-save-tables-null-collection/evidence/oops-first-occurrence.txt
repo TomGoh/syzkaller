@@ -1,0 +1,45 @@
+Kylin V11
+=== 统计 ===
+Oops 总数: 1
+pend_sync WARN: 1616
+[41217.090651] Internal error: Oops: 0000000096000006 [#1] SMP
+[41217.097525] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team hci_vhci bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat ip6_gre nf_nat gre ip6_tunnel nf_conntrack tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core btusb aes_ce_blk btrtl aes_ce_cipher btintel hid_multitouch snd_hda_codec_conexant mac80211 crct10dif_ce btbcm snd_hda_codec_aw882xx ghash_ce btmtk bluetooth hid_generic sm3_ce snd_hda_aw882xx sha3_ce sha512_ce snd_hda_codec_aw883xx r8152 sha512_arm64
+[41217.097847]  snd_hda_aw883xx sha2_ce ecdh_generic snd_hda_codec_generic cfg80211 sha256_arm64 sha1_ce mii sbsa_gwdt ecc ledtrig_audio snd_soc_hdmi_codec rfkill libarc4 snd_soc_pmdk_dp tpm_tis i2c_phytium_v2_platform i2c_smbus snd_soc_phytium_i2s_v2 snd_hda_phytium snd_hda_codec i2c_hid_acpi kylin_extra_button thermal i2c_hid snd_hda_core ftv310_vpu_driver hid phytium_uart_v2 phytium_noc cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap ftg340 serio_raw drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[41217.245683] CPU: 4 PID: 2216003 Comm: syz.5.14572 Tainted: G        W         ------- ----  6.6.103+ #27
+[41217.256463] Source Version: 1f52c77ba6244f411d52ad0fb876c53575165d4a
+[41217.264110] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[41217.275492] pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[41217.283753] pc : vgic_its_save_tables_v0+0x27c/0x698
+[41217.290023] lr : vgic_its_save_tables_v0+0x270/0x698
+[41217.296288] sp : ffff00234059bc20
+[41217.300897] x29: ffff00234059bc80 x28: ffff00236d8146c0 x27: 0000000000000008
+[41217.309335] x26: ffff0020974c9400 x25: 000000000000ffff x24: ffff00236d8146d0
+[41217.317773] x23: ffff800080057628 x22: 0001000000000000 x21: 0000000000000000
+[41217.326211] x20: ffff00235d07fd80 x19: ffff00236d814e80 x18: 0000000000000000
+[41217.334648] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000300
+[41217.343086] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[41217.351524] x11: 0000000000000000 x10: 0000000000000000 x9 : ffff80008098b214
+[41217.359961] x8 : 0000000000000001 x7 : 0000000400000000 x6 : 0000000000000000
+[41217.368399] x5 : 0000000000001cab x4 : 0000000000001cab x3 : 0000000000000000
+[41217.376836] x2 : 0000000000000000 x1 : ffff00236dad4380 x0 : 0000000000002000
+[41217.385274] Call trace:
+[41217.389014]  vgic_its_save_tables_v0+0x27c/0x698
+[41217.394932]  vgic_its_set_attr+0x184/0x3e0
+[41217.400329]  kvm_device_ioctl+0xe8/0x278
+[41217.405552]  __arm64_sys_ioctl+0x108/0x128
+[41217.410948]  invoke_syscall.constprop.0+0x74/0x170
+[41217.417041]  el0_svc_common.constprop.0+0x108/0x138
+[41217.423219]  do_el0_svc+0x2c/0x40
+[41217.427835]  el0_svc+0x20/0xb0
+[41217.432190]  el0t_64_sync_handler+0x118/0x128
+[41217.437846]  el0t_64_sync+0x14c/0x150
+[41217.442811] Code: 940642c7 f9400e62 b9403a80 f9401f41 (b9401042) 
+[41217.450199] ---[ end trace 0000000000000000 ]---
+[41218.288370] hsr_slave_0: left promiscuous mode
+[41218.315918] hsr_slave_1: left promiscuous mode
+[41218.467874] batman_adv: batadv0: Interface deactivated: batadv_slave_0
+[41218.475722] batman_adv: batadv0: Removing interface: batadv_slave_0
+[41218.483435] batman_adv: batadv0: Interface deactivated: batadv_slave_1
+[41218.491284] batman_adv: batadv0: Removing interface: batadv_slave_1
+[41218.499042] bridge_slave_1: left allmulticast mode
+[41218.505163] bridge_slave_1: left promiscuous mode

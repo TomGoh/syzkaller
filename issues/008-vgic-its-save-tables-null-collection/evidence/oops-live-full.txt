@@ -1,0 +1,47 @@
+Kylin V11
+[41437.621796]  vgic_its_set_attr+0x184/0x3e0
+[41437.627191]  kvm_device_ioctl+0xe8/0x278
+[41437.632412]  __arm64_sys_ioctl+0x108/0x128
+[41437.637807]  invoke_syscall.constprop.0+0x74/0x170
+[41437.643898]  el0_svc_common.constprop.0+0x108/0x138
+[41437.650075]  do_el0_svc+0x2c/0x40
+[41437.654688]  el0_svc+0x20/0xb0
+[41437.659041]  el0t_64_sync_handler+0x118/0x128
+[41437.664696]  el0t_64_sync+0x14c/0x150
+[41437.669658] Code: 940642c7 f9400e62 b9403a80 f9401f41 (b9401042) 
+[41437.677045] ---[ end trace 0000000000000000 ]---
+[41437.696130] Internal error: Oops: 0000000096000006 [#141] SMP
+[41437.703177] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team hci_vhci bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat ip6_gre nf_nat gre ip6_tunnel nf_conntrack tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core btusb aes_ce_blk btrtl aes_ce_cipher btintel hid_multitouch snd_hda_codec_conexant mac80211 crct10dif_ce btbcm snd_hda_codec_aw882xx ghash_ce btmtk bluetooth hid_generic sm3_ce snd_hda_aw882xx sha3_ce sha512_ce snd_hda_codec_aw883xx r8152 sha512_arm64
+[41437.703461]  snd_hda_aw883xx sha2_ce ecdh_generic snd_hda_codec_generic cfg80211 sha256_arm64 sha1_ce mii sbsa_gwdt ecc ledtrig_audio snd_soc_hdmi_codec rfkill libarc4 snd_soc_pmdk_dp tpm_tis i2c_phytium_v2_platform i2c_smbus snd_soc_phytium_i2s_v2 snd_hda_phytium snd_hda_codec i2c_hid_acpi kylin_extra_button thermal i2c_hid snd_hda_core ftv310_vpu_driver hid phytium_uart_v2 phytium_noc cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap ftg340 serio_raw drm_display_helper cec drm_kms_helper drm drm_panel_orientation_quirks
+[41437.851273] CPU: 0 PID: 2241069 Comm: syz.1.93 Tainted: G      D W         ------- ----  6.6.103+ #27
+[41437.861790] Source Version: 1f52c77ba6244f411d52ad0fb876c53575165d4a
+[41437.869436] Hardware name: Great Wall \xe9\x95\xbf\xe5\x9f\x8eN90F3/GWMNDB1GL1, BIOS \xe9\x95\xbf\xe5\x9f\x8eBIOS V3.0 02/27/2026
+[41437.880816] pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[41437.889075] pc : vgic_its_save_tables_v0+0x27c/0x698
+[41437.895343] lr : vgic_its_save_tables_v0+0x270/0x698
+[41437.901606] sp : ffff0020985efc20
+[41437.906214] x29: ffff0020985efc80 x28: ffff0022d410d2c0 x27: 0000000000000008
+[41437.914650] x26: ffff00236855cb00 x25: 000000000000ffff x24: ffff0022d410d2d0
+[41437.923086] x23: ffff800080057628 x22: 0001000000000000 x21: 0000000000000000
+[41437.931522] x20: ffff0020907f7500 x19: ffff0022d410d300 x18: 0000000000000000
+[41437.939958] x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000300
+[41437.948394] x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[41437.956829] x11: 0000000000000000 x10: 0000000000000000 x9 : ffff80008098b214
+[41437.965265] x8 : 0000000000000001 x7 : 0000000400000000 x6 : 0000000000000000
+[41437.973700] x5 : 0000000000001ca8 x4 : 0000000000001ca8 x3 : 0000000000000000
+[41437.982136] x2 : 0000000000000000 x1 : ffff0020a0c9fd00 x0 : 0000000000002000
+[41437.990572] Call trace:
+[41437.994311]  vgic_its_save_tables_v0+0x27c/0x698
+[41438.000227]  vgic_its_set_attr+0x184/0x3e0
+[41438.005623]  kvm_device_ioctl+0xe8/0x278
+[41438.010844]  __arm64_sys_ioctl+0x108/0x128
+[41438.016239]  invoke_syscall.constprop.0+0x74/0x170
+[41438.022330]  el0_svc_common.constprop.0+0x108/0x138
+[41438.028507]  do_el0_svc+0x2c/0x40
+[41438.033120]  el0_svc+0x20/0xb0
+[41438.037473]  el0t_64_sync_handler+0x118/0x128
+[41438.043127]  el0t_64_sync+0x14c/0x150
+[41438.048090] Code: 940642c7 f9400e62 b9403a80 f9401f41 (b9401042) 
+[41438.055477] ---[ end trace 0000000000000000 ]---
+[41438.074792] Internal error: Oops: 0000000096000006 [#142] SMP
+[41438.081840] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team hci_vhci bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat ip6_gre nf_nat gre ip6_tunnel nf_conntrack tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core btusb aes_ce_blk btrtl aes_ce_cipher btintel hid_multitouch snd_hda_codec_conexant mac80211 crct10dif_ce btbcm snd_hda_codec_aw882xx ghash_ce btmtk bluetooth hid_generic sm3_ce snd_hda_aw882xx sha3_ce sha512_ce snd_hda_codec_aw883xx r8152 sha512_arm64

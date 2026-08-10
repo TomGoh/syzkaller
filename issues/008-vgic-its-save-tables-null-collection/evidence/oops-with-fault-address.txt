@@ -1,0 +1,55 @@
+[41500.755860] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[41500.755863] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[41500.755867] batman_adv: The newly added mac address (aa:aa:aa:aa:aa:3f) already exists on: batadv_slave_1
+[41500.755870] batman_adv: It is strongly recommended to keep mac addresses unique to avoid problems!
+[41500.757354] batman_adv: batadv0: Interface activated: batadv_slave_1
+[41500.760345] hsr_slave_0: left promiscuous mode
+[41500.768313] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+[41500.768326] Mem abort info:
+[41500.768329]   ESR = 0x0000000096000006
+[41500.768333]   EC = 0x25: DABT (current EL), IL = 32 bits
+[41500.768338]   SET = 0, FnV = 0
+[41500.768342]   EA = 0, S1PTW = 0
+[41500.768346]   FSC = 0x06: level 2 translation fault
+[41500.768351] Data abort info:
+[41500.768354]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+[41500.768358]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[41500.768363]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[41500.768368] user pgtable: 4k pages, 48-bit VAs, pgdp=00000023c17db000
+[41500.768374] [0000000000000010] pgd=0800002443853403, p4d=0800002443853403, pud=08000023e9da8403, pmd=0000000000000000
+[41500.768390] Internal error: Oops: 0000000096000006 [#213] SMP
+[41500.769657] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+[41500.775435] Modules linked in: ip6_vti ip_vti ip_gre ipip sit ip_tunnel geneve macsec macvtap tap ipvlan macvlan 8021q garp mrp virt_wifi hsr xfrm_interface xfrm6_tunnel tunnel4 wireguard libchacha20poly1305 chacha_neon poly1305_neon ip6_udp_tunnel udp_tunnel libcurve25519_generic libchacha veth batman_adv chnl_net caif nlmon dummy team hci_vhci bonding tls bridge iptable_security iptable_raw stp llc iptable_mangle iptable_nat
+[41500.785619] Mem abort info:
+[41500.785623]   ESR = 0x0000000096000006
+[41500.799154] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000010
+[41500.799162] Mem abort info:
+[41500.799164]   ESR = 0x0000000096000006
+[41500.799167]   EC = 0x25: DABT (current EL), IL = 32 bits
+[41500.799173]   SET = 0, FnV = 0
+[41500.799176]   EA = 0, S1PTW = 0
+[41500.799179]   FSC = 0x06: level 2 translation fault
+[41500.799182] Data abort info:
+[41500.799184]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+[41500.799188]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[41500.799192]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[41500.799196] user pgtable: 4k pages, 48-bit VAs, pgdp=000000240dc55000
+[41500.799202] [0000000000000010] pgd=08000023e0018403, p4d=08000023e0018403, pud=08000023ab377403, pmd=0000000000000000
+[41500.824688]  ip6_gre nf_nat gre ip6_tunnel nf_conntrack tunnel6 nf_defrag_ipv6 nf_defrag_ipv4 iptable_filter btrfs blake2b_generic xor xor_neon zlib_deflate raid6_pq ufs xfs nf_tables libcrc32c rfcomm algif_hash algif_skcipher af_alg bnep nls_iso8859_1 vfat r8153_ecm cdc_ether usbnet rtw89_8852be rtw89_8852b rtw89_8852b_common rtw89_pci rtw89_core btusb aes_ce_blk btrtl aes_ce_cipher btintel hid_multitouch snd_hda_codec_conexant mac80211 crct10dif_ce btbcm
+[41500.828930]   EC = 0x25: DABT (current EL), IL = 32 bits
+[41500.833939]  snd_hda_codec_aw882xx ghash_ce btmtk bluetooth hid_generic sm3_ce snd_hda_aw882xx sha3_ce sha512_ce snd_hda_codec_aw883xx r8152 sha512_arm64
+[41500.844059]   SET = 0, FnV = 0
+[41500.848124]  snd_hda_aw883xx sha2_ce ecdh_generic snd_hda_codec_generic cfg80211 sha256_arm64 sha1_ce mii sbsa_gwdt ecc ledtrig_audio
+[41500.853215]   EA = 0, S1PTW = 0
+[41500.859797]  snd_soc_hdmi_codec rfkill libarc4 snd_soc_pmdk_dp tpm_tis i2c_phytium_v2_platform i2c_smbus snd_soc_phytium_i2s_v2 snd_hda_phytium
+[41500.864170]   FSC = 0x06: level 2 translation fault
+[41500.868594]  snd_hda_codec i2c_hid_acpi kylin_extra_button thermal i2c_hid snd_hda_core ftv310_vpu_driver hid phytium_uart_v2 phytium_noc
+[41500.874789] Data abort info:
+[41500.878956]  cppc_cpufreq dm_mod nfnetlink dmi_sysfs ip_tables x_tables
+[41500.885755]   ISV = 0, ISS = 0x00000006, ISS2 = 0x00000000
+[41500.892086]  ipv6 crc_ccitt overlay sm4_ce_gcm atkbd sm4_ce_ccm ftd330_drm_dc sm4_ce libps2 sm4_ce_cipher vivaldi_fmap
+[41500.898716]   CM = 0, WnR = 0, TnD = 0, TagAccess = 0
+[41500.906443]  ftg340 serio_raw drm_display_helper cec drm_kms_helper drm
+[41500.918366]   GCS = 0, Overlay = 0, DirtyBit = 0, Xs = 0
+[41500.960024]  drm_panel_orientation_quirks
+[41500.960031] CPU: 2 PID: 2258824 Comm: syz.0.17 Tainted: G      D W         ------- ----  6.6.103+ #27

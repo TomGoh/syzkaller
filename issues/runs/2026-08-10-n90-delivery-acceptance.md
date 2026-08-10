@@ -9,10 +9,10 @@ filters:
   config_ignores: 'delivery/n90-delivery.cfg — 108 entries; ioctl$KVM_ARM_VCPU_INIT{,_safe}, ioctl$KVM_SET_MP_STATE, syz_kvm_setup_cpu{,$arm64} and the unconstrained memslot ioctls excluded; syz_kvm_dirty_log_cycle never enabled'
   reporter_ignores: 'none — the ignores list is deliberately empty'
 enabled_syscalls: '108 config entries, 90 resolved calls'
-duration: 2026-08-10 11:32 start, snapshot at 17:00 (5h28m), still running
-result: 'zero crashes over 204370 executions on a kernel carrying all seven known defects; 18 of 30 reachable EL2 hypercall handlers covered'
+duration: 2026-08-10 11:32 start, stopped 23:02 (11h30m)
+result: 'none of the seven known defects triggered over 11h30m; found TWO defects the surface filter was not hiding -- a pend_sync_exception WARN (previously observed 2026-07-31, never filed) and issue 008, a NULL-pointer Oops in vgic_its_save_ite reproduced 213 times'
 ring: 'armed on 8 CPUs, LOST_IN_RING 0, leaked_bytes 0'
-observed: []
+observed: [8]
 not_observed: [1, 2, 3, 4, 5, 6, 7]
 ---
 
@@ -20,7 +20,18 @@ not_observed: [1, 2, 3, 4, 5, 6, 7]
 
 Acceptance run of the delivery configuration against the shipping-shaped kernel: EL2 coverage bridge present, **no pKVM fixes**. The question this run answers is not "are there bugs" but "can this configuration run for hours on a defective kernel without tripping any of the known defects".
 
-## Why zero crashes is a meaningful result here
+## What it found
+
+None of the seven known defects fired in 11h30m -- the surface filter held. But the run was not clean, and that is the interesting part:
+
+| finding | status |
+| --- | --- |
+| `WARNING in pend_sync_exception`, 1616 occurrences | previously observed 2026-07-31 (`notes/pkvm/evidence/v11-campaign-n90-2026-07-31`), **never filed as an issue**. syzkaller caught it and attempted a reproducer |
+| `Internal error: Oops` in `vgic_its_save_ite`, 213 occurrences | **new** -- filed as [issue 008](../008-vgic-its-save-tables-null-collection/ISSUE.md). syzkaller did NOT record it |
+
+The run was stopped at 23:02 once the Oops began repeating about once per second: it was hammering one input and producing no new information, and leaving it overnight risked losing the board and its live log buffer.
+
+## Why "no known defect fired" is a meaningful result here
 
 Only because the same kernel was shown to carry the defects first. Before this run, the reproducer pack was run on this exact build:
 
@@ -34,15 +45,18 @@ Only because the same kernel was shown to carry the defects first. Before this r
 ## Numbers at the snapshot
 
 ```
-duration      5h28m (still running)
-exec total    204370          (~10/sec)
-corpus        822
-coverage      14907           (host+EL2 PCs, syzkaller's own counter)
-crashes       0
-EL2 handlers  18 / 30 reachable
+duration      11h30m (stopped deliberately)
+exec total    383928+         (~10/sec)
+corpus        897
+coverage      15060           (host+EL2 PCs, syzkaller's own counter)
+EL2 handlers  18 / 30 reachable   (measured at the 5h28m snapshot)
 ring          armed 8 CPUs, LOST_IN_RING 0, leaked_bytes 0
-board         load ~9.8 on 8 cores, ssh responsive throughout
+board         load ~9.8 on 8 cores, survived 213 Oopses, ssh responsive throughout
+syzkaller crashes  1            <- pend_sync_exception only
+dmesg WARN/Oops    1616 + 213   <- the two do NOT agree; see below
 ```
+
+**The last two lines disagree, and that disagreement is itself a finding.** syzkaller's crash count is the number the report leads with, and it missed a kernel Oops entirely. Anything that its console pipeline does not see is invisible in the headline. `make-report.py` should read the board's `dmesg-history.log` as an independent second source and flag the mismatch rather than trusting one of them.
 
 Execution is genuinely parallel: 13 executor processes with five program-runners each at ~100% CPU, `procs: 6`. The ~10/sec rate is not a concurrency limit — it is what a program costs once it actually builds a VM, enters a guest and tears it down. The early phase ran at 45-64/sec on short candidate programs that mostly never started a guest.
 
@@ -57,6 +71,10 @@ This is the fourth attempt. Each earlier one ended in a defect the surface filte
 | 3 | 19 min | tasks blocked in D state (001) | `syz_kvm_setup_cpu$arm64` takes an existing vcpu and inits it, so a vcpu that had already run got a second `KVM_ARM_VCPU_INIT` |
 
 All three were the same shape: the trigger sat somewhere a syscall name does not describe — inside a composite's C, inside syzkaller's resource matching, inside a shared setup path. The method that actually worked was auditing the defective function's callers: for 001, all six `KVM_ARM_VCPU_INIT` sites in the executor, of which five create their own vcpu and one does not.
+
+## Evidence
+
+Everything is preserved under `delivery/evidence/2026-08-10-oops-vgic-its/`: a full live-buffer snapshot, the 161k-line accumulated `dmesg-history.log`, and Oops blocks with the faulting address. A reconnecting `dmesg --follow` capture was started at 23:02 and writes to `/home/jose/syzkaller/n90-console-2026-08-10.log`.
 
 ## The 12 uncovered handlers
 
