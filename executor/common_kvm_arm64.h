@@ -114,7 +114,33 @@ static void setup_vm(int vmfd, void* host_mem, void** text_slot)
 	vm_set_user_memory_region(vmfd, slot++, KVM_MEM_READONLY, SYZOS_ADDR_EXECUTOR_CODE, host_text.size, (uintptr_t)host_text.addr);
 
 	struct addr_size next = alloc_guest_mem(&allocator, 2 * KVM_PAGE_SIZE);
-	vm_set_user_memory_region(vmfd, slot++, KVM_MEM_LOG_DIRTY_PAGES, ARM64_ADDR_DIRTY_PAGES, next.size, (uintptr_t)next.addr);
+	// KVM_MEM_LOG_DIRTY_PAGES here is what lets the dirty ring be fuzzed, and it
+	// is ALSO the reason every syzos VM trips pKVM issues 002/004/005 on a kernel
+	// without the dirty-logging fixes: 004 needs nothing more than an ordinary VM
+	// that has run a vCPU and has this flag on a memslot. It cannot be avoided by
+	// disabling syscalls, because this slot belongs to the shared setup path that
+	// every syzos composite uses -- hence a runtime opt-out, set by the isolated
+	// VM layer from "pkvm_no_dirty_log_slot" in the manager config.
+	//
+	// UPSTREAM registers this slot with KVM_MEM_LOG_DIRTY_PAGES so the dirty ring
+	// can be fuzzed. On a pKVM host that flag is not merely noisy, it is a defect
+	// trigger: pKVM issue 004 needs nothing more than an ordinary VM that has run
+	// a vCPU and has this flag on a memslot, and 002/005 sit on the same path. So
+	// every syzos VM tripped a known WARN before executing a single interesting
+	// call. Verified by hardcoding this to 0 on the DUT: the WARN count for
+	// kvm_tlb_flush_vmid_range went 4 -> 0 with nothing else changed.
+	//
+	// It is 0 unconditionally rather than switchable at runtime, because there is
+	// no runtime channel into this function. The executor forks a program-runner
+	// which chroots into a fresh tmpfs (common_linux.h: "Mount tmpfs and chroot
+	// into it in sandbox=none and sandbox=namespace"), so it inherits neither the
+	// environment nor any marker file outside that root -- both were tried on
+	// hardware and both failed for that one reason.
+	//
+	// RESTORE THIS the day pKVM issues 002/004/005 land: until then the dirty ring
+	// cannot be fuzzed through here anyway, because enabling it is the bug.
+	uint32 dirty_flags = 0;
+	vm_set_user_memory_region(vmfd, slot++, dirty_flags, ARM64_ADDR_DIRTY_PAGES, next.size, (uintptr_t)next.addr);
 
 	next = alloc_guest_mem(&allocator, KVM_MAX_VCPU * KVM_PAGE_SIZE);
 	vm_set_user_memory_region(vmfd, slot++, KVM_MEM_READONLY, ARM64_ADDR_USER_CODE, next.size, (uintptr_t)next.addr);

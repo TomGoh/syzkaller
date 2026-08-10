@@ -34,6 +34,15 @@ ioctl$KVM_IRQ_LINE(fd fd_kvmvm, cmd const[KVM_IRQ_LINE], arg ptr[in, kvm_irq_lev
 ioctl$KVM_IRQ_LINE_STATUS(fd fd_kvmvm, cmd const[KVM_IRQ_LINE_STATUS], arg ptr[inout, kvm_irq_level])
 ioctl$KVM_SET_USER_MEMORY_REGION(fd fd_kvmvm, cmd const[KVM_SET_USER_MEMORY_REGION], arg ptr[in, kvm_userspace_memory_region])
 ioctl$KVM_SET_USER_MEMORY_REGION2(fd fd_kvmvm, cmd const[KVM_SET_USER_MEMORY_REGION2], arg ptr[in, kvm_userspace_memory_region2])
+# Dirty-logging-free variants, for use on kernels where enabling
+# KVM_MEM_LOG_DIRTY_PAGES is known to be defective (pKVM issues 002/003/004/005:
+# issue 004 fires on ANY ordinary VM that runs a vCPU and then gets the flag on a
+# memslot -- no huge pages needed). Curating kvm_mem_region_flags would NOT have
+# worked: prog/rand.go's flags() returns a fully random 64-bit value 1% of the
+# time regardless of the value list, so a forbidden bit can only be excluded by
+# const[], i.e. by a separate variant like this one.
+ioctl$KVM_SET_USER_MEMORY_REGION_nolog(fd fd_kvmvm, cmd const[KVM_SET_USER_MEMORY_REGION], arg ptr[in, kvm_userspace_memory_region_nolog])
+ioctl$KVM_SET_USER_MEMORY_REGION2_nolog(fd fd_kvmvm, cmd const[KVM_SET_USER_MEMORY_REGION2], arg ptr[in, kvm_userspace_memory_region2_nolog])
 ioctl$KVM_PPC_GET_PVINFO(fd fd_kvmvm, cmd const[KVM_PPC_GET_PVINFO], arg buffer[out])
 ioctl$KVM_SET_GSI_ROUTING(fd fd_kvmvm, cmd const[KVM_SET_GSI_ROUTING], arg ptr[in, kvm_irq_routing]) (no_squash)
 ioctl$KVM_ASSIGN_SET_MSIX_NR(fd fd_kvmvm, cmd const[KVM_ASSIGN_SET_MSIX_NR], arg ptr[in, kvm_assigned_msix_nr])
@@ -553,6 +562,30 @@ kvm_userspace_memory_region {
 kvm_userspace_memory_region2 {
 	slot			flags[kvm_mem_slots, int32]
 	flags			flags[kvm_mem_region_flags, int32]
+	paddr			flags[kvm_guest_addrs, int64]
+	size			len[addr, int64]
+	addr			vma64[1:2]
+	guest_memfd_offset	int64
+	guest_memfd		fd_kvm_guest_memfd
+	pad1			const[0, int32]
+	pad2			array[const[0, int64], 14]
+}
+
+# flags is const[0] rather than a narrowed flags[] set: see the note above the
+# _nolog ioctls. This keeps every other memslot dimension fuzzable -- slot index,
+# guest address, size, and the backing vma -- and only pins the one bit that is
+# known to reach a defect on this kernel.
+kvm_userspace_memory_region_nolog {
+	slot	flags[kvm_mem_slots, int32]
+	flags	const[0, int32]
+	paddr	flags[kvm_guest_addrs, int64]
+	size	len[addr, int64]
+	addr	vma64[1:2]
+}
+
+kvm_userspace_memory_region2_nolog {
+	slot			flags[kvm_mem_slots, int32]
+	flags			const[0, int32]
 	paddr			flags[kvm_guest_addrs, int64]
 	size			len[addr, int64]
 	addr			vma64[1:2]
