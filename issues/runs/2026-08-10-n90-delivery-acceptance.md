@@ -10,7 +10,7 @@ filters:
   reporter_ignores: 'none — the ignores list is deliberately empty'
 enabled_syscalls: '108 config entries, 90 resolved calls'
 duration: 2026-08-10 11:32 start, stopped 23:02 (11h30m)
-result: 'none of the seven known defects triggered over 11h30m; found TWO defects the surface filter was not hiding -- a pend_sync_exception WARN (previously observed 2026-07-31, never filed) and issue 008, a NULL-pointer Oops in vgic_its_save_ite reproduced 213 times'
+result: 'none of the seven known defects triggered over 11h30m; found TWO defects the surface filter was not hiding -- a pend_sync_exception WARN (previously observed 2026-07-31, never filed) and issue 008, a NULL-pointer Oops in vgic_its_save_ite that fired at least 255 times in the last five minutes of the run'
 ring: 'armed on 8 CPUs, LOST_IN_RING 0, leaked_bytes 0'
 observed: [8]
 not_observed: [1, 2, 3, 4, 5, 6, 7]
@@ -26,8 +26,8 @@ None of the seven known defects fired in 11h30m -- the surface filter held. But 
 
 | finding | status |
 | --- | --- |
-| `WARNING in pend_sync_exception`, 1616 occurrences | previously observed 2026-07-31 (`notes/pkvm/evidence/v11-campaign-n90-2026-07-31`), **never filed as an issue**. syzkaller caught it and attempted a reproducer |
-| `Internal error: Oops` in `vgic_its_save_ite`, 213 occurrences | **new** -- filed as [issue 008](../008-vgic-its-save-tables-null-collection/ISSUE.md). syzkaller did NOT record it |
+| `WARNING in pend_sync_exception`, 1616 occurrences | previously observed 2026-07-31 (`notes/pkvm/evidence/v11-campaign-n90-2026-07-31`), **never filed as an issue**. syzkaller caught it at 18:49:49 and its reproduction **succeeded** at 19:31:22 (`repro=true crepro=false`), so a syz-prog reproducer already exists |
+| `Internal error: Oops` in `vgic_its_save_ite`, at least 255 occurrences | **new** -- filed as [issue 008](../008-vgic-its-save-tables-null-collection/ISSUE.md). syzkaller caught it at 22:59:11 and was still reproducing when the run was stopped, so no reproducer came out of it |
 
 The run was stopped at 23:02 once the Oops began repeating about once per second: it was hammering one input and producing no new information, and leaving it overnight risked losing the board and its live log buffer.
 
@@ -42,21 +42,37 @@ Only because the same kernel was shown to carry the defects first. Before this r
 
 (`delivery/evidence/2026-08-10-repro-pack-summary.txt`.) Without that half, a clean fuzzing run would be indistinguishable from a kernel that simply has no bugs.
 
-## Numbers at the snapshot
+## Numbers at shutdown (23:02:38)
 
 ```
 duration      11h30m (stopped deliberately)
-exec total    383928+         (~10/sec)
+exec total    384582          (~9.3/sec; frozen at 22:59:12 -- reproduction pauses fuzzing)
 corpus        897
 coverage      15060           (host+EL2 PCs, syzkaller's own counter)
 EL2 handlers  18 / 30 reachable   (measured at the 5h28m snapshot)
 ring          armed 8 CPUs, LOST_IN_RING 0, leaked_bytes 0
-board         load ~9.8 on 8 cores, survived 213 Oopses, ssh responsive throughout
-syzkaller crashes  1            <- pend_sync_exception only
-dmesg WARN/Oops    1616 + 213   <- the two do NOT agree; see below
+board         load ~9.8 on 8 cores, survived 255+ Oopses, ssh responsive throughout
+syzkaller crash titles  2       <- pend_sync 18:49:49, vgic_its Oops 22:59:11
+dmesg WARN/Oops    1616 + 255+  <- the counts do NOT agree; see below
 ```
 
-**The last two lines disagree, and that disagreement is itself a finding.** syzkaller's crash count is the number the report leads with, and it missed a kernel Oops entirely. Anything that its console pipeline does not see is invisible in the headline. `make-report.py` should read the board's `dmesg-history.log` as an independent second source and flag the mismatch rather than trusting one of them.
+**The last two lines disagree, and that disagreement is itself a finding.** Not because syzkaller missed the Oops -- it did record it -- but because the headline number counts *titles*, not events: 2 against 1871+. A defect that fires 1616 times and one that fires once are the same "1" in the report, and the delivery report leads with that number.
+
+There is a second, smaller gap in the same direction: the first Oops landed at **22:57:10** (kernel ts 41217.09, die counter `[#1]`) and syzkaller's first record of it is **22:59:11** -- 2m01s and on the order of a hundred occurrences later. *Why* it took that long is not investigated; it is recorded here as an observation, not a mechanism.
+
+`make-report.py` should read the board's `dmesg-history.log` as an independent second source and print event counts beside title counts, rather than trusting either alone.
+
+### Where the occurrence counts come from
+
+Three different numbers for the same Oops appear in the artifacts, and they are all snapshots of a counter that was still climbing at roughly 1.3-2/sec:
+
+| number | what it is |
+| --- | --- |
+| 142 | `Internal error: Oops` lines in `dmesg-history-snapshot.txt.gz`, captured 23:01 |
+| 213 | the die counter at ts 41500.77 = 23:01:53 -- the value quoted in the first version of this record |
+| **255** | the die counter at ts 41521.63 = **23:02:14**, the last one before shutdown -- the highest value any preserved artifact shows |
+
+The kernel's own `[#N]` die counter is the reliable one: it is monotonic and does not depend on when a snapshot was taken. Board boot was 2026-08-10 11:30:13, so kernel ts converts to wall clock by adding it.
 
 Execution is genuinely parallel: 13 executor processes with five program-runners each at ~100% CPU, `procs: 6`. The ~10/sec rate is not a concurrency limit — it is what a program costs once it actually builds a VM, enters a guest and tears it down. The early phase ran at 45-64/sec on short candidate programs that mostly never started a guest.
 
@@ -74,7 +90,16 @@ All three were the same shape: the trigger sat somewhere a syscall name does not
 
 ## Evidence
 
-Everything is preserved under `delivery/evidence/2026-08-10-oops-vgic-its/`: a full live-buffer snapshot, the 161k-line accumulated `dmesg-history.log`, and Oops blocks with the faulting address. A reconnecting `dmesg --follow` capture was started at 23:02 and writes to `/home/jose/syzkaller/n90-console-2026-08-10.log`.
+Everything is preserved under `delivery/evidence/2026-08-10-oops-vgic-its/`: a full live-buffer snapshot, the 161k-line accumulated `dmesg-history.log`, and Oops blocks with the faulting address. A reconnecting `dmesg --follow` capture was started at 23:02 and writes to `/home/jose/syzkaller/n90-console-2026-08-10.log`; it is the only artifact that covers the final minutes, and the only source for the `[#255]` figure.
+
+syzkaller's own crash records are in the workdir, not in this repo:
+
+```
+workdir-n90-delivery/crashes/0350bbd87ef280157058037640104bb9b2436032/   WARNING in pend_sync_exception
+    log0 report0 machineInfo0 title-stat  +  repro.prog repro.report repro.stats repro.log
+workdir-n90-delivery/crashes/827710884bab98a4fd735b0e0c6a98dabd075d25/   vgic_its_save_tables_v0 Oops
+    log0 report0 machineInfo0 title-stat  -- no repro.*, reproduction was still running at SIGINT
+```
 
 ## The 12 uncovered handlers
 
@@ -99,3 +124,16 @@ report:   ./delivery/pkvm-fuzz.sh report
 ```
 
 Full instructions, including how to read the results and what to do when the board stops answering, are in [`delivery/README.md`](../../delivery/README.md).
+
+## Corrections (2026-08-11)
+
+This record was written at 23:10 on the night of the run, from a live reading of the board rather than from the workdir. Three claims in it were wrong, and are corrected above:
+
+| was | is | how it was checked |
+| --- | --- | --- |
+| "syzkaller did NOT record it" (the Oops) | it did, at 22:59:11, and began reproducing | `manager.log:4494-4497`; `crashes/827710884…/` with `title-stat` Count 1 |
+| "syzkaller crashes 1 — pend_sync_exception only" | 2 crash titles | same, plus `manager.log:2830` |
+| "213 occurrences" | at least 255; 213 was the count at 23:01:53 | die counter `[#N]` in the console capture |
+| "attempted a reproducer" (pend_sync) | the reproduction **finished successfully** | `manager.log:3084`, `repro=true crepro=false` |
+
+The reason the original was wrong is worth keeping: the run was still live when it was written, and the workdir — which is the durable record — was never opened. The rule that follows is to write run records **from the workdir after shutdown**, and to use the live board only for what the workdir cannot hold, which here was the `[#N]` die counter.

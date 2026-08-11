@@ -35,7 +35,7 @@ Call trace:
 
 `ESR 0x96000006` decodes as a data abort taken without an EL change, read, translation fault at level 2 — i.e. an ordinary bad-pointer read, not a permission or alignment problem.
 
-Once the fuzzer found the input it reproduced continuously: **213 Oopses**, roughly one per second, until the run was stopped. Each one kills the calling task; the kernel itself stayed up and the board stayed reachable.
+Once the fuzzer found the input it reproduced continuously. The kernel's own die counter went from `[#1]` at **22:57:10** to `[#255]` at **23:02:14** — at least 255 occurrences in five minutes, 1.3–2 per second — and was still climbing when the run was stopped. Each one kills the calling task; the kernel itself stayed up and the board stayed reachable throughout.
 
 ## Root cause
 
@@ -132,8 +132,24 @@ The obvious fix is the same guard the other five sites use, and it needs a decis
 2. **Report upstream** once the reproducer exists.
 3. Add a `run-008.sh` to the reproducer pack and list it in `delivery/README.md`.
 
-## Why syzkaller did not record it
+## How syzkaller recorded it
 
-The manager's crash list shows only `WARNING in pend_sync_exception`; this Oops is absent from it despite being far more serious. It was caught by an independent dmesg watcher instead.
+> **Corrected 2026-08-11.** The first version of this entry said syzkaller did not record this Oops at all. That was wrong — it was written from the live board while the run was still up, without opening the workdir. syzkaller *did* record it.
 
-That gap matters for the delivery methodology, not just for this issue: the report's "crash count" comes from syzkaller alone, so a fault that its console pipeline misses is invisible in the headline number. `make-report.py` should read the board's own `dmesg-history.log` as a second, independent source and flag any disagreement.
+The manager logged it at **22:59:11** and immediately started reproducing:
+
+```
+manager.log:4494  VM 0: crash: BUG: unable to handle kernel NULL pointer dereference in vgic_its_save_tables_v0
+manager.log:4495  VM 0: crash(tail0): Internal error in vgic_its_save_tables_v0
+manager.log:4496  VM 0: crash(tail1): SYZFAIL: rpc peer closed connection (EOF)
+manager.log:4497  start reproducing 'BUG: unable to handle kernel NULL pointer dereference in ...'
+```
+
+with a crash directory at `crashes/827710884bab98a4fd735b0e0c6a98dabd075d25/` (`log0`, `report0`, `machineInfo0`, `title-stat`). The reproduction never finished: the run was stopped at 23:02:38, three and a half minutes later, which is why **no `repro.prog` exists for this issue** and why the reproducer has to be written by hand.
+
+Two real gaps remain, and they are smaller than the original claim but still worth acting on:
+
+1. **It was recorded once, out of 255+.** `title-stat` says `Count: 1`. The delivery report leads with a count of crash *titles*, so a defect firing twice a second and one firing once are indistinguishable in the headline.
+2. **It was 2m01s late.** First Oops 22:57:10, first record 22:59:11. Why, is not investigated — recorded as an observation, not a mechanism.
+
+Both point the same way: `make-report.py` should read the board's own `dmesg-history.log` as a second, independent source and print event counts beside title counts.
