@@ -212,3 +212,33 @@ fuzz init hook disables ASLR (`randomize_va_space=0`).
 - Guest-side code execution (arbitrary HVC/SMC/MMIO/sysreg sequences) via a
   SYZOS-style pseudo-syscall, mirroring `syz_kvm_setup_syzos_vm`, to reach EL2
   beyond what the /dev/gunyah driver surface exposes.
+
+
+## Coverage reports: covered functions (A) and full source-line report (B)
+
+Two complementary coverage views were built:
+
+**A — faithful, no instrumentation.** The TCG plugin also keeps a per-vCPU
+CUMULATIVE bitmap (`<shm>_cum.<vcpu>`, never cleared; window file/drainer
+unchanged). `tools/xhyper-cov/xhcov-symbolize.sh` unions it and, via
+`addr2line -e kernel.elf` + `c++filt`, prints a ranked covered-function report
+AND (from the ELF's STT_FUNC symbols as the universe) a coverage percentage and
+the uncovered-function list — all against the real, uninstrumented shipping
+binary. e.g. `COVERAGE: X/3717 functions`, uncovered sorted by size.
+
+**B — full syzkaller source-line report (needs instrumentation).** syzkaller's
+ReportGenerator requires `__sanitizer_cov_trace_pc` in the object, so a
+discovery build instruments XHyper with SanCov trace-pc (KFEAT_SANCOV; a no-op
+`__sanitizer_cov_trace_pc` stub keeps it linking) — ~59k `bl` cover points. On
+that build the plugin runs in a SanCov call-site mode (arg `trace_pc=<addr>`):
+it decodes each `bl __sanitizer_cov_trace_pc` and records call_site+4, so the
+PCs align exactly with syzkaller's cover points (verified 100%: recorded−4 all
+land on real bl sites). The corpus is replayed on the instrumented image under
+the plugin, and `syz-cover -config <cfg> <rawcover>` renders the coverage: a
+funccover CSV and the HTML source-line report with covered AND uncovered lines
+(e.g. 1104/3994 functions covered from boot+host-bringup alone).
+
+A measures the real shipping binary (block-level, no uncovered universe);
+B is source-precise/edge-level with an uncovered map but measures an
+instrumented proxy binary. Online fuzzing uses A's plugin on the real binary;
+B is generated offline by replaying the corpus on the instrumented build.
