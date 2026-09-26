@@ -47,6 +47,9 @@ type Runner struct {
 	updInfo         UpdateInfo
 	resultCh        chan error
 	lastRequestTime time.Time
+	// xh drains EL2 translation-block PCs from the QEMU TCG plugin shm.
+	// Nil unless cfg.XHyperCover is set.
+	xh *xhDrainer
 
 	// The mutex protects all the fields below.
 	mu          sync.Mutex
@@ -462,6 +465,17 @@ func (runner *Runner) handleExecResult(msg *flatrpc.ExecResult) error {
 			msg.Info.ExtraRaw = nil
 			runner.convertCallInfo(msg.Info.Extra)
 		}
+		// EL2 PCs are not guest-kernel text. Append them after convertCallInfo,
+		// which drops addresses outside the kernel module map.
+		if runner.xh != nil {
+			if pcs := runner.xh.drain(); len(pcs) != 0 {
+				if msg.Info.Extra == nil {
+					msg.Info.Extra = &flatrpc.CallInfo{}
+				}
+				msg.Info.Extra.Cover = append(msg.Info.Extra.Cover, pcs...)
+				msg.Info.Extra.Signal = append(msg.Info.Extra.Signal, pcs...)
+			}
+		}
 		if !runner.cover && req.ExecOpts.ExecFlags&flatrpc.ExecFlagCollectSignal != 0 {
 			// Coverage collection is disabled, but signal was requested => use a substitute signal.
 			// Note that we do it after all the processing above in order to prevent it from being
@@ -588,6 +602,9 @@ func (runner *Runner) Shutdown(crashed bool, extraExecs ...report.ExecutorInfo) 
 	if finished != nil {
 		// Wait for the connection goroutine to finish and stop touching data.
 		<-finished
+	}
+	if runner.xh != nil {
+		runner.xh.close()
 	}
 	records := runner.lastExec.Collect()
 	for _, info := range extraExecs {

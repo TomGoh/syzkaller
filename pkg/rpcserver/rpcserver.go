@@ -66,7 +66,9 @@ type Config struct {
 	UseCoverEdges bool
 	// Filter signal/comparisons against target kernel text/data ranges.
 	// Disabled for gVisor/Starnix which are not Linux.
-	FilterSignal      bool
+	FilterSignal bool
+	// Drain EL2 translation-block PCs from the QEMU TCG plugin shm.
+	XHyperCover       bool
 	PrintMachineCheck bool
 	// Abort early on syz-executor not replying to requests and print extra debugging information.
 	DebugTimeouts bool
@@ -198,6 +200,7 @@ func New(cfg *RemoteConfig) (Server, error) {
 		UseCoverEdges: cfg.Experimental.CoverEdges && cfg.Type != targets.GVisor,
 		// gVisor/Starnix are not Linux, so filtering against Linux ranges won't work.
 		FilterSignal:      cfg.Type != targets.GVisor && cfg.Type != targets.Starnix,
+		XHyperCover:       cfg.XHyperCover,
 		PrintMachineCheck: true,
 		DebugTimeouts:     cfg.Debug,
 		Procs:             cfg.Procs,
@@ -582,6 +585,15 @@ func (serv *server) CreateInstance(id int, injectExec chan<- bool, updInfo Updat
 		procs:    serv.cfg.Procs,
 		updInfo:  updInfo,
 		resultCh: make(chan error, 1),
+	}
+	if serv.cfg.XHyperCover {
+		runner.xh = openXHDrainer(id)
+		if runner.xh == nil {
+			// QEMU creates /dev/shm/xh<id>.* in vcpu_init, which runs after
+			// CreateInstance (the executor backend calls this, then inst.Run).
+			// Keep a drainer so the first exec result attaches the live rings.
+			runner.xh = &xhDrainer{id: id}
+		}
 	}
 	serv.mu.Lock()
 	defer serv.mu.Unlock()

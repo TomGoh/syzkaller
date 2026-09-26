@@ -175,6 +175,11 @@ type Config struct {
 	// Requires procs == 1. Off by default.
 	PkvmSerial bool `json:"pkvm_serial"`
 
+	// XHyperCover drains EL2 coverage from the QEMU TCG plugin shm
+	// (/dev/shm/xh<instance>.<vcpu>) and injects it as extra signal.
+	// It does not enable KCOV. Off by default; a no-op when the files are absent.
+	XHyperCover bool `json:"xhyper_cover"`
+
 	// Reproduce, localize and minimize crashers (default: true).
 	Reproduce bool `json:"reproduce"`
 
