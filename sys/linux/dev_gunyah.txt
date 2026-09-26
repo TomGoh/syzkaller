@@ -1,0 +1,101 @@
+# Copyright 2026 syzkaller project authors. All rights reserved.
+# Use of this source code is governed by Apache 2 LICENSE that can be found in the LICENSE file.
+
+# Gunyah VM-management UAPI for /dev/gunyah. arm64 only.
+# There is no in-tree gunyah.h to extract; every GH_* value lives in dev_gunyah.txt.const.
+meta arches["arm64"]
+meta noextract
+
+include <uapi/linux/fcntl.h>
+
+resource fd_gunyah[fd]
+resource fd_gh_vm[fd]
+resource fd_gh_vcpu[fd]
+# vcpu_mmap_size[int64] is already declared in dev_kvm.txt. GH_VCPU_MMAP_SIZE
+# returns that shared resource so mmap$GH_VCPU can size the run page.
+
+openat$gunyah(fd const[AT_FDCWD], file ptr[in, string["/dev/gunyah"]], flags flags[open_flags], mode const[0]) fd_gunyah
+
+ioctl$GH_CREATE_VM(fd fd_gunyah, cmd const[GH_CREATE_VM]) fd_gh_vm
+
+ioctl$GH_VM_SET_USER_MEM_REGION(fd fd_gh_vm, cmd const[GH_VM_SET_USER_MEM_REGION], arg ptr[in, gh_userspace_memory_region])
+ioctl$GH_VM_SET_DTB_CONFIG(fd fd_gh_vm, cmd const[GH_VM_SET_DTB_CONFIG], arg ptr[in, gh_vm_dtb_config])
+
+# Separate variants so type, arg_size, and the pointed-to arg struct stay consistent.
+ioctl$GH_VM_ADD_FUNCTION_VCPU(fd fd_gh_vm, cmd const[GH_VM_ADD_FUNCTION], arg ptr[in, gh_fn_desc_vcpu]) fd_gh_vcpu
+ioctl$GH_VM_ADD_FUNCTION_IRQFD(fd fd_gh_vm, cmd const[GH_VM_ADD_FUNCTION], arg ptr[in, gh_fn_desc_irqfd])
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(fd fd_gh_vm, cmd const[GH_VM_ADD_FUNCTION], arg ptr[in, gh_fn_desc_ioeventfd])
+
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(fd fd_gh_vm, cmd const[GH_VM_REMOVE_FUNCTION], arg ptr[in, gh_fn_desc_vcpu])
+ioctl$GH_VM_REMOVE_FUNCTION_IRQFD(fd fd_gh_vm, cmd const[GH_VM_REMOVE_FUNCTION], arg ptr[in, gh_fn_desc_irqfd])
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(fd fd_gh_vm, cmd const[GH_VM_REMOVE_FUNCTION], arg ptr[in, gh_fn_desc_ioeventfd])
+
+ioctl$GH_VM_START(fd fd_gh_vm, cmd const[GH_VM_START])
+
+ioctl$GH_VCPU_MMAP_SIZE(fd fd_gh_vcpu, cmd const[GH_VCPU_MMAP_SIZE]) vcpu_mmap_size
+ioctl$GH_VCPU_RUN(fd fd_gh_vcpu, cmd const[GH_VCPU_RUN])
+
+mmap$GH_VCPU(addr vma, len vcpu_mmap_size, prot flags[mmap_prot], flags flags[mmap_flags], fd fd_gh_vcpu, offset const[0])
+
+gh_mem_flags = GH_MEM_ALLOW_READ, GH_MEM_ALLOW_WRITE, GH_MEM_ALLOW_EXEC
+gh_irqfd_flags = GH_IRQFD_FLAGS_LEVEL
+gh_ioeventfd_flags = GH_IOEVENTFD_FLAGS_DATAMATCH
+gh_ioeventfd_len = 0, 1, 2, 4, 8
+# Boundaries: 0, off-by-one around a page, page multiples that match vma64[1:4], and the 32/33-bit edges.
+gh_mem_label = 0, 1, 2, 3, 0x7fffffff, 0xffffffff
+gh_guest_addr = 0, 1, 0xfff, 0x1000, 0x1001, 0x2000, 0x10000, 0x80000000, 0xfffff000, 0xffffffff, 0x100000000
+gh_mem_size = 0, 1, 0xfff, 0x1000, 0x1001, 0x2000, 0x3000, 0x4000, 0x10000, 0xffffffff
+
+# 32 bytes: u32 label, u32 flags, u64 guest_phys_addr, u64 memory_size, u64 userspace_addr.
+gh_userspace_memory_region {
+	label			flags[gh_mem_label, int32]
+	flags			flags[gh_mem_flags, int32]
+	guest_phys_addr		flags[gh_guest_addr, int64]
+	memory_size		flags[gh_mem_size, int64]
+	userspace_addr		vma64[1:4]
+} [size[32]]
+
+gh_vm_dtb_config {
+	guest_phys_addr	flags[gh_guest_addr, int64]
+	size		flags[gh_mem_size, int64]
+} [size[16]]
+
+gh_fn_desc_vcpu {
+	type		const[GH_FN_VCPU, int32]
+	arg_size	const[4, int32]
+	arg		ptr64[in, gh_fn_vcpu_arg]
+} [size[16]]
+
+gh_fn_desc_irqfd {
+	type		const[GH_FN_IRQFD, int32]
+	arg_size	const[16, int32]
+	arg		ptr64[in, gh_fn_irqfd_arg]
+} [size[16]]
+
+gh_fn_desc_ioeventfd {
+	type		const[GH_FN_IOEVENTFD, int32]
+	arg_size	const[32, int32]
+	arg		ptr64[in, gh_fn_ioeventfd_arg]
+} [size[16]]
+
+gh_fn_vcpu_arg {
+	id	int32
+} [size[4]]
+
+gh_fn_irqfd_arg {
+	fd	fd_event
+	label	int32
+	flags	flags[gh_irqfd_flags, int32]
+	padding	const[0, int32]
+} [size[16]]
+
+# 32 bytes: u64 datamatch, u64 addr, u32 len, s32 fd, u32 flags, u32 padding.
+# arg_size is sizeof(this struct), not 24.
+gh_fn_ioeventfd_arg {
+	datamatch	int64
+	addr		flags[gh_guest_addr, int64]
+	len		flags[gh_ioeventfd_len, int32]
+	fd		fd_event
+	flags		flags[gh_ioeventfd_flags, int32]
+	padding		const[0, int32]
+} [size[32]]
