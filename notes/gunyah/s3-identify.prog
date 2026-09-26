@@ -1,0 +1,20 @@
+# One SYZOS guest instruction sequence: hvc #0x6000 (HYPERVISOR_IDENTIFY).
+# Before the hvc the guest stores 0x1111 at scratch GPA 0xeeef0000.
+# After the hvc it stores x0 at scratch+8, then returns; guest_main falls
+# off the end and fetches address 0, which is unmapped, so GH_VCPU_RUN
+# returns GUNYAH_VCPU_EXIT_PAGE_FAULT. The executor prints
+# "syz_gunyah identify" only when it observes the 0x1111 marker.
+#
+# Encodings (llvm-mc -triple aarch64):
+#   movz x1, #0                 d2800001
+#   movk x1, #0xeeef, lsl #16   f2bddde1
+#   movz x2, #0x1111            d2822222
+#   str  x2, [x1]               f9000022
+#   hvc  #0x6000                d40c0002
+#   str  x0, [x1, #8]           f9000420
+# syzos_api_code appends ret (d65f03c0). call id 10 is SYZOS_API_CODE.
+
+r0 = openat$gunyah(0xffffffffffffff9c, &AUTO='/dev/gunyah\x00', 0x2, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0)
+r2 = syz_gunyah_setup_vm$arm64(r1, &(0x7f0000400000/0x400000)=nil)
+syz_gunyah_add_vcpu$arm64(r2, &(0x7f0000001000)={0x0, &(0x7f0000002000)=[@code={0xa, 0x2c, "\x01\x00\x80\xd2\xe1\xdd\xbd\xf2\x22\x22\x82\xd2\x22\x00\x00\xf9\x02\x00\x0c\xd4\x20\x04\x00\xf9"}], 0x2c})

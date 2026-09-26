@@ -1,0 +1,14 @@
+arches = arm64
+# include/uapi/linux/gunyah.h: GUNYAH_VM_SET_BOOT_CONTEXT is
+# _IOW('G', 0xa, struct gunyah_vm_boot_context) == 0x4010470a.
+# enum gunyah_vm_boot_context_reg: REG_SET_X=0, REG_SET_PC=1, REG_SET_SP=2.
+# Packed id is GUNYAH_VM_BOOT_CONTEXT_REG(set, idx) = (set << 8) | idx.
+GH_BOOT_REG_PC = 256
+GH_BOOT_REG_SP_EL0 = 512
+GH_BOOT_REG_SP_EL1 = 513
+GH_BOOT_REG_X0 = 0
+GH_BOOT_REG_X1 = 1
+GH_REG_SET_PC = 1
+GH_REG_SET_SP = 2
+GH_REG_SET_X = 0
+GH_VM_SET_BOOT_CONTEXT = 1074808586

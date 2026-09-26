@@ -1,0 +1,54 @@
+# Copyright 2026 syzkaller project authors. All rights reserved.
+# Use of this source code is governed by Apache 2 LICENSE that can be found in the LICENSE file.
+
+# Guest-internal Gunyah surface (arm64 only).
+#
+# syz_gunyah_setup_vm$arm64 donates the SYZOS guest-physical slots
+# (user code, guest_main, scratch, EL1 stack) plus a minimal DTB through
+# GH_VM_SET_USER_MEM_REGION, then points GH_VM_SET_DTB_CONFIG at the DTB.
+# syz_gunyah_add_vcpu$arm64 loads kvm_text_arm64 into the user-code slot,
+# overrides the boot PC/SP/x0/x1 with GH_VM_SET_BOOT_CONTEXT, adds one
+# proxy vCPU, GH_VM_STARTs, and GH_VCPU_RUNs. The guest image is the same
+# guest_main() as syz_kvm_add_vcpu$arm64, so hvc/smc/msr/mrs/mmio sequences
+# execute inside the non-root VM and trap to EL2.
+#
+# AUTH_NONE's default PC is the DTB parcel (FDT magic). The pseudo-syscall
+# overrides it. Do not also issue GH_VM_ANDROID_SET_FW_CONFIG: that switches
+# the VM to the protected Android auth, which rejects a PC override.
+
+meta arches["arm64"]
+meta noextract
+
+# Opaque host pointer at the start of the donated vma, same idea as kvm_syz_vm$arm64.
+resource gh_syz_vm$arm64[int64]
+
+syz_gunyah_setup_vm$arm64(fd fd_gh_vm, usermem vma[1024]) gh_syz_vm$arm64
+
+# no_squash keeps the kvm_text_arm64 pointer intact, matching syz_kvm_add_vcpu$arm64.
+# The first call starts the VM and runs vCPU 0. A second call returns EBUSY:
+# Gunyah applies the boot context at GH_VM_START, and this helper starts on
+# the first vCPU.
+syz_gunyah_add_vcpu$arm64(vm gh_syz_vm$arm64, text ptr[in, kvm_text_arm64]) fd_gh_vcpu (no_squash)
+
+# Raw boot-context ioctl. The helper above issues the same command before
+# GH_VM_START. reg is (set << 8) | index, not a bit mask: set 0 is Xn
+# (index 0..30), set 1 is PC (index must be 0), set 2 is SP_ELn
+# (index 0 = SP_EL0, index 1 = SP_EL1; the RM rejects index >= 2).
+# AUTH_NONE is not an argument of this ioctl. It is the driver's default
+# (GUNYAH_RM_VM_AUTH_NONE = 0) until GH_VM_ANDROID_SET_FW_CONFIG is issued,
+# which this surface does not describe.
+ioctl$GH_VM_SET_BOOT_CONTEXT(fd fd_gh_vm, cmd const[GH_VM_SET_BOOT_CONTEXT], arg ptr[in, gh_vm_boot_context])
+
+define GH_BOOT_REG_X0		GH_REG_SET_X
+define GH_BOOT_REG_X1		(GH_REG_SET_X | 1)
+define GH_BOOT_REG_PC		(GH_REG_SET_PC << 8)
+define GH_BOOT_REG_SP_EL0	(GH_REG_SET_SP << 8)
+define GH_BOOT_REG_SP_EL1	((GH_REG_SET_SP << 8) | 1)
+
+gh_boot_reg = GH_BOOT_REG_X0, GH_BOOT_REG_X1, GH_BOOT_REG_PC, GH_BOOT_REG_SP_EL0, GH_BOOT_REG_SP_EL1
+
+gh_vm_boot_context {
+	reg		flags[gh_boot_reg, int32]
+	reserved	const[0, int32]
+	value		int64
+} [size[16]]

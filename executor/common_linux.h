@@ -3643,6 +3643,10 @@ static volatile long syz_kvm_setup_cpu(volatile long a0, volatile long a1, volat
 #endif
 #endif
 
+#if GOARCH_arm64 && (SYZ_EXECUTOR || __NR_syz_gunyah_setup_vm || __NR_syz_gunyah_add_vcpu)
+#include "common_gunyah_arm64.h"
+#endif
+
 #if (SYZ_EXECUTOR || SYZ_NET_RESET) && SYZ_EXECUTOR_USES_FORK_SERVER
 #include <errno.h>
 #include <net/if.h>
