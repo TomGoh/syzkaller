@@ -242,3 +242,84 @@ A measures the real shipping binary (block-level, no uncovered universe);
 B is source-precise/edge-level with an uncovered map but measures an
 instrumented proxy binary. Online fuzzing uses A's plugin on the real binary;
 B is generated offline by replaying the corpus on the instrumented build.
+
+## Stage 3 (S2) — host raw HVC injector
+
+S1 only exercises EL2 through the well-formed /dev/gunyah driver, so the root
+hypercalls are only ever reached with valid arguments. S2 adds a discovery-only
+path that lets the fuzzer issue *arbitrary* host hypercalls (threat model: a
+compromised HLOS).
+
+**Host kernel rebuild.** The QEMU fuzz host kernel `imgs/Image` (6.5.0-00025,
+upstream gunyah, clang 21, source tree gone) cannot carry a new in-tree driver.
+We rebuilt from the kylin 6.6.103 gunyah tree (`compiler:/data3/whz/klinux-gunyah`,
+the real N80 gunyah driver series) using `imgs/Image`'s IKCONFIG-extracted
+`.config` migrated with `make ARCH=arm64 olddefconfig` (LOCALVERSION `-xhfuzz`),
+built natively on the aarch64 dev box with gcc 15.2. Repackaged into the
+single-image with `make image ROOTVM_GPKG=<qemu rootvm> HOST_IMAGE=<new Image>`
+(XHyper unchanged; only the host kernel swaps). Boot gate passed: `Linux version
+6.6.103-xhfuzz`, `gunyah: Running under Gunyah hypervisor 51/v1`, /dev/gunyah
+usable.
+
+**Driver.** `drivers/misc/xh_raw_hvc.c` (built-in, `CONFIG_XH_RAW_HVC=y`) exposes
+`/dev/xh_raw_hvc` with one ioctl `XH_RAW_HVC` (`_IOWR('H',0x01,struct xh_raw_hvc)`
+= 0xC0484801) over `struct { u16 imm; u16 pad[3]; u64 x[8]; }`. The Gunyah
+hypercall number is the HVC *immediate* (`hvc #(HV_HVC_BASE+n)`, HV_HVC_BASE=0x6000,
+args x0..x7), so a runtime-variable immediate needs a 256-entry asm stub table
+(`hvc #(0x6000+i); ret`) plus a trampoline that loads x0..x7, `blr`s the selected
+stub, and stores the results. syzlang `sys/linux/dev_xh_hvc.txt`(.const) is
+arm64-only, noextract, `imm int16[0x6000:0x60ff]`.
+
+**Trampoline robustness fix.** The first trampoline held the result pointer in x19
+across the `hvc`; a fuzzed (unknown) hypercall hit XHyper's error path, which does
+not restore callee-saved x19/x20, so `stp [x19]` faulted under PAN. Fixed by
+spilling the pointer + LR to the stack and reloading after the `hvc` (only SP_EL1
+and the stack are banked from EL2).
+
+## Finding: hypercall error return does not restore/sanitize guest callee-saved registers
+
+The trampoline fault exposed a real XHyper-vs-C-Gunyah deviation. On a fuzzed
+(unknown/malformed) hypercall, XHyper's error return leaves internal values in the
+guest's callee-saved x19..x28 (observed: x19 = 0x20000600 after the hvc, not the
+kernel pointer it held before). C Gunyah's hypercall return
+(`vcpu_hypercall_return_sanitize_*`, return.S) restores x19..x29 to the guest and
+sanitizes x0/x1/x2/x8 explicitly "to prevent EL1 targeting EL2 gadgets"; XHyper's
+error path does neither. That is both an ABI deviation and a potential EL2->EL1
+register leak. Recorded, not fixed (project rule).
+
+## Coverage-guided corpus growth — why it stayed 0, and the fix
+
+With `cover:true` + `xhyper_cover:true` the manager showed `corpus=0 coverage=0`
+in normal fuzzing forever, even though the plugin recorded coverage and the
+drainer injected it. A systematic end-to-end trace (logging the count at every
+hop: drain -> runner Extra.Signal -> processResult -> triageProgCall ->
+deflake -> handleCall -> Corpus.Save) showed the signal reaches triage intact
+(triageProgCall creates a call=-1 entry with newMax~4000), so the break was in
+the triage JOB, not the injection. Three independent causes, each necessary:
+
+1. **Distributor parks single-VM triage (a general syzkaller bug).** Triage
+   deflake re-executes a program while AVOIDING the VM that produced the signal
+   (`job.go` `avoid := []ExecutorID{job.executor}`). `Distributor.hasOtherActive`
+   counts the spare zero-stamped slots `noteActive` pre-allocates (`vm+10`) as
+   "recently active", so with a single VM it reports a phantom other-active VM
+   for the first ~1000 schedules and the avoided deflake request is delayed and
+   never reaches the executor (observed: `pending=1`, exec crawling, corpus 0).
+   Fix: a zero stamp is not activity (`distributor.go`).
+2. **Deflake intersection collapses external signal.** Rapid re-executions of a
+   free-running hypervisor observe largely disjoint EL2 blocks, so the cross-run
+   intersection is empty. For the Extra call under XHyperCover, use the run's new
+   signal as stable instead of intersecting (`job.go`).
+3. **Minimize needs reproducible signal.** Skip minimization for the Extra call
+   under XHyperCover (`job.go`).
+
+Verified: a real QEMU run then reaches `corpus=1 coverage=3826` where it
+previously stayed 0.
+
+**Why pKVM fuzzing never hit this** (both used procs=1, single VM): (a) pKVM's
+EL2 coverage is delivered through guest KCOV as *reproducible per-call* signal
+(`kcov_add_pcs` bounded to a hypercall), so its deflake intersection is non-empty
+once triage runs — it needs neither (2) nor (3); and (b) pKVM ran long
+multi-thousand-exec campaigns that pass the distributor's ~1000-schedule warmup
+window, whereas the short slow-TCG XHyper runs never reached seq>1000, so triage
+was parked for their entire duration. XHyper's free-running external Extra signal
+plus short runs exposed all three.
