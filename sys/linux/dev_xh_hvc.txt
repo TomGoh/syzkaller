@@ -1,0 +1,23 @@
+# Copyright 2026 syzkaller project authors. All rights reserved.
+# Use of this source code is governed by Apache 2 LICENSE that can be found in the LICENSE file.
+
+# Raw XHyper HVC injector for /dev/xh_raw_hvc. arm64 only.
+# There is no in-tree uapi header to extract; XH_RAW_HVC lives in dev_xh_hvc.txt.const.
+# The hypercall number is the HVC imm16 (window 0x6000..0x60ff), not an x0 function id.
+meta arches["arm64"]
+meta noextract
+
+include <uapi/linux/fcntl.h>
+
+resource fd_xh_hvc[fd]
+
+openat$xh_hvc(fd const[AT_FDCWD], file ptr[in, string["/dev/xh_raw_hvc"]], flags flags[open_flags], mode const[0]) fd_xh_hvc
+
+ioctl$XH_RAW_HVC(fd fd_xh_hvc, cmd const[XH_RAW_HVC], arg ptr[inout, xh_raw_hvc])
+
+# 72 bytes: u16 imm, u16 pad[3], u64 x[8]. imm selects hvc #(0x6000+n); x[0..7] are args and results.
+xh_raw_hvc {
+	imm	int16[0x6000:0x60ff]
+	pad	array[const[0, int16], 3]
+	x	array[int64, 8]
+} [size[72]]
