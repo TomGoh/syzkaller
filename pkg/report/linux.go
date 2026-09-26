@@ -2797,5 +2797,27 @@ var linuxOopses = append([]*oops{
 		},
 		[]*regexp.Regexp{},
 	},
+	{
+		[]byte("XHYPER PANIC:"),
+		[]oopsFormat{
+			{
+				title:        compile("XHYPER PANIC:[ \t]*([^\r\n]*)"),
+				fmt:          "XHYPER PANIC: %[1]v",
+				noStackTrace: true,
+			},
+		},
+		[]*regexp.Regexp{},
+	},
+	{
+		[]byte("XHYPER_HOST_BOOT_ERROR"),
+		[]oopsFormat{
+			{
+				title:        compile("XHYPER_HOST_BOOT_ERROR"),
+				fmt:          "XHYPER host boot error",
+				noStackTrace: true,
+			},
+		},
+		[]*regexp.Regexp{},
+	},
 	&groupGoRuntimeErrors,
 }, commonOopses...)
