@@ -173,12 +173,42 @@ Neither reproduced within the run (`repro=false`); they are leads to triage, not
 yet confirmed bugs. The point for this milestone is that the harness is stable and
 that real programs reach the driver and are detected when they fault.
 
+## EL2 coverage and EL1/EL2 crash distinction
+
+Coverage of XHyper (EL2) is drained from the TCG plugin's shared memory in
+`pkg/rpcserver/xhcover.go` and merged into `handleExecResult`'s extra signal, so
+fuzzing is coverage-guided into the hypervisor. `cover: false` in mgrconfig (the
+guest has no KCOV); the injected `Extra.Signal`/`Extra.Cover` drive corpus/triage,
+gated by a new `xhyper_cover` config flag. Plugin PCs are XHyper link VAs
+(0xffff8000_00005000..0019f008); linux/arm64 sets no `KernelAddresses` so they are
+not filtered, and `kernel_obj/vmlinux` points at XHyper's `kernel.elf` for symbols.
+
+**Coverage must be a dedup block SET, not an execution trace.** The first plugin
+recorded every EL2 translation-block execution into a ring; a free-running
+hypervisor executes ~2400-2800 distinct EL2 blocks over a billion times, churning
+the ring (write_cursor reached 1.5e9 for ~2700 distinct blocks) so per-program
+coverage was noise and the corpus stayed empty. The plugin was reworked into a
+per-vCPU dedup **bitmap** (bit k = block at text_start+k*4 covered), and the drainer
+does an atomic read-and-clear per program window. Result: `coverage` went from 0 to
+~2804 stable blocks and the corpus began to grow — coverage-guided fuzzing of EL2
+now works.
+
+EL1 vs EL2 crashes are told apart by fault signature: EL1 shows a Linux oops
+(`Internal error:`, EL1 pstate, Linux symbols); EL2 now prints a distinct
+`XHYPER PANIC:` prefix (core/kruntime/src/lang_items.rs), and `pkg/report` has oops
+entries for `XHYPER PANIC:` and `XHYPER_HOST_BOOT_ERROR` so an EL2 fault is titled
+distinctly instead of surfacing as a generic "lost connection". Coverage is EL2-only,
+so a program's injected signal also indicates it reached the hypervisor at all.
+
+Guest stability note: the executor mmaps its input region at a fixed address with
+MAP_FIXED_NOREPLACE; ASLR occasionally squats there (intermittent EEXIST), so the
+fuzz init hook disables ASLR (`randomize_va_space=0`).
+
 ## Still to do
 
-- Coverage: drain the TCG plugin's per-vCPU shared memory and splice the EL2 PCs
-  into `pkg/rpcserver/runner.go` `handleExecResult` (the extra-signal merge point),
-  add `-plugin libxhcov.so,...,shm=/dev/shm/xh{{INDEX}}` to `qemu_args`, and set
-  `cover: true`. Plugin PCs are not guest-kernel text, so keep `filter_signal` off
-  for the extra set and tag the PCs to avoid colliding with kernel addresses.
+- A symbolized coverage web report (currently `cover:false` gives none): add a flag
+  to enable the report machinery without guest KCOV (relax the FeatureCoverage
+  requirement and stop setting `ExecEnvSignal` so the executor never opens kcov).
 - Guest-side code execution (arbitrary HVC/SMC/MMIO/sysreg sequences) via a
-  SYZOS-style pseudo-syscall, mirroring `syz_kvm_setup_syzos_vm`.
+  SYZOS-style pseudo-syscall, mirroring `syz_kvm_setup_syzos_vm`, to reach EL2
+  beyond what the /dev/gunyah driver surface exposes.
