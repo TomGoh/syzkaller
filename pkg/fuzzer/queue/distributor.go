@@ -113,8 +113,15 @@ func (dist *Distributor) hasOtherActive(set []ExecutorID) bool {
 		if contains(set, vm) {
 			continue
 		}
+		// noteActive allocates spare slots (vm+10) so a new VM id does not
+		// reallocate. Those slots stay 0 until that VM calls Next. A zero
+		// stamp is not activity: counting it as recent parks Avoid requests
+		// for the first 1000 schedules whenever only one VM exists, so
+		// triage deflake (which avoids the VM that produced the signal)
+		// never runs.
+		last := active[vm].Load()
 		// 1000 is semi-random notion of recency.
-		if active[vm].Load()+1000 < seq {
+		if last == 0 || last+1000 < seq {
 			continue
 		}
 		return true

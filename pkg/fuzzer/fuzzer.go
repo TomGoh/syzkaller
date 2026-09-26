@@ -217,6 +217,7 @@ type Config struct {
 	Logf           func(level int, msg string, args ...any)
 	Snapshot       bool
 	Coverage       bool
+	XHyperCover    bool
 	FaultInjection bool
 	Comparisons    bool
 	Collide        bool

@@ -174,7 +174,14 @@ func (job *triageJob) handleCall(call int, info *triageCall) {
 	}
 
 	p := job.p
-	if job.flags&ProgMinimized == 0 {
+	// XHyper coverage is a drain window over a free-running EL2 hypervisor, so
+	// the Extra call's signal is not per-input reproducible. Minimization
+	// re-executes and commits a simpler program only when newStableSignal is
+	// fully reproduced; an execution that stops drops the input entirely
+	// (minimize returns nil, Corpus.Save is skipped). The program entered
+	// triage because it added new max-signal. Save that program as-is.
+	// Guest-KCOV calls (XHyperCover unset, or call >= 0) still minimize.
+	if job.flags&ProgMinimized == 0 && !(job.fuzzer.Config.XHyperCover && call == -1) {
 		p, call = job.minimize(call, info)
 		if p == nil {
 			return
@@ -298,8 +305,18 @@ func (job *triageJob) deflake(exec func(*queue.Request, ProgFlags) *queue.Result
 	}
 	job.info.Logf("deflake complete")
 	for call, info := range job.calls {
-		info.stableSignal = info.signals[needRuns-1]
-		info.newStableSignal = info.newSignal.Intersection(info.stableSignal)
+		// XHyper coverage is a drain window over a free-running EL2 hypervisor.
+		// Rapid triage re-executions see largely disjoint blocks (timer and
+		// scheduling noise), so intersecting them collapses the signal and
+		// would reject every input that added max-signal. Treat that new
+		// signal as stable. Guest-KCOV calls still use the intersection.
+		if job.fuzzer.Config.XHyperCover && call == -1 {
+			info.stableSignal = info.newSignal.Copy()
+			info.newStableSignal = info.newSignal.Copy()
+		} else {
+			info.stableSignal = info.signals[needRuns-1]
+			info.newStableSignal = info.newSignal.Intersection(info.stableSignal)
+		}
 		job.info.Logf("call #%d [%s]: |stable signal|=%d, |new stable signal|=%d%s",
 			call, job.p.CallName(call), info.stableSignal.Len(), info.newStableSignal.Len(),
 			signalPreview(info.newStableSignal))

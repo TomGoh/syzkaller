@@ -163,8 +163,9 @@ func (kc *kernelContext) setupFuzzer(features flatrpc.Feature, syscalls map[*pro
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	corpusObj := corpus.NewFocusedCorpus(kc.ctx, nil, kc.coverFilters.Areas)
 	fuzzerObj := fuzzer.NewFuzzer(kc.ctx, &fuzzer.Config{
-		Corpus:   corpusObj,
-		Coverage: kc.cfg.Cover,
+		Corpus:      corpusObj,
+		Coverage:    kc.cfg.Cover,
+		XHyperCover: kc.cfg.XHyperCover,
 		// Fault injection may bring instaibility into bug reproducibility, which may lead to false positives.
 		FaultInjection: false,
 		Comparisons:    features&flatrpc.FeatureComparisons != 0,

@@ -46,3 +46,14 @@ func TestDistributor(t *testing.T) {
 	q.Submit(req)
 	assert.Equal(t, req, dist.Next(1))
 }
+
+// A single VM must run an Avoid request immediately. noteActive allocates
+// spare slots (vm+10); those never-used stamps are 0 and must not count as
+// another live VM, or the request is parked for 1000 schedules.
+func TestDistributorSingleVMDoesNotDelayAvoid(t *testing.T) {
+	q := Plain()
+	dist := Distribute(q)
+	req := &Request{Avoid: []ExecutorID{{VM: 0}}}
+	q.Submit(req)
+	assert.Equal(t, req, dist.Next(0))
+}

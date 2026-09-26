@@ -1179,6 +1179,7 @@ func (mgr *Manager) MachineChecked(features flatrpc.Feature,
 			Corpus:         mgr.corpus,
 			Snapshot:       mgr.cfg.Snapshot,
 			Coverage:       mgr.cfg.Cover,
+			XHyperCover:    mgr.cfg.XHyperCover,
 			FaultInjection: features&flatrpc.FeatureFault != 0,
 			Comparisons:    features&flatrpc.FeatureComparisons != 0,
 			// pKVM serial mode: no collide programs. Collide re-runs calls concurrently, which on a
