@@ -48,12 +48,14 @@ type Config struct {
 	// Set of features to check, missing features won't be checked/enabled after Run.
 	Features flatrpc.Feature
 	// Set of syscalls to check.
-	Syscalls   []int
-	Debug      bool
-	Cover      bool
-	MemoryDump bool
-	Sandbox    flatrpc.ExecEnv
-	SandboxArg int64
+	Syscalls []int
+	Debug    bool
+	Cover    bool
+	// XHyperCover is external coverage (QEMU TCG plugin). Guest KCOV is absent.
+	XHyperCover bool
+	MemoryDump  bool
+	Sandbox     flatrpc.ExecEnv
+	SandboxArg  int64
 }
 
 func New(cfg *Config) *Checker {

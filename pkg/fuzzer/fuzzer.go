@@ -474,7 +474,7 @@ func DefaultExecOpts(cfg *mgrconfig.Config, features flatrpc.Feature, debug bool
 	if cfg.Experimental.ResetAccState {
 		env |= flatrpc.ExecEnvResetState
 	}
-	if cfg.Cover {
+	if cfg.Cover && !cfg.XHyperCover {
 		env |= flatrpc.ExecEnvSignal
 	}
 	sandbox, err := flatrpc.SandboxToFlags(cfg.Sandbox)
