@@ -55,3 +55,6 @@ Attribution key:
 - F1a: `Internal error in gh_vm_ioctl` reached via `GH_VM_REMOVE_FUNCTION`.
 - F1b: `Internal error in eventfd_release` (null-deref on the eventfd path via /dev/gunyah).
 - **Status:** recorded, unreproduced leads; guest-kernel driver side, not XHyper EL2.
+
+## S3 verification (2026-09-27): guest execution CONFIRMED working
+An S3-only fuzz (only openat$gunyah, GH_CREATE_VM, syz_gunyah_setup_vm$arm64, syz_gunyah_add_vcpu$arm64, mmap, close enabled) grew corpus 0->1 with coverage 0->3794 — the nested guest boots, runs the SYZOS payload and reaches EL2 (not just VM setup). In the combined S1+S2+S3 campaign, however, coverage only rose 12110->12147: S3's ~3794 blocks overlap heavily with the VM-lifecycle + hypercall-dispatch code S1's driver path already covers, so the NET new coverage is small so far. S3's unique surface (guest SMCCC/sysreg-trap/vGIC-MMIO/stage-2) needs longer fuzzing or richer guest payloads to surface. (Standalone syz-execprog of the identify prog hung with no output — a libc-less-guest tooling issue, NOT S3: the serial showed no XHyper crash and the S3-only syz-manager path works.)
