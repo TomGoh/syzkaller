@@ -32,10 +32,12 @@ Attribution key:
   it may indicate XHyper does not validate/reject donation of in-use or critical host memory the way
   C Gunyah's memextent lend/donate does. Needs a Rust-vs-C comparison of the memextent
   donate/lend validation + XHyper's host stage-2 fault handling. Recorded, not fixed.
-- **Reproducibility:** syzkaller marked it `[corrupted]` (its report parser does not recognise the
-  interleaved `XHYPER_HOST_EXIT_UNRESOLVED` lines). Adding a pkg/report oops rule for
-  `XHYPER_HOST_EXIT_UNRESOLVED` would categorise these cleanly. Full reproducer in the crash dir's
-  log0.
+- **Reproducibility:** CONFIRMED reproducible (2026-09-27): re-seeding the campaign with the corpus
+  that first found it re-triggered the identical crash (same id 5bf47ad3...). syzkaller marks it
+  `[corrupted]` (its report parser does not recognise the interleaved `XHYPER_HOST_EXIT_UNRESOLVED`
+  lines) and so does not auto-minimise a repro; the trigger call sequence is saved in
+  notes/gunyah/repro/F3-trigger-calls.txt and the crash dir's log0. Adding a pkg/report oops rule for
+  `XHYPER_HOST_EXIT_UNRESOLVED` would categorise + auto-repro these cleanly.
 
 ## F2 — hypercall error return does not restore/sanitize guest callee-saved registers
 - **Found:** 2026-09-26, S2 (raw host HVC injector /dev/xh_raw_hvc), during bring-up.
