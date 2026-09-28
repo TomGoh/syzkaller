@@ -1,0 +1,23 @@
+# drivers/misc/Kconfig — add:
+config XH_RAW_HVC
+	bool "XHyper raw HVC fuzzing injector"
+	depends on ARM64
+	help
+	  Fuzzing-only discovery driver that lets userspace issue arbitrary
+	  EL2 hypercalls through /dev/xh_raw_hvc. The HVC immediate is chosen
+	  by the caller (window 0x6000-0x60ff), not by the well-formed Gunyah
+	  driver.
+
+	  If unsure, say N.
+
+
+# drivers/misc/Makefile — add:
+obj-$(CONFIG_XH_RAW_HVC)	+= xh_raw_hvc.o
+
+# .config — add: CONFIG_XH_RAW_HVC=y
+#
+# XH_RAW_SMC (_IOWR('H', 0x02, struct xh_raw_hvc) == 0xC0484802) on the same
+# /dev/xh_raw_hvc. imm must be 0. The stub is `smc #0; ret`; x[0..7] are the
+# SMC argument/result registers. The HVC trampoline is reused: it keeps the
+# caller's LR and the result pointer on the EL1 stack because its own blr to
+# the stub overwrites x30. The trap itself preserves x18..x30 and SP.

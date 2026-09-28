@@ -1,0 +1,12 @@
+[package]
+name = "ownership-fuzz-harness"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+hypervisor_memory_ownership = { path = "../hypervisor/memory/ownership" }
+
+[[bin]]
+name = "ownership-fuzz"
+path = "src/main.rs"

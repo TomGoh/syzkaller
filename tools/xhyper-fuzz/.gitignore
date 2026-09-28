@@ -1,0 +1,9 @@
+# NEVER commit the private SSH key (fuzz-only, but still a private key)
+hostnet/fuzz_id_rsa
+# Built initrd images and vendored binaries (rebuild with build-fuzz-initrd.sh)
+hostnet/*.img
+hostnet/dropbearmulti
+hostnet/dropbear-*.tar.bz2
+# Generated coverage report output
+*.html
+syz-cover*.csv
