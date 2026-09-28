@@ -1,0 +1,16 @@
+# Build artifacts (rebuild with `make`)
+libxhcov.so
+xhcov-reader
+st_payload.elf
+st_payload.o
+payload.bin
+# Selftest runtime output
+st_el1.0
+st_el1_cum.0
+st_el1.err
+st_el2.0
+st_el2_cum.0
+st_el2.err
+# Vendored from QEMU (GPL-2.0-or-later); not committed to keep this Apache tree clean.
+# Copy qemu-plugin.h from your QEMU source (matching the QEMU you run) to build.
+qemu-plugin.h
