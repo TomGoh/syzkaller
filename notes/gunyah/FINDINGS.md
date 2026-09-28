@@ -14,6 +14,42 @@ Attribution key:
 
 ---
 
+## STATUS (2026-09-28 re-triage — authoritative; supersedes the per-finding "EL2 root cause" lines below)
+A careful re-triage reclassified all three findings. Full analysis and evidence live in the xhyper workspace:
+`docs/c-to-rust-migration/xhyper-fuzz-findings-triage-20260928.md` and `docs/artifacts/xhyper-fuzz-findings-20260928/`.
+- **F3 and F4 are the SAME real bug, but in the HOST gunyah driver (Linux), NOT XHyper.** The driver shares the
+  whole 2 MiB huge page, exceeding the range userspace registered; XHyper's stage-2 external abort on the removed
+  memory is the manifestation, not the root cause. (F4's "lend" is actually a share.) Severity: medium (driver).
+  The "should XHyper validate/reject lend/donate" open questions in F3/F4 below are answered in the triage:
+  the defect is the driver's over-sharing, not XHyper's abort.
+- **F2 is WITHDRAWN** — a bug in the raw-HVC test driver's first trampoline (it did not save LR), not XHyper. See F2.
+The per-finding "Attribution: EL2 root cause" wording for F3/F4 below is the original pre-triage framing; the
+STATUS above is authoritative.
+
+## F4 — host stage-2 external abort via gunyah_vm_ioctl copy_from_user on lent/donated memory (host DoS)
+- **Found:** 2026-09-28, s4 campaign (enriched /dev/gunyah model, workdir-s4), crash id
+  80d028f7c69c35f7bfbf525af28363dfbacb04e9. Found by the new `syz_gunyah_setup_vm_lend$arm64` /
+  doorbell+msgqueue model within ~15 min of deploying it (the enriched model that broke the 12357 plateau to
+  ~28698 coverage).
+- **Attribution:** EL2 root cause, EL1 manifestation. XHyper reported repeated
+  `XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15/21 esr=0x93810046/0x93c78006 far=0x200002xx
+  hpfar=0x49e000 ipa=0x49e002xx` (host stage-2 data aborts it could not resolve) and returned a synchronous
+  external abort to EL1. The HLOS then oopsed: `Internal error: synchronous external abort 0x96000010` at
+  `pc : __arch_copy_from_user+0x218 <- gunyah_vm_ioctl+0x49c <- __arm64_sys_ioctl` — the gunyah driver's
+  copy_from_user of an ioctl argument whose userspace address (far=0x20000280) had been removed from the host
+  stage-2. Preceded by many `XHYPER_RESOURCE_REJECT hypercall=0x61 error=111`.
+- **Trigger:** the enriched model lends/donates host memory (via `GH_VM_ANDROID_LEND_USER_MEM` /
+  SET_USER_MEM_REGION) and then issues further GH_VM_* ioctls whose argument pointers fall in the now-unmapped
+  window, so the driver's copy_from_user faults unresolvably.
+- **Relation to F3:** same security class (host self-inflicted stage-2 external-abort DoS via memory it lent/
+  donated), but a DISTINCT trigger and signature: F3 is donation + GH_VM_START then a later openat/
+  strncpy_from_user fault (ipa 0x42000080); F4 is the lend path + a gunyah_vm_ioctl copy_from_user fault (ipa
+  0x49e002xx), different crash id and top frame. Both point at the same open question — whether XHyper should
+  validate/reject lend/donate of in-use host memory the way C Gunyah's memextent lend/donate does, and whether
+  an unresolved host stage-2 abort should be a recoverable rejection rather than a fatal external abort.
+- **Reproducibility:** syzkaller was reproducing it (`reproducing=1`) at capture; marked `[corrupted]` by the
+  report parser (interleaved `XHYPER_HOST_EXIT_UNRESOLVED` lines), same as F3. Recorded, not fixed.
+
 ## F3 — host memory-region donation → unrecoverable host stage-2 external abort (host DoS)
 - **Found:** 2026-09-27, S2 campaign (workdir-covfinal), crash id 5bf47ad3a3574e7feae2415e027718b912ee27a3.
 - **Attribution:** EL2 root cause, EL1 manifestation. XHyper reported
