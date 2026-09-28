@@ -99,6 +99,7 @@ var linuxSyscallChecks = map[string]func(*checkContext, *prog.Syscall) string{
 	"syz_kvm_assert_syzos_kvm_exit": linuxSyzKvmSupported,
 	"syz_kvm_assert_reg":            linuxSyzKvmSupported,
 	"syz_gunyah_setup_vm":           linuxSyzSupportedOnArm64,
+	"syz_gunyah_setup_vm_lend":      linuxSyzSupportedOnArm64,
 	"syz_gunyah_add_vcpu":           linuxSyzSupportedOnArm64,
 	"syz_emit_vhci":                 linuxVhciInjectionSupported,
 	"syz_init_net_socket":           linuxSyzInitNetSocketSupported,

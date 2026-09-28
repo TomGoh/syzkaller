@@ -3,14 +3,20 @@
 
 # Guest-internal Gunyah surface (arm64 only).
 #
-# syz_gunyah_setup_vm$arm64 donates the SYZOS guest-physical slots
-# (user code, guest_main, scratch, EL1 stack) plus a minimal DTB through
-# GH_VM_SET_USER_MEM_REGION, then points GH_VM_SET_DTB_CONFIG at the DTB.
-# syz_gunyah_add_vcpu$arm64 loads kvm_text_arm64 into the user-code slot,
-# overrides the boot PC/SP/x0/x1 with GH_VM_SET_BOOT_CONTEXT, adds one
-# proxy vCPU, GH_VM_STARTs, and GH_VCPU_RUNs. The guest image is the same
-# guest_main() as syz_kvm_add_vcpu$arm64, so hvc/smc/msr/mrs/mmio sequences
-# execute inside the non-root VM and trap to EL2.
+# syz_gunyah_setup_vm$arm64 donates one parcel at GPA 0 through
+# GH_VM_SET_USER_MEM_REGION and points GH_VM_SET_DTB_CONFIG at it.
+# GPA 0 is the unset firmware binding, so the driver sends no demand-paging
+# ranges. Further parcels at the SYZOS link addresses make VM_START fail
+# with RM error 9 (MAP_FAILED): the manager's sibling donate is DENIED.
+# The DTB describes a doorbell-source (label 7), a doorbell (label 4),
+# a message-queue sender (label 8), a message-queue receiver (label 9) and
+# a message-queue pair (label 10), so VM_INIT creates those objects.
+# syz_gunyah_setup_vm_lend$arm64 is the same parcel with GH_VM_ANDROID_LEND_USER_MEM,
+# which makes the image a lend and marks the VM protected.
+# syz_gunyah_add_vcpu$arm64 sets the boot PC to the payload in the second
+# page of that parcel, adds one proxy vCPU, arms a level irqfd on doorbell
+# label 7, GH_VM_STARTs, writes the eventfd and GH_VCPU_RUNs. The payload
+# issues doorbell and message-queue hypercalls, then loads an unmapped IPA.
 #
 # AUTH_NONE's default PC is the DTB parcel (FDT magic). The pseudo-syscall
 # overrides it. Do not also issue GH_VM_ANDROID_SET_FW_CONFIG: that switches
@@ -23,6 +29,7 @@ meta noextract
 resource gh_syz_vm$arm64[int64]
 
 syz_gunyah_setup_vm$arm64(fd fd_gh_vm, usermem vma[1024]) gh_syz_vm$arm64
+syz_gunyah_setup_vm_lend$arm64(fd fd_gh_vm, usermem vma[1024]) gh_syz_vm$arm64
 
 # no_squash keeps the kvm_text_arm64 pointer intact, matching syz_kvm_add_vcpu$arm64.
 # The first call starts the VM and runs vCPU 0. A second call returns EBUSY:
@@ -32,23 +39,56 @@ syz_gunyah_add_vcpu$arm64(vm gh_syz_vm$arm64, text ptr[in, kvm_text_arm64]) fd_g
 
 # Raw boot-context ioctl. The helper above issues the same command before
 # GH_VM_START. reg is (set << 8) | index, not a bit mask: set 0 is Xn
-# (index 0..30), set 1 is PC (index must be 0), set 2 is SP_ELn
-# (index 0 = SP_EL0, index 1 = SP_EL1; the RM rejects index >= 2).
+# (the driver accepts index 0..31; the RM accepts 0..30), set 1 is PC
+# (index must be 0), set 2 is SP_ELn (index 0 = SP_EL0, index 1 = SP_EL1;
+# the driver also accepts index 2, which the RM rejects).
+# Values are a choice, not flags: OR-ing encodings produces an illegal reg id.
 # AUTH_NONE is not an argument of this ioctl. It is the driver's default
 # (GUNYAH_RM_VM_AUTH_NONE = 0) until GH_VM_ANDROID_SET_FW_CONFIG is issued,
-# which this surface does not describe.
+# which this helper surface does not issue.
 ioctl$GH_VM_SET_BOOT_CONTEXT(fd fd_gh_vm, cmd const[GH_VM_SET_BOOT_CONTEXT], arg ptr[in, gh_vm_boot_context])
 
 define GH_BOOT_REG_X0		GH_REG_SET_X
 define GH_BOOT_REG_X1		(GH_REG_SET_X | 1)
+define GH_BOOT_REG_X2		(GH_REG_SET_X | 2)
+define GH_BOOT_REG_X3		(GH_REG_SET_X | 3)
+define GH_BOOT_REG_X4		(GH_REG_SET_X | 4)
+define GH_BOOT_REG_X5		(GH_REG_SET_X | 5)
+define GH_BOOT_REG_X6		(GH_REG_SET_X | 6)
+define GH_BOOT_REG_X7		(GH_REG_SET_X | 7)
+define GH_BOOT_REG_X8		(GH_REG_SET_X | 8)
+define GH_BOOT_REG_X9		(GH_REG_SET_X | 9)
+define GH_BOOT_REG_X10		(GH_REG_SET_X | 10)
+define GH_BOOT_REG_X11		(GH_REG_SET_X | 11)
+define GH_BOOT_REG_X12		(GH_REG_SET_X | 12)
+define GH_BOOT_REG_X13		(GH_REG_SET_X | 13)
+define GH_BOOT_REG_X14		(GH_REG_SET_X | 14)
+define GH_BOOT_REG_X15		(GH_REG_SET_X | 15)
+define GH_BOOT_REG_X16		(GH_REG_SET_X | 16)
+define GH_BOOT_REG_X17		(GH_REG_SET_X | 17)
+define GH_BOOT_REG_X18		(GH_REG_SET_X | 18)
+define GH_BOOT_REG_X19		(GH_REG_SET_X | 19)
+define GH_BOOT_REG_X20		(GH_REG_SET_X | 20)
+define GH_BOOT_REG_X21		(GH_REG_SET_X | 21)
+define GH_BOOT_REG_X22		(GH_REG_SET_X | 22)
+define GH_BOOT_REG_X23		(GH_REG_SET_X | 23)
+define GH_BOOT_REG_X24		(GH_REG_SET_X | 24)
+define GH_BOOT_REG_X25		(GH_REG_SET_X | 25)
+define GH_BOOT_REG_X26		(GH_REG_SET_X | 26)
+define GH_BOOT_REG_X27		(GH_REG_SET_X | 27)
+define GH_BOOT_REG_X28		(GH_REG_SET_X | 28)
+define GH_BOOT_REG_X29		(GH_REG_SET_X | 29)
+define GH_BOOT_REG_X30		(GH_REG_SET_X | 30)
+define GH_BOOT_REG_X31		(GH_REG_SET_X | 31)
 define GH_BOOT_REG_PC		(GH_REG_SET_PC << 8)
 define GH_BOOT_REG_SP_EL0	(GH_REG_SET_SP << 8)
 define GH_BOOT_REG_SP_EL1	((GH_REG_SET_SP << 8) | 1)
+define GH_BOOT_REG_SP_IDX2	((GH_REG_SET_SP << 8) | 2)
 
-gh_boot_reg = GH_BOOT_REG_X0, GH_BOOT_REG_X1, GH_BOOT_REG_PC, GH_BOOT_REG_SP_EL0, GH_BOOT_REG_SP_EL1
+gh_boot_reg = GH_BOOT_REG_X0, GH_BOOT_REG_X1, GH_BOOT_REG_X2, GH_BOOT_REG_X3, GH_BOOT_REG_X4, GH_BOOT_REG_X5, GH_BOOT_REG_X6, GH_BOOT_REG_X7, GH_BOOT_REG_X8, GH_BOOT_REG_X9, GH_BOOT_REG_X10, GH_BOOT_REG_X11, GH_BOOT_REG_X12, GH_BOOT_REG_X13, GH_BOOT_REG_X14, GH_BOOT_REG_X15, GH_BOOT_REG_X16, GH_BOOT_REG_X17, GH_BOOT_REG_X18, GH_BOOT_REG_X19, GH_BOOT_REG_X20, GH_BOOT_REG_X21, GH_BOOT_REG_X22, GH_BOOT_REG_X23, GH_BOOT_REG_X24, GH_BOOT_REG_X25, GH_BOOT_REG_X26, GH_BOOT_REG_X27, GH_BOOT_REG_X28, GH_BOOT_REG_X29, GH_BOOT_REG_X30, GH_BOOT_REG_X31, GH_BOOT_REG_PC, GH_BOOT_REG_SP_EL0, GH_BOOT_REG_SP_EL1, GH_BOOT_REG_SP_IDX2
 
 gh_vm_boot_context {
-	reg		flags[gh_boot_reg, int32]
+	reg		int32[gh_boot_reg]
 	reserved	const[0, int32]
 	value		int64
 } [size[16]]

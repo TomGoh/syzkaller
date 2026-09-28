@@ -3643,7 +3643,7 @@ static volatile long syz_kvm_setup_cpu(volatile long a0, volatile long a1, volat
 #endif
 #endif
 
-#if GOARCH_arm64 && (SYZ_EXECUTOR || __NR_syz_gunyah_setup_vm || __NR_syz_gunyah_add_vcpu)
+#if GOARCH_arm64 && (SYZ_EXECUTOR || __NR_syz_gunyah_setup_vm || __NR_syz_gunyah_setup_vm_lend || __NR_syz_gunyah_add_vcpu)
 #include "common_gunyah_arm64.h"
 #endif
 

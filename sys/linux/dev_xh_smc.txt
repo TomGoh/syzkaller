@@ -1,0 +1,59 @@
+# Copyright 2026 syzkaller project authors. All rights reserved.
+# Use of this source code is governed by Apache 2 LICENSE that can be found in the LICENSE file.
+
+# Raw host SMC injector on /dev/xh_raw_hvc (same misc device as dev_xh_hvc.txt).
+# arm64 only. There is no in-tree uapi header; XH_RAW_SMC lives in dev_xh_smc.txt.const.
+# The stub is `smc #0; ret` (imm16 must be 0). x0 is the OP-TEE function id;
+# XHyper's mediate_host_smc matches it with exact 64-bit equality.
+# CALL_WITH_ARG / CALL_WITH_RPC_ARG / RETURN_FROM_RPC encode the argument
+# pointer as (x1 << 32) | (x2 as u32). The qemu_optee window is
+# 0xfe200000/0xc00000, so the high half is 0 and x2 is an address in that window.
+meta arches["arm64"]
+meta noextract
+
+include <uapi/linux/fcntl.h>
+
+ioctl$XH_RAW_SMC(fd fd_xh_hvc, cmd const[XH_RAW_SMC], arg ptr[inout, xh_raw_smc])
+
+xh_raw_smc [
+	fn	xh_smc_fn
+	arg	xh_smc_arg
+	smccc	xh_smc_smccc
+]
+
+# 72 bytes: u16 imm (=0), u16 pad[3], then x0..x7.
+xh_smc_fn {
+	imm	const[0, int16]
+	pad	array[const[0, int16], 3]
+	x0	flags[xh_optee_fn, int64]
+	x	array[int64, 7]
+} [size[72]]
+
+xh_smc_arg {
+	imm	const[0, int16]
+	pad	array[const[0, int16], 3]
+	x0	flags[xh_optee_arg_fn, int64]
+	x1	const[0, int64]
+	x2	int64[0xfe200000:0xfedffc00, 8]
+	x	array[int64, 5]
+} [size[72]]
+
+# Also a general SMCCC / PSCI function id in x0, same 72-byte layout.
+xh_smc_smccc {
+	imm	const[0, int16]
+	pad	array[const[0, int16], 3]
+	x0	xh_smccc_x0
+	x	array[int64, 7]
+} [size[72]]
+
+# The 17 OP-TEE ids mediate_host_smc recognizes (function.rs from_raw).
+xh_optee_fn = 0xbf00ff01, 0xbf00ff03, 0xbf00ff00, 0xb2000000, 0xb2000001, 0xbf000002, 0xb2000007, 0xb2000009, 0xb200000a, 0xb200000b, 0xb200000f, 0xb2000010, 0xb2000011, 0x32000003, 0x32000004, 0x32000012, 0x32000013
+
+# Data-plane ids whose x1/x2 are the argument pointer.
+xh_optee_arg_fn = 0x32000004, 0x32000012, 0x32000003
+
+xh_smccc_x0 [
+	psci32	int64[0x84000000:0x84000014]
+	psci64	int64[0xc4000000:0xc4000014]
+	smccc	int64[0x80000000:0x8000ffff]
+]

@@ -19,7 +19,13 @@ openat$gunyah(fd const[AT_FDCWD], file ptr[in, string["/dev/gunyah"]], flags fla
 ioctl$GH_CREATE_VM(fd fd_gunyah, cmd const[GH_CREATE_VM]) fd_gh_vm
 
 ioctl$GH_VM_SET_USER_MEM_REGION(fd fd_gh_vm, cmd const[GH_VM_SET_USER_MEM_REGION], arg ptr[in, gh_userspace_memory_region])
+# Same struct as SET_USER_MEM_REGION. The driver sets the parcel to lend
+# (one ACL entry) instead of share. Lending the image GPA marks the VM protected.
+ioctl$GH_VM_ANDROID_LEND_USER_MEM(fd fd_gh_vm, cmd const[GH_VM_ANDROID_LEND_USER_MEM], arg ptr[in, gh_userspace_memory_region])
 ioctl$GH_VM_SET_DTB_CONFIG(fd fd_gh_vm, cmd const[GH_VM_SET_DTB_CONFIG], arg ptr[in, gh_vm_dtb_config])
+# Switches RM auth to GUNYAH_RM_VM_AUTH_QCOM_ANDROID_PVM. The driver then
+# skips GH_VM_SET_BOOT_CONTEXT at start. Not used by syz_gunyah_setup_vm$arm64.
+ioctl$GH_VM_ANDROID_SET_FW_CONFIG(fd fd_gh_vm, cmd const[GH_VM_ANDROID_SET_FW_CONFIG], arg ptr[in, gh_vm_firmware_config])
 
 # Separate variants so type, arg_size, and the pointed-to arg struct stay consistent.
 ioctl$GH_VM_ADD_FUNCTION_VCPU(fd fd_gh_vm, cmd const[GH_VM_ADD_FUNCTION], arg ptr[in, gh_fn_desc_vcpu]) fd_gh_vcpu
@@ -41,23 +47,36 @@ gh_mem_flags = GH_MEM_ALLOW_READ, GH_MEM_ALLOW_WRITE, GH_MEM_ALLOW_EXEC
 gh_irqfd_flags = GH_IRQFD_FLAGS_LEVEL
 gh_ioeventfd_flags = GH_IOEVENTFD_FLAGS_DATAMATCH
 gh_ioeventfd_len = 0, 1, 2, 4, 8
-# Boundaries: 0, off-by-one around a page, page multiples that match vma64[1:4], and the 32/33-bit edges.
-gh_mem_label = 0, 1, 2, 3, 0x7fffffff, 0xffffffff
-gh_guest_addr = 0, 1, 0xfff, 0x1000, 0x1001, 0x2000, 0x10000, 0x80000000, 0xfffff000, 0xffffffff, 0x100000000
+# Labels are identifiers, not a bitmask. 1..5 are the helper's SYZOS slots;
+# 6 is the page adjacent to the DTB; 7..10 are the DTB vdevice labels.
+gh_mem_label = 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0x7fffffff, 0xffffffff
+# Page-aligned GPAs plus the unaligned edges the driver rejects.
+# 0x80000000 is the helper DTB. 0x80001000 overlaps it. 0x80002000 is adjacent.
+# 0xeeee4000 is adjacent to user code, 0xeeee1000 overlaps it,
+# 0xeeecc000 is adjacent to the executor, 0xffff2000 is adjacent to the EL1 stack.
+gh_guest_addr = 0, 1, 0xfff, 0x1000, 0x1001, 0x2000, 0x10000, 0x80000000, 0x80001000, 0x80002000, 0x80003000, 0xeeee0000, 0xeeee1000, 0xeeee4000, 0xeeee8000, 0xeeecc000, 0xeeef0000, 0xffff0000, 0xffff1000, 0xffff2000, 0xfffff000, 0xffffffff, 0x100000000
 gh_mem_size = 0, 1, 0xfff, 0x1000, 0x1001, 0x2000, 0x3000, 0x4000, 0x10000, 0xffffffff
+# Doorbell and message-queue labels from the helper DTB, plus a few outliers.
+gh_irq_label = 0, 1, 4, 7, 8, 9, 10, 16, 32, 0xffffffff
+gh_vcpu_id = 0, 1, 2, 3, 4, 7, 8, 0xffffffff
 
 # 32 bytes: u32 label, u32 flags, u64 guest_phys_addr, u64 memory_size, u64 userspace_addr.
 gh_userspace_memory_region {
-	label			flags[gh_mem_label, int32]
+	label			int32[gh_mem_label]
 	flags			flags[gh_mem_flags, int32]
-	guest_phys_addr		flags[gh_guest_addr, int64]
-	memory_size		flags[gh_mem_size, int64]
+	guest_phys_addr		int64[gh_guest_addr]
+	memory_size		int64[gh_mem_size]
 	userspace_addr		vma64[1:4]
 } [size[32]]
 
 gh_vm_dtb_config {
-	guest_phys_addr	flags[gh_guest_addr, int64]
-	size		flags[gh_mem_size, int64]
+	guest_phys_addr	int64[gh_guest_addr]
+	size		int64[gh_mem_size]
+} [size[16]]
+
+gh_vm_firmware_config {
+	guest_phys_addr	int64[gh_guest_addr]
+	size		int64[gh_mem_size]
 } [size[16]]
 
 gh_fn_desc_vcpu {
@@ -79,12 +98,12 @@ gh_fn_desc_ioeventfd {
 } [size[16]]
 
 gh_fn_vcpu_arg {
-	id	int32
+	id	int32[gh_vcpu_id]
 } [size[4]]
 
 gh_fn_irqfd_arg {
 	fd	fd_event
-	label	int32
+	label	int32[gh_irq_label]
 	flags	flags[gh_irqfd_flags, int32]
 	padding	const[0, int32]
 } [size[16]]
@@ -93,8 +112,8 @@ gh_fn_irqfd_arg {
 # arg_size is sizeof(this struct), not 24.
 gh_fn_ioeventfd_arg {
 	datamatch	int64
-	addr		flags[gh_guest_addr, int64]
-	len		flags[gh_ioeventfd_len, int32]
+	addr		int64[gh_guest_addr]
+	len		int32[gh_ioeventfd_len]
 	fd		fd_event
 	flags		flags[gh_ioeventfd_flags, int32]
 	padding		const[0, int32]
