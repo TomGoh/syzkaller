@@ -270,22 +270,24 @@ args x0..x7), so a runtime-variable immediate needs a 256-entry asm stub table
 stub, and stores the results. syzlang `sys/linux/dev_xh_hvc.txt`(.const) is
 arm64-only, noextract, `imm int16[0x6000:0x60ff]`.
 
-**Trampoline robustness fix.** The first trampoline held the result pointer in x19
-across the `hvc`; a fuzzed (unknown) hypercall hit XHyper's error path, which does
-not restore callee-saved x19/x20, so `stp [x19]` faulted under PAN. Fixed by
-spilling the pointer + LR to the stack and reloading after the `hvc` (only SP_EL1
-and the stack are banked from EL2).
+**Trampoline robustness fix.** The first trampoline saved x19/x20 and held the
+result pointer in x19 across the `hvc`, but it did not save x30 before its own
+`blr` to the stub. Its final `ret` therefore jumped back into the trampoline and
+stored the results a second time through the caller's x19 (the ioctl user
+pointer), which faulted under PAN. Fixed by spilling the pointer + LR to the
+stack and reloading after the `hvc`.
 
-## Finding: hypercall error return does not restore/sanitize guest callee-saved registers
+## Correction (2026-09-28): the register "finding" is withdrawn
 
-The trampoline fault exposed a real XHyper-vs-C-Gunyah deviation. On a fuzzed
-(unknown/malformed) hypercall, XHyper's error return leaves internal values in the
-guest's callee-saved x19..x28 (observed: x19 = 0x20000600 after the hvc, not the
-kernel pointer it held before). C Gunyah's hypercall return
-(`vcpu_hypercall_return_sanitize_*`, return.S) restores x19..x29 to the guest and
-sanitizes x0/x1/x2/x8 explicitly "to prevent EL1 targeting EL2 gadgets"; XHyper's
-error path does neither. That is both an ABI deviation and a potential EL2->EL1
-register leak. Recorded, not fixed (project rule).
+This section originally reported that XHyper's hypercall error return does not
+restore the guest's callee-saved x19..x28. That was a misdiagnosis of the
+trampoline bug above. Crash a842ba95 shows pc = lr = trampoline+0x20 with sp
+equal to the caller's sp (the second pass), x19 = x20 = the caller's ioctl
+pointer 0x20000600, and __arm64_sys_ioctl's x21..x23 intact. XHyper saves and
+restores all of x0..x30 around every exit and writes only x0..x7 for a hypercall
+result. C Gunyah's return path restores x19..x29 because its entry path zeroes
+them, and it does not sanitise x8. See FINDINGS.md F2 and, in the xhyper
+workspace, docs/c-to-rust-migration/xhyper-fuzz-findings-triage-20260928.md.
 
 ## Coverage-guided corpus growth — why it stayed 0, and the fix
 

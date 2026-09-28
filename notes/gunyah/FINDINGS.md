@@ -39,15 +39,25 @@ Attribution key:
   notes/gunyah/repro/F3-trigger-calls.txt and the crash dir's log0. Adding a pkg/report oops rule for
   `XHYPER_HOST_EXIT_UNRESOLVED` would categorise + auto-repro these cleanly.
 
-## F2 — hypercall error return does not restore/sanitize guest callee-saved registers
+## F2 — WITHDRAWN (2026-09-28): not an XHyper defect; the raw-HVC test driver's first trampoline did not save LR
 - **Found:** 2026-09-26, S2 (raw host HVC injector /dev/xh_raw_hvc), during bring-up.
-- **Attribution:** EL2 (XHyper), ABI deviation with security weight. On a fuzzed unknown/malformed
-  hypercall, XHyper's error return leaves internal values in the guest's callee-saved x19..x28
-  (observed x19=0x20000600 after the hvc). C Gunyah's return path
-  (`vcpu_hypercall_return_sanitize_*` in futlab-xhyper .../vcpu/armv8-64/src/return.S) restores
-  x19..x29 to the guest and sanitizes x0/x1/x2/x8 explicitly "to prevent EL1 targeting EL2 gadgets".
-  XHyper's error path does neither -> ABI deviation + potential EL2->EL1 register leak.
-- **Status:** recorded, not fixed. Detailed in the bring-up record (Stage 3 / Finding section).
+- **Original claim (wrong):** XHyper's hypercall error return leaves internal values in the guest's
+  callee-saved x19..x28 (observed x19=0x20000600 after the hvc), unlike C Gunyah's return path.
+- **What actually happened:** the first trampoline saved x19/x20 but not x30, then `blr`ed to the
+  `hvc #imm; ret` stub, which set x30 to trampoline+0x20. Pass 1 stored the results correctly and restored
+  the caller's x19/x20; its final `ret` jumped back to +0x20, and pass 2 stored through the caller's x19,
+  which held the ioctl user pointer 0x20000600 -> PAN permission fault (ESR 0x9600004e). Crash a842ba95
+  shows it: pc = lr = xh_raw_hvc_trampoline+0x20/0x38; sp = the caller's sp (x29-0x50), so the trampoline
+  frame was already popped; x19 = x20 = 0x20000600; __arm64_sys_ioctl's x21/x22/x23 (cmd/arg/fd) intact;
+  x0..x3 = -1/0/0/0, XHyper's answer to hypercall 0x59 (not on the host allow-list); x4..x14 the host's own values.
+- **XHyper side:** entry.S saves all of x0..x30 on every exit and restores all of them before eret; no
+  host-reachable hypercall path writes x8..x30. The C comparison was also misread: C restores x19..x29
+  because its entry path zeroes them (the "EL2 gadgets" comment is about that), and it deliberately
+  preserves x8.
+- **Status:** withdrawn. The trampoline was fixed on 2026-09-26 (LR and result pointer spilled to the stack);
+  its comment, which blamed XHyper, was corrected on 2026-09-28. Full analysis in the xhyper workspace:
+  docs/c-to-rust-migration/xhyper-fuzz-findings-triage-20260928.md; the recovered first trampoline and the
+  crash dump are in docs/artifacts/xhyper-fuzz-findings-20260928/bug3-hvc-regs-abi/.
 
 ## F1a/F1b — EL1 gunyah-driver crashes (earlier campaign, unreproduced leads)
 - **Found:** 2026-09-26, S1 campaign (cover:false era).
