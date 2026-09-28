@@ -23,6 +23,9 @@ type ReportGenerator struct {
 	buildDir        string
 	subsystem       []mgrconfig.Subsystem
 	rawCoverEnabled bool
+	// BlockCoverage is set when XHyperCover is on. Covered PCs are TCG
+	// basic-block starts, not __sanitizer_cov_trace_pc callback sites.
+	BlockCoverage bool
 	*backend.Impl
 }
 
@@ -51,6 +54,7 @@ func MakeReportGenerator(cfg *mgrconfig.Config, modules []*vminfo.KernelModule) 
 		buildDir:        cfg.KernelBuildSrc,
 		subsystem:       cfg.KernelSubsystem,
 		rawCoverEnabled: cfg.RawCover,
+		BlockCoverage:   cfg.XHyperCover,
 		Impl:            impl,
 	}
 	return rg, nil
@@ -102,6 +106,11 @@ func (rg *ReportGenerator) prepareFileMap(progs []Prog, force, debug bool) (file
 				pcToProgs[pc] = make(map[int]bool)
 			}
 			pcToProgs[pc][i] = true
+			// Block PCs are not callback sites. Skip the sancov sanity check
+			// so the "coverage callbacks" mismatch never fires.
+			if rg.BlockCoverage {
+				continue
+			}
 			_, found := slices.BinarySearch(rg.CallbackPoints, pc)
 			if rg.PreciseCoverage && !found {
 				unmatchedPCs[pc] = true
@@ -117,26 +126,30 @@ func (rg *ReportGenerator) prepareFileMap(progs []Prog, force, debug bool) (file
 	if len(unmatchedPCs) > 0 && !force {
 		return nil, coverageCallbackMismatch(debug, len(pcToProgs), unmatchedPCs)
 	}
-	for _, unit := range rg.Units {
-		f := files[unit.Name]
-		for _, pc := range unit.PCs {
-			if pcToProgs[pc] != nil {
-				f.coveredPCs++
+	if rg.BlockCoverage {
+		rg.finishBlockCoverage(files, pcToProgs)
+	} else {
+		for _, unit := range rg.Units {
+			f := files[unit.Name]
+			for _, pc := range unit.PCs {
+				if pcToProgs[pc] != nil {
+					f.coveredPCs++
+				}
 			}
 		}
-	}
-	for _, s := range rg.Symbols {
-		fun := &function{
-			name: s.Name,
-			pcs:  len(s.PCs),
-		}
-		for _, pc := range s.PCs {
-			if pcToProgs[pc] != nil {
-				fun.covered++
+		for _, s := range rg.Symbols {
+			fun := &function{
+				name: s.Name,
+				pcs:  len(s.PCs),
 			}
+			for _, pc := range s.PCs {
+				if pcToProgs[pc] != nil {
+					fun.covered++
+				}
+			}
+			f := files[s.Unit.Name]
+			f.functions = append(f.functions, fun)
 		}
-		f := files[s.Unit.Name]
-		f.functions = append(f.functions, fun)
 	}
 	for _, f := range files {
 		slices.SortFunc(f.functions, func(a, b *function) int {
@@ -146,7 +159,123 @@ func (rg *ReportGenerator) prepareFileMap(progs []Prog, force, debug bool) (file
 	return files, nil
 }
 
+// finishBlockCoverage sets per-file totals from DWARF line ranges and
+// per-function totals from the STT_FUNC universe. A function is covered when
+// any block PC falls in [Start, End), matching xhcov-symbolize.sh. The
+// covered/total ratio inside a function is how many of its line ranges were hit.
+func (rg *ReportGenerator) finishBlockCoverage(files fileMap, pcToProgs map[uint64]map[int]bool) {
+	for _, f := range files {
+		n := len(f.covered) + len(f.uncovered)
+		if n == 0 {
+			continue
+		}
+		f.totalPCs = n
+		f.coveredPCs = len(f.covered)
+	}
+	pcs := coveredPCList(pcToProgs)
+	lineStat := make(map[*backend.Symbol][2]int) // [0] line ranges, [1] ranges hit
+	for _, frame := range rg.Frames {
+		if frame.PCEnd <= frame.PC || frame.StartLine <= 0 {
+			continue
+		}
+		sym := backend.ContainingSymbol(rg.Symbols, frame.PC)
+		if sym == nil {
+			continue
+		}
+		st := lineStat[sym]
+		st[0]++
+		if pcInRange(pcs, frame.PC, frame.PCEnd) {
+			st[1]++
+		}
+		lineStat[sym] = st
+	}
+	hit := make(map[*backend.Symbol]bool)
+	for _, pc := range pcs {
+		if sym := backend.ContainingSymbol(rg.Symbols, pc); sym != nil {
+			hit[sym] = true
+		}
+	}
+	for _, sym := range rg.Symbols {
+		if sym.Unit == nil {
+			continue
+		}
+		st := lineStat[sym]
+		total := st[0]
+		covered := st[1]
+		if total == 0 {
+			total = 1
+		}
+		// A block PC in the symbol range covers the function even when it
+		// lands between line entries (padding). The numerator stays within
+		// the line-range denominator.
+		if hit[sym] && covered == 0 {
+			covered = 1
+		}
+		if covered > total {
+			covered = total
+		}
+		f := files[sym.Unit.Name]
+		if f == nil {
+			modName := ""
+			if sym.Module != nil {
+				modName = sym.Module.Name
+			}
+			f = &file{
+				module:   modName,
+				filename: sym.Unit.Path,
+				lines:    make(map[int]line),
+			}
+			files[sym.Unit.Name] = f
+		}
+		f.functions = append(f.functions, &function{
+			name:    sym.Name,
+			pcs:     total,
+			covered: covered,
+		})
+	}
+}
+
+func coveredPCList(pcToProgs map[uint64]map[int]bool) []uint64 {
+	pcs := make([]uint64, 0, len(pcToProgs))
+	for pc := range pcToProgs {
+		pcs = append(pcs, pc)
+	}
+	slices.Sort(pcs)
+	return pcs
+}
+
+func pcInRange(sorted []uint64, start, end uint64) bool {
+	if start >= end || len(sorted) == 0 {
+		return false
+	}
+	i := sort.Search(len(sorted), func(i int) bool { return sorted[i] >= start })
+	return i < len(sorted) && sorted[i] < end
+}
+
+func progsCoveringRange(sorted []uint64, pcToProgs map[uint64]map[int]bool, start, end uint64) (map[int]bool, []uint64) {
+	if start >= end || len(sorted) == 0 {
+		return nil, nil
+	}
+	i := sort.Search(len(sorted), func(i int) bool { return sorted[i] >= start })
+	var progs map[int]bool
+	var hit []uint64
+	for ; i < len(sorted) && sorted[i] < end; i++ {
+		pc := sorted[i]
+		hit = append(hit, pc)
+		for progIndex := range pcToProgs[pc] {
+			if progs == nil {
+				progs = make(map[int]bool)
+			}
+			progs[progIndex] = true
+		}
+	}
+	return progs, hit
+}
+
 func (rg *ReportGenerator) frame2line(files fileMap, pcToProgs map[uint64]map[int]bool, progs []Prog) error {
+	if rg.BlockCoverage {
+		return rg.frame2lineBlock(files, pcToProgs, progs)
+	}
 	matchedPC := false
 	for _, frame := range rg.Frames {
 		if frame.StartLine < 0 {
@@ -178,6 +307,47 @@ func (rg *ReportGenerator) frame2line(files fileMap, pcToProgs map[uint64]map[in
 	}
 	if !matchedPC {
 		return fmt.Errorf("coverage doesn't match any coverage callbacks")
+	}
+	return nil
+}
+
+// frame2lineBlock marks a source line covered when a block-start PC falls in
+// the line's instruction range [frame.PC, frame.PCEnd). Exact frame.PC equality
+// is the kcov/sancov path; block starts usually sit strictly inside the range.
+func (rg *ReportGenerator) frame2lineBlock(files fileMap, pcToProgs map[uint64]map[int]bool, progs []Prog) error {
+	matchedPC := false
+	pcs := coveredPCList(pcToProgs)
+	for _, frame := range rg.Frames {
+		if frame.StartLine <= 0 || frame.PCEnd <= frame.PC {
+			continue
+		}
+		f := fileByFrame(files, frame)
+		coveredBy, hitPCs := progsCoveringRange(pcs, pcToProgs, frame.PC, frame.PCEnd)
+		if len(coveredBy) == 0 {
+			f.uncovered = append(f.uncovered, frame.Range)
+			continue
+		}
+		f.covered = append(f.covered, frame.Range)
+		matchedPC = true
+		ln := f.lines[frame.StartLine]
+		if ln.progCount == nil {
+			ln.progCount = make(map[int]bool)
+			ln.pcProgCount = make(map[uint64]int)
+			ln.progIndex = -1
+		}
+		for progIndex := range coveredBy {
+			ln.progCount[progIndex] = true
+			if ln.progIndex == -1 || len(progs[progIndex].Data) < len(progs[ln.progIndex].Data) {
+				ln.progIndex = progIndex
+			}
+		}
+		for _, pc := range hitPCs {
+			ln.pcProgCount[pc] += len(pcToProgs[pc])
+		}
+		f.lines[frame.StartLine] = ln
+	}
+	if !matchedPC {
+		return fmt.Errorf("coverage doesn't match any DWARF line ranges")
 	}
 	return nil
 }
@@ -221,6 +391,9 @@ func (rg *ReportGenerator) symbolizePCs(PCs []uint64) error {
 		}
 		symbolize[sym] = true
 		pcs[sym.Module] = append(pcs[sym.Module], sym.PCs...)
+	}
+	if len(symbolize) == 0 {
+		return nil
 	}
 	frames, err := rg.Symbolize(pcs)
 	if err != nil {

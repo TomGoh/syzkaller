@@ -6,6 +6,7 @@ package backend
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/google/syzkaller/pkg/mgrconfig"
 	"github.com/google/syzkaller/pkg/vminfo"
@@ -44,13 +45,38 @@ type ObjectUnit struct {
 }
 
 type Frame struct {
-	Module   *vminfo.KernelModule
-	PC       uint64
+	Module *vminfo.KernelModule
+	PC     uint64
+	// PCEnd is the exclusive end of this frame's instruction range.
+	// Zero means the frame is a single coverage-callback PC (exact match on PC).
+	// Block coverage sets [PC, PCEnd) from the DWARF line-number program.
+	PCEnd    uint64
 	Name     string
 	FuncName string
 	Path     string
 	Inline   bool
 	Range
+}
+
+// ContainingSymbol returns the symbol with the greatest Start <= pc whose
+// half-open range [Start, End) contains pc. symbols must be sorted by Start.
+// A PC that falls past that symbol's End is not attributed to an earlier
+// overlapping symbol — the same rule as xhcov-symbolize.sh functions_hit.
+func ContainingSymbol(symbols []*Symbol, pc uint64) *Symbol {
+	if len(symbols) == 0 {
+		return nil
+	}
+	i := sort.Search(len(symbols), func(i int) bool {
+		return symbols[i].Start > pc
+	}) - 1
+	if i < 0 {
+		return nil
+	}
+	s := symbols[i]
+	if pc < s.Start || pc >= s.End {
+		return nil
+	}
+	return s
 }
 
 type Range struct {
@@ -88,7 +114,7 @@ func Make(cfg *mgrconfig.Config, modules []*vminfo.KernelModule) (*Impl, error) 
 		// details.
 		delimiters = []string{"/aosp/", "/private/"}
 	}
-	return makeELF(target, kernelDirs, delimiters, moduleObj, modules)
+	return makeELF(target, kernelDirs, delimiters, moduleObj, modules, cfg.XHyperCover)
 }
 
 func GetPCBase(cfg *mgrconfig.Config) (uint64, error) {

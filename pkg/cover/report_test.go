@@ -26,6 +26,7 @@ import (
 
 	"github.com/google/syzkaller/pkg/cover/backend"
 	"github.com/google/syzkaller/pkg/mgrconfig"
+	"github.com/google/syzkaller/pkg/vminfo"
 	"github.com/google/syzkaller/pkg/osutil"
 	"github.com/google/syzkaller/pkg/symbolizer"
 	_ "github.com/google/syzkaller/sys"
@@ -503,4 +504,81 @@ func TestCoverByFilePrefixes(t *testing.T) {
 		"PCsInFuncs":        "3 / 6 / 50.00%",
 		"PCsInCoveredFuncs": "3 / 6 / 50.00%",
 	})
+}
+
+// TestBlockCoverageRangeContainment checks that a block-start PC strictly inside
+// a DWARF line range (not equal to frame.PC, and not a sancov callback) is
+// rendered covered and does not trip the callback-mismatch error.
+func TestBlockCoverageRangeContainment(t *testing.T) {
+	mod := &vminfo.KernelModule{Name: "kernel"}
+	unit := &backend.CompileUnit{
+		ObjectUnit: backend.ObjectUnit{Name: "foo.c"},
+		Path:       "foo.c",
+		Module:     mod,
+	}
+	sym := &backend.Symbol{
+		ObjectUnit: backend.ObjectUnit{Name: "foo"},
+		Module:     mod,
+		Unit:       unit,
+		Start:      0x1000,
+		End:        0x1100,
+		Symbolized: true,
+	}
+	frames := []*backend.Frame{
+		{
+			Module: mod,
+			PC:     0x1000,
+			PCEnd:  0x1020,
+			Name:   "foo.c",
+			Path:   "foo.c",
+			Range:  backend.Range{StartLine: 10, EndLine: 10, EndCol: backend.LineEnd},
+		},
+		{
+			Module: mod,
+			PC:     0x1020,
+			PCEnd:  0x1040,
+			Name:   "foo.c",
+			Path:   "foo.c",
+			Range:  backend.Range{StartLine: 11, EndLine: 11, EndCol: backend.LineEnd},
+		},
+	}
+	rg := &ReportGenerator{
+		BlockCoverage: true,
+		Impl: &backend.Impl{
+			Units:           []*backend.CompileUnit{unit},
+			Symbols:         []*backend.Symbol{sym},
+			Frames:          frames,
+			PreciseCoverage: true,
+			// The only callback sits on the range start. The covered PC does not.
+			CallbackPoints: []uint64{0x1000},
+		},
+	}
+	// 0x1008 is inside [0x1000, 0x1020) and is not frame.PC.
+	progs := []Prog{{Data: "prog", PCs: []uint64{0x1008}}}
+	files, err := rg.prepareFileMap(progs, false, true)
+	if err != nil {
+		t.Fatalf("block mode: %v", err)
+	}
+	f := files["foo.c"]
+	if f == nil {
+		t.Fatal("missing foo.c")
+	}
+	if f.coveredPCs != 1 || f.totalPCs != 2 {
+		t.Fatalf("file covered=%d total=%d, want 1/2", f.coveredPCs, f.totalPCs)
+	}
+	if len(f.lines[10].progCount) != 1 {
+		t.Fatalf("line 10 progCount=%v, want the block PC's program", f.lines[10].progCount)
+	}
+	if len(f.lines[11].progCount) != 0 {
+		t.Fatalf("line 11 should be uncovered, progCount=%v", f.lines[11].progCount)
+	}
+	if len(f.functions) != 1 || f.functions[0].covered != 1 || f.functions[0].pcs != 2 {
+		t.Fatalf("function covered=%d pcs=%d, want 1/2", f.functions[0].covered, f.functions[0].pcs)
+	}
+
+	rg.BlockCoverage = false
+	_, err = rg.prepareFileMap(progs, false, false)
+	if err == nil || !strings.Contains(err.Error(), "coverage callbacks") {
+		t.Fatalf("non-block interior PC should fail the callback check, got %v", err)
+	}
 }

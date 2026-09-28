@@ -18,7 +18,7 @@ import (
 )
 
 func makeELF(target *targets.Target, kernelDirs *mgrconfig.KernelDirs, splitBuildDelimiters, moduleObj []string,
-	hostModules []*vminfo.KernelModule) (*Impl, error) {
+	hostModules []*vminfo.KernelModule, blockCoverage bool) (*Impl, error) {
 	return makeDWARF(&dwarfParams{
 		target:                target,
 		kernelDirs:            kernelDirs,
@@ -29,7 +29,11 @@ func makeELF(target *targets.Target, kernelDirs *mgrconfig.KernelDirs, splitBuil
 		readTextData:          elfReadTextData,
 		readModuleCoverPoints: elfReadModuleCoverPoints,
 		readTextRanges:        elfReadTextRanges,
-		getCompilerVersion:    elfGetCompilerVersion,
+		readLineFrames: func(module *vminfo.KernelModule) ([]*Frame, error) {
+			return elfReadLineFrames(module, kernelDirs, splitBuildDelimiters)
+		},
+		getCompilerVersion: elfGetCompilerVersion,
+		blockCoverage:      blockCoverage,
 	})
 }
 
@@ -79,6 +83,31 @@ func elfReadSymbols(module *vminfo.KernelModule, info *symbolInfo) ([]*Symbol, e
 	info.textAddr = text.Addr
 	var symbols []*Symbol
 	for i, symb := range allSymbols {
+		// XHyper block coverage uses the same STT_FUNC universe as
+		// xhcov-symbolize.sh: named functions whose start lies in .text,
+		// size > 0. The whole symbol does not have to fit in .text.
+		// STT_NOTYPE is omitted so the function count matches readelf FUNC.
+		if info.blockCoverage {
+			if symb.Info&0xf != uint8(elf.STT_FUNC) || symb.Size == 0 || symb.Name == "" {
+				continue
+			}
+			if symb.Value < text.Addr || symb.Value >= text.Addr+text.Size {
+				continue
+			}
+			start := symb.Value
+			if module.Name != "" {
+				start += module.Addr
+			}
+			symbols = append(symbols, &Symbol{
+				Module: module,
+				ObjectUnit: ObjectUnit{
+					Name: symb.Name,
+				},
+				Start: start,
+				End:   start + symb.Size,
+			})
+			continue
+		}
 		if symb.Info&0xf != uint8(elf.STT_FUNC) && symb.Info&0xf != uint8(elf.STT_NOTYPE) {
 			// Only save STT_FUNC, STT_NONE otherwise some symb range inside another symb range.
 			continue
@@ -206,6 +235,24 @@ func elfReadModuleCoverPoints(target *targets.Target, module *vminfo.KernelModul
 		}
 	}
 	return pcs, nil
+}
+
+func elfReadLineFrames(module *vminfo.KernelModule, kernelDirs *mgrconfig.KernelDirs,
+	splitBuildDelimiters []string) ([]*Frame, error) {
+	file, err := elf.Open(module.Path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	debugInfo, err := file.DWARF()
+	if err != nil {
+		if module.Name != "" {
+			log.Logf(0, "ignoring module %v without DEBUG_INFO", module.Name)
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to parse DWARF: %w (set CONFIG_DEBUG_INFO=y on linux)", err)
+	}
+	return readDWARFLineFrames(debugInfo, module, kernelDirs, splitBuildDelimiters)
 }
 
 func elfGetCompilerVersion(path string) string {

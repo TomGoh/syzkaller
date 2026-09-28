@@ -53,6 +53,35 @@ func TestXHDrainerBitmap(t *testing.T) {
 	d.close()
 }
 
+func TestXHDrainerHonorsShmPrefix(t *testing.T) {
+	id := 820000 + os.Getpid()
+	campaign := shmPath(id, 0)
+	defer os.Remove(campaign)
+	private := "/dev/shm/xhgrok-test-" + itoa(os.Getpid()) + ".0"
+	defer os.Remove(private)
+
+	const textStart = uint64(0x2000)
+	writeXHBitmap(t, campaign, textStart, 4, 1, []uint64{1})
+	writeXHBitmap(t, private, textStart, 4, 1, []uint64{2})
+
+	t.Setenv("SYZ_XHYPER_SHM", "/dev/shm/xhgrok-test-"+itoa(os.Getpid()))
+	d := openXHDrainer(id)
+	if d == nil {
+		t.Fatal("expected the private bitmap")
+	}
+	defer d.close()
+	pcs := d.drain()
+	if !sameU64(pcs, []uint64{textStart + 2*4}) {
+		t.Fatalf("got %x", pcs)
+	}
+	if !bitmapCleared(t, private, 1) {
+		t.Fatal("private window was not drained")
+	}
+	if bitmapCleared(t, campaign, 1) {
+		t.Fatal("id-based bitmap was drained")
+	}
+}
+
 func TestXHDrainerSkipsBadFiles(t *testing.T) {
 	id := 810000 + os.Getpid()
 	good := shmPath(id, 0)

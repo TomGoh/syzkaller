@@ -62,7 +62,16 @@ func openXHDrainer(id int) *xhDrainer {
 }
 
 func (d *xhDrainer) attach() bool {
-	matches, err := filepath.Glob(fmt.Sprintf("/dev/shm/xh%d.*", d.id))
+	// Default files are /dev/shm/xh<instance>.<vcpu>, which is what the
+	// campaign plugin uses for instance 0. SYZ_XHYPER_SHM overrides the
+	// prefix (for example /dev/shm/xhgrok) so a private manager does not
+	// open, or swap bits out of, that other bitmap. The window is the
+	// "<prefix>.<vcpu>" file; "<prefix>_cum.*" is left untouched.
+	prefix := os.Getenv("SYZ_XHYPER_SHM")
+	if prefix == "" {
+		prefix = fmt.Sprintf("/dev/shm/xh%d", d.id)
+	}
+	matches, err := filepath.Glob(prefix + ".*")
 	if err != nil || len(matches) == 0 {
 		return false
 	}

@@ -36,7 +36,12 @@ type dwarfParams struct {
 	readTextData          func(*vminfo.KernelModule) ([]byte, error)
 	readModuleCoverPoints func(*targets.Target, *vminfo.KernelModule, *symbolInfo) ([2][]uint64, error)
 	readTextRanges        func(*vminfo.KernelModule) ([]pcRange, []*CompileUnit, error)
+	readLineFrames        func(*vminfo.KernelModule) ([]*Frame, error)
 	getCompilerVersion    func(string) string
+	// blockCoverage is XHyper TCG basic-block coverage: there are no
+	// __sanitizer_cov_trace_pc callbacks. Symbols are the STT_FUNC universe
+	// and frames are DWARF line-number ranges.
+	blockCoverage bool
 }
 
 type Arch struct {
@@ -123,6 +128,9 @@ func processModule(params *dwarfParams, module *vminfo.KernelModule, info *symbo
 	if err != nil {
 		return nil, err
 	}
+	if params.blockCoverage {
+		return &Result{Symbols: symbols}, nil
+	}
 
 	var data []byte
 	var coverPoints [2][]uint64
@@ -160,29 +168,32 @@ func makeDWARFUnsafe(params *dwarfParams) (*Impl, error) {
 	var allSymbols []*Symbol
 	var allRanges []pcRange
 	var allUnits []*CompileUnit
+	var allFrames []*Frame
 	preciseCoverage := true
 	type binResult struct {
 		symbols     []*Symbol
 		coverPoints [2][]uint64
 		ranges      []pcRange
 		units       []*CompileUnit
+		frames      []*Frame
 		err         error
 	}
 	binC := make(chan binResult, len(modules))
 	for _, module := range modules {
 		go func() {
 			info := &symbolInfo{
-				tracePC:     make(map[uint64]bool),
-				traceCmp:    make(map[uint64]bool),
-				tracePCIdx:  make(map[int]bool),
-				traceCmpIdx: make(map[int]bool),
+				tracePC:       make(map[uint64]bool),
+				traceCmp:      make(map[uint64]bool),
+				tracePCIdx:    make(map[int]bool),
+				traceCmpIdx:   make(map[int]bool),
+				blockCoverage: params.blockCoverage,
 			}
 			result, err := processModule(params, module, info, target)
 			if err != nil {
 				binC <- binResult{err: err}
 				return
 			}
-			if module.Name == "" && len(result.CoverPoints[0]) == 0 {
+			if !params.blockCoverage && module.Name == "" && len(result.CoverPoints[0]) == 0 {
 				err = fmt.Errorf("%v doesn't contain coverage callbacks (set CONFIG_KCOV=y on linux)", module.Path)
 				binC <- binResult{err: err}
 				return
@@ -192,7 +203,18 @@ func makeDWARFUnsafe(params *dwarfParams) (*Impl, error) {
 				binC <- binResult{err: err}
 				return
 			}
-			binC <- binResult{symbols: result.Symbols, coverPoints: result.CoverPoints, ranges: ranges, units: units}
+			var frames []*Frame
+			if params.blockCoverage && params.readLineFrames != nil {
+				frames, err = params.readLineFrames(module)
+				if err != nil {
+					binC <- binResult{err: err}
+					return
+				}
+			}
+			binC <- binResult{
+				symbols: result.Symbols, coverPoints: result.CoverPoints,
+				ranges: ranges, units: units, frames: frames,
+			}
 		}()
 		if isKcovBrokenInCompiler(params.getCompilerVersion(module.Path)) {
 			preciseCoverage = false
@@ -208,12 +230,16 @@ func makeDWARFUnsafe(params *dwarfParams) (*Impl, error) {
 		allCoverPoints[1] = append(allCoverPoints[1], result.coverPoints[1]...)
 		allRanges = append(allRanges, result.ranges...)
 		allUnits = append(allUnits, result.units...)
+		allFrames = append(allFrames, result.frames...)
 	}
 	log.Logf(1, "discovered %v source files, %v symbols", len(allUnits), len(allSymbols))
-	// TODO: need better way to remove symbols having the same Start
+	// TODO: need better way to remove symbols having the same Start.
+	// Block coverage keeps the larger size at a duplicated address, matching
+	// xhcov-symbolize.sh (equal sizes keep the first).
 	uniqSymbs := make(map[uint64]*Symbol)
 	for _, sym := range allSymbols {
-		if _, ok := uniqSymbs[sym.Start]; !ok {
+		prev := uniqSymbs[sym.Start]
+		if prev == nil || (params.blockCoverage && sym.End-sym.Start > prev.End-prev.Start) {
 			uniqSymbs[sym.Start] = sym
 		}
 	}
@@ -231,10 +257,24 @@ func makeDWARFUnsafe(params *dwarfParams) (*Impl, error) {
 		slices.Sort(allCoverPoints[k])
 	}
 
-	allSymbols = buildSymbols(allSymbols, allRanges, allCoverPoints)
+	if params.blockCoverage {
+		extra := assignBlockSymbols(allSymbols, allRanges)
+		allUnits = append(allUnits, extra...)
+		for _, sym := range allSymbols {
+			// Line frames are already loaded; do not symbolize callback PCs.
+			sym.Symbolized = true
+		}
+		for _, frame := range allFrames {
+			if sym := ContainingSymbol(allSymbols, frame.PC); sym != nil {
+				frame.FuncName = sym.Name
+			}
+		}
+	} else {
+		allSymbols = buildSymbols(allSymbols, allRanges, allCoverPoints)
+	}
 	nunit := 0
 	for _, unit := range allUnits {
-		if len(unit.PCs) == 0 {
+		if !params.blockCoverage && len(unit.PCs) == 0 {
 			continue // drop the unit
 		}
 		// TODO: objDir won't work for out-of-tree modules.
@@ -246,10 +286,14 @@ func makeDWARFUnsafe(params *dwarfParams) (*Impl, error) {
 	if len(allSymbols) == 0 || len(allUnits) == 0 {
 		return nil, fmt.Errorf("failed to parse DWARF (set CONFIG_DEBUG_INFO=y on linux)")
 	}
+	if params.blockCoverage {
+		log.Logf(1, "block coverage: %v symbols, %v line frames", len(allSymbols), len(allFrames))
+	}
 	var interner symbolizer.Interner
 	impl := &Impl{
 		Units:   allUnits,
 		Symbols: allSymbols,
+		Frames:  allFrames,
 		Symbolize: func(pcs map[*vminfo.KernelModule][]uint64) ([]*Frame, error) {
 			return symbolize(target, &interner, kernelDirs, splitBuildDelimiters, pcs)
 		},
@@ -257,6 +301,110 @@ func makeDWARFUnsafe(params *dwarfParams) (*Impl, error) {
 		PreciseCoverage: preciseCoverage,
 	}
 	return impl, nil
+}
+
+// assignBlockSymbols attaches a compile unit to every symbol without dropping
+// symbols that have no sanitizer callback PCs. Symbols that fall in a gap
+// between DWARF ranges are kept on a synthetic unit so they still count in
+// the STT_FUNC universe. Returns any synthetic units created.
+func assignBlockSymbols(symbols []*Symbol, ranges []pcRange) []*CompileUnit {
+	var extra []*CompileUnit
+	fallback := make(map[*vminfo.KernelModule]*CompileUnit)
+	rangeIndex := 0
+	for _, s := range symbols {
+		for rangeIndex < len(ranges) && ranges[rangeIndex].end <= s.Start {
+			rangeIndex++
+		}
+		if rangeIndex < len(ranges) &&
+			s.Start >= ranges[rangeIndex].start && s.Start < ranges[rangeIndex].end {
+			s.Unit = ranges[rangeIndex].unit
+			continue
+		}
+		unit := fallback[s.Module]
+		if unit == nil {
+			unit = &CompileUnit{
+				ObjectUnit: ObjectUnit{Name: "<no-dwarf>"},
+				Path:       "<no-dwarf>",
+				Module:     s.Module,
+			}
+			fallback[s.Module] = unit
+			extra = append(extra, unit)
+		}
+		s.Unit = unit
+	}
+	return extra
+}
+
+// readDWARFLineFrames turns each DWARF line-number program row into a frame
+// covering [addr, nextAddr). A block-start PC maps to the source line whose
+// range contains it — the same row addr2line -f (without inlines) reports.
+func readDWARFLineFrames(debugInfo *dwarf.Data, module *vminfo.KernelModule,
+	kernelDirs *mgrconfig.KernelDirs, splitBuildDelimiters []string) ([]*Frame, error) {
+	var interner symbolizer.Interner
+	var frames []*Frame
+	for r := debugInfo.Reader(); ; {
+		ent, err := r.Next()
+		if err != nil {
+			return nil, err
+		}
+		if ent == nil {
+			break
+		}
+		if ent.Tag != dwarf.TagCompileUnit {
+			return nil, fmt.Errorf("found unexpected tag %v on top level", ent.Tag)
+		}
+		lr, err := debugInfo.LineReader(ent)
+		if err != nil {
+			return nil, err
+		}
+		if lr != nil {
+			if err := appendLineFrames(lr, module, &interner, kernelDirs, splitBuildDelimiters, &frames); err != nil {
+				return nil, err
+			}
+		}
+		r.SkipChildren()
+	}
+	return frames, nil
+}
+
+func appendLineFrames(lr *dwarf.LineReader, module *vminfo.KernelModule, interner *symbolizer.Interner,
+	kernelDirs *mgrconfig.KernelDirs, splitBuildDelimiters []string, frames *[]*Frame) error {
+	var prev dwarf.LineEntry
+	hasPrev := false
+	for {
+		var entry dwarf.LineEntry
+		if err := lr.Next(&entry); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return fmt.Errorf("failed to parse next line entry: %w", err)
+		}
+		if hasPrev && !prev.EndSequence && prev.File != nil && prev.Line > 0 &&
+			prev.Address != 0 && entry.Address > prev.Address {
+			name, path := CleanPath(prev.File.Name, kernelDirs, splitBuildDelimiters)
+			*frames = append(*frames, &Frame{
+				Module:   module,
+				PC:       prev.Address,
+				PCEnd:    entry.Address,
+				Name:     interner.Do(name),
+				Path:     interner.Do(path),
+				FuncName: "",
+				Range: Range{
+					StartLine: prev.Line,
+					StartCol:  0,
+					EndLine:   prev.Line,
+					EndCol:    LineEnd,
+				},
+			})
+		}
+		if entry.EndSequence {
+			hasPrev = false
+			continue
+		}
+		prev = entry
+		hasPrev = true
+	}
+	return nil
 }
 
 func buildSymbols(symbols []*Symbol, ranges []pcRange, coverPoints [2][]uint64) []*Symbol {
@@ -344,10 +492,11 @@ func isKcovBrokenInCompiler(versionStr string) bool {
 type symbolInfo struct {
 	textAddr uint64
 	// Set of addresses that correspond to __sanitizer_cov_trace_pc or its trampolines.
-	tracePC     map[uint64]bool
-	traceCmp    map[uint64]bool
-	tracePCIdx  map[int]bool
-	traceCmpIdx map[int]bool
+	tracePC       map[uint64]bool
+	traceCmp      map[uint64]bool
+	tracePCIdx    map[int]bool
+	traceCmpIdx   map[int]bool
+	blockCoverage bool
 }
 
 type pcRange struct {
