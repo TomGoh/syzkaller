@@ -75,9 +75,43 @@ gh_userspace_memory_region {
 	userspace_addr		vma64[1:4]
 } [size[32]]
 
+# The DTB config has its own value sets rather than the shared gh_guest_addr /
+# gh_mem_size, because this ioctl silently overwrites a configuration the harness
+# has already made correct, and the shared sets make the overwrite lethal.
+#
+# syz_gunyah_setup_vm registers a region at GPA 0 of 2 pages and points the DTB
+# config at exactly it (common_gunyah_arm64.h, GH_SYZOS_DTB_GPA/GH_SYZOS_DTB_SIZE).
+# A later bare SET_DTB_CONFIG replaces that with whatever these sets offer, and the
+# driver stores it and returns 0 -- nothing rejects it. The damage only appears at
+# VM_START: gunyah_gup_share_parcel computes pages = size >> 12 and returns -EINVAL
+# when that is zero (vm_mgr_mem.c:489), or -ENOENT when no registered region backs
+# the address (:493), both BEFORE gunyah_rm_vm_configure, so the Manager never reads
+# a configuration at all.
+#
+# Measured on the live corpus, 2026-09-29: 84% of programs used the pseudo-call and
+# then overwrote its config; 74% of all programs ended up with size < 4096, i.e.
+# zero pages; only 6% had a DTB region a registered region actually backed. That is
+# why errno 22 dominated the start failures and errno 2 appeared occasionally --
+# the two returns of that one function.
+#
+# So: sizes are whole pages only, and addresses are mostly inside the harness's
+# region. Two illegal shapes stay reachable on purpose, the same trade-off as the
+# timer specifier -- 0x80000000 is backed by nothing (the -ENOENT branch), and a
+# size that runs past the end of the 2-page region.
+#
+# Measured, not assumed: generating 3000 programs against the campaign's enabled
+# set produced 822 DTB configs, of which 30% are usable, against 6% measured on the
+# corpus beforehand. Note that a value set is treated as a BITMASK, so {0x1000,
+# 0x2000} also yields 0x3000 (200 of the 822) -- which is what keeps the overrun
+# branch alive without listing it. About 2.4% of the values fell outside the set
+# entirely, the generator's usual escape, which is where a zero size still comes
+# from.
+gh_dtb_addr = 0, 0x1000, 0x80000000
+gh_dtb_size = 0x1000, 0x2000
+
 gh_vm_dtb_config {
-	guest_phys_addr	int64[gh_guest_addr]
-	size		int64[gh_mem_size]
+	guest_phys_addr	int64[gh_dtb_addr]
+	size		int64[gh_dtb_size]
 } [size[16]]
 
 gh_vm_firmware_config {

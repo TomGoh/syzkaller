@@ -429,7 +429,15 @@ func (runner *Runner) xhNoteProgram(mgrBlocks int, reached [len(xhWaypoints)]boo
 		out += fmt.Sprintf(" [%v]=%v", label, runner.xhWayPaths[k])
 	}
 	log.Logf(0, "xhyper: stage paths taken:%v", out)
-	log.Logf(0, "xhyper: per-program outcomes: configured ok=%v fail=%v, started ok=%v fail=%v",
+	// "setup ioctls", not "configured". The configuration ioctls do NOT reach the
+	// Manager: GUNYAH_VM_SET_DTB_CONFIG and its siblings only store the struct in
+	// the host driver and return 0 (vm_mgr.c:876-890); every gunyah_rm_* call --
+	// alloc_vmid, set_boot_context, set_demand_paging -- is on the START path.
+	// Calling this counter "configured" put the same word on two different things,
+	// because the waypoint below named "configured" really is the Manager running
+	// realize_configuration. Reading 112 here against 21 there then looks like a
+	// contradiction and invites an explanation for a phenomenon that is not there.
+	log.Logf(0, "xhyper: per-program outcomes: setup ioctls ok=%v fail=%v, started ok=%v fail=%v",
 		runner.xhSetupOK, runner.xhSetupFail, runner.xhStartOK, runner.xhStartFail)
 	if len(runner.xhStartErrno) != 0 {
 		errnos := make([]int32, 0, len(runner.xhStartErrno))
