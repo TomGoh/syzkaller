@@ -610,6 +610,12 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 	// writer). An empty list is still emitted as an empty property so the
 	// parser takes the same branch either way.
 	{
+		// A description-level flags set is escapable (one value in a hundred
+		// is fully random), so the two attributes that get a document refused
+		// outright are cleared here as well -- removing them from the set is
+		// necessary but not sufficient, the same reason the vdevice type fold
+		// lives in the executor.
+		uint32 attrbits = cfg ? (cfg->attrs & ~(GH_CFG_ATTR_CONTEXT_DUMP | GH_CFG_ATTR_GUEST_RAM_DUMP)) : 0;
 		static const struct {
 			uint32 bit;
 			const char* name;
@@ -625,7 +631,7 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 		size_t n = 0, k;
 		for (k = 0; cfg && k < sizeof(vm_attrs) / sizeof(vm_attrs[0]); k++) {
 			size_t len;
-			if (!(cfg->attrs & vm_attrs[k].bit))
+			if (!(attrbits & vm_attrs[k].bit))
 				continue;
 			len = strlen(vm_attrs[k].name) + 1;
 			if (n + len > sizeof(attrs))
@@ -655,8 +661,17 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 		uint32 be[GH_CFG_MAX_VMMIO * 4];
 		uint32 n = cfg->nvmmio > GH_CFG_MAX_VMMIO ? GH_CFG_MAX_VMMIO : cfg->nvmmio;
 		for (i = 0; i < n * 2; i++) {
-			be[i * 2] = gh_be32((uint32)(cfg->vmmio[i] >> 32));
-			be[i * 2 + 1] = gh_be32((uint32)cfg->vmmio[i]);
+			uint64 v = cfg->vmmio[i];
+			if (i % 2 == 1) {
+				// The size half: the adapter rejects an empty range and one
+				// whose address plus size overflows, so keep it non-zero and
+				// bounded rather than passing the raw value through.
+				v = (v & 0xffffffffull) | 1;
+			} else {
+				v &= 0xffffffffull;
+			}
+			be[i * 2] = gh_be32((uint32)(v >> 32));
+			be[i * 2 + 1] = gh_be32((uint32)v);
 		}
 		gh_prop(&f, "vmmio-ranges", be, n * 4 * sizeof(uint32));
 	}
@@ -682,12 +697,26 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 	gh_node(&f, "memory");
 	gh_prop_u64(&f, "base-address", 0x80000000ull);
 	if (cfg && (cfg->present & GH_CFG_MEM_LIMITS)) {
-		gh_prop_u64(&f, "size-min", cfg->size_min);
-		gh_prop_u64(&f, "size-max", cfg->size_max);
+		// The parser requires a whole number of 4 KiB pages, and a raw
+		// int64 is a multiple of 4096 about one time in ten, so passing one
+		// through rejects the document nine times out of ten. Align instead:
+		// the value still mutates, it just lands on a page boundary.
+		gh_prop_u64(&f, "size-min", cfg->size_min & ~0xfffull);
+		gh_prop_u64(&f, "size-max", cfg->size_max & ~0xfffull);
 	}
 	if (cfg && (cfg->present & GH_CFG_FIRMWARE)) {
-		gh_prop_u64(&f, "firmware-address", cfg->fw_addr);
-		gh_prop_u64(&f, "firmware-size-max", cfg->fw_size_max);
+		// These two are checked as a PAIR: the parser refuses the document
+		// when base + size overflows, and two independent random 64-bit
+		// values overflow about half the time. Each field is individually
+		// legal, which is why this kind of constraint is the easiest to
+		// miss -- only the combination is rejected. Fold the size into what
+		// the address leaves room for; it still mutates freely below that.
+		uint64 fwbase = cfg->fw_addr & ~0xfffull;
+		uint64 fwsize = cfg->fw_size_max;
+		if (fwbase != 0)
+			fwsize %= (0xffffffffffffffffull - fwbase) + 1;
+		gh_prop_u64(&f, "firmware-address", fwbase);
+		gh_prop_u64(&f, "firmware-size-max", fwsize & ~0xfffull);
 	}
 	gh_node_end(&f);
 	gh_node(&f, "vcpus");
@@ -714,6 +743,17 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 		if (t >= sizeof(gh_vdevice_types) / sizeof(gh_vdevice_types[0]) ||
 		    t == GH_VD_TYPE_VIRTIO_MMIO || t == GH_VD_TYPE_VIRTIO_PCI || t == GH_VD_TYPE_PCI)
 			t = gh_vd_allowed[t % (sizeof(gh_vd_allowed) / sizeof(gh_vd_allowed[0]))];
+		// A virtual RTC only becomes published when a projection is
+		// installed, and start refuses to power on a VM that still has an
+		// unpublished one. A document asking for its device tree to be
+		// preserved never installs a projection, so the two together always
+		// fail to start -- measured: the same document starts without the
+		// RTC and fails with it, nothing else changed. Each part is legal on
+		// its own; only the combination is not, the same shape as the
+		// firmware address/size pair but one level up, between a document
+		// attribute and a vdevice rather than between two fields.
+		if (t == GH_VD_TYPE_VRTC && cfg && (cfg->attrs & GH_CFG_ATTR_NO_DTB_PATCH))
+			t = GH_VD_TYPE_DOORBELL;
 		// The virtual RTC is a singleton: the parser keeps a "seen" state for
 		// it and rejects the whole document on the second one. That cannot be
 		// said in the description language, which generates array elements
@@ -750,7 +790,8 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 		if (t == GH_VD_TYPE_DOORBELL_SRC || t == GH_VD_TYPE_DOORBELL ||
 		    t == GH_VD_TYPE_MSGQ || t == GH_VD_TYPE_MSGQ_PAIR ||
 		    t == GH_VD_TYPE_VIRTIO_MMIO || t == GH_VD_TYPE_VIRTIO_PCI ||
-		    t == GH_VD_TYPE_IOMEM || t == GH_VD_TYPE_PCI)
+		    t == GH_VD_TYPE_IOMEM || t == GH_VD_TYPE_PCI ||
+		    t == GH_VD_TYPE_SHM || t == GH_VD_TYPE_SHM_DOORBELL)
 			gh_prop_empty(&f, "peer-default");
 		else if (vd[i].flags & GH_VD_PEER_DEFAULT)
 			gh_prop_empty(&f, "peer-default");
@@ -785,7 +826,12 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 		// Type-specific cell, only where the Manager looks for one: an MMIO
 		// base for the memory-mapped kinds and a queue count for the virtio
 		// kinds.
-		if (t == GH_VD_TYPE_VRTC || t == GH_VD_TYPE_VIRTIO_MMIO)
+		// The virtual RTC wants exactly one of base and allocate-base, and a
+		// page-aligned base; virtio-mmio is not aligned-checked but shares
+		// the emission.
+		if (t == GH_VD_TYPE_VRTC)
+			gh_prop_u64(&f, "base", vd[i].arg & ~0xfffull);
+		else if (t == GH_VD_TYPE_VIRTIO_MMIO)
 			gh_prop_u64(&f, "base", vd[i].arg);
 		if (t == GH_VD_TYPE_VIRTIO_MMIO || t == GH_VD_TYPE_VIRTIO_PCI)
 			gh_prop_u32(&f, "vqs-num", (uint32)vd[i].arg);
@@ -839,7 +885,9 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 			gh_node(&f, "memory");
 			gh_prop_u32(&f, "qcom,label", vd[i].label);
 			gh_node_end(&f);
-		} else if (vd[i].flags & GH_VD_ALLOCATE_BASE) {
+		} else if ((vd[i].flags & GH_VD_ALLOCATE_BASE) && t != GH_VD_TYPE_VRTC) {
+			// Not on the virtual RTC: it already emitted a base above, and
+			// the parser rejects a node carrying both.
 			gh_prop_empty(&f, "allocate-base");
 		}
 		gh_node_end(&f);
@@ -895,23 +943,66 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 		for (i = 0; i < n; i++) {
 			uint32 v = cfg->timer[i];
 			uint32 typ = v & 3;
-			uint32 num;
-			// Each type admits its own range, and the check is strict: a
-			// number outside it makes the whole node malformed.
+			uint32 span, num;
+			// The parser computes virq = number + offset and requires
+			// virq < limit, so the legal NUMBER runs 0..(limit-offset-1).
+			// This used to emit the final virq instead, which the parser
+			// then offset a second time -- every type but 1 was out of range
+			// (type 1 only looked right because its offset and limit make the
+			// two ranges coincide). Nothing rejected the document: the error
+			// is swallowed and the node is just marked malformed, so the
+			// normal timer path was taken about 6% of the time while looking
+			// entirely healthy.
 			switch (typ) {
 			case 1:
-				num = (v >> 8) % 16;
-				break; // PPI: number + 16 < 32
+				span = 32 - 16;
+				break;
 			case 2:
-				num = 4096 + (v >> 8) % (5120 - 4096 + 1);
+				span = 5120 - 4096;
 				break;
 			case 3:
-				num = 1056 + (v >> 8) % (1120 - 1056 + 1);
+				span = 1120 - 1056;
 				break;
 			default:
-				num = 32 + (v >> 8) % (1020 - 32 + 1);
+				span = 1020 - 32;
 				break;
 			}
+			num = (v >> 8) % span;
+			// Keep a slice out of range on purpose: the malformed-timer path
+			// is a real branch, and making every specifier legal would make it
+			// unreachable -- the same trade-off as drawing labels from a small
+			// domain rather than fixing one.
+			//
+			// The predicate must not test for ZERO and must not overlap typ.
+			// Measured over the 381 timer values in the live corpus on
+			// 2026-09-29 (unpacked with syz-db; 207 of them are literally 0 and
+			// the whole corpus holds only 28 distinct values):
+			//
+			//   (v & 0xf) == 0        fired 255/381 = 66.9%, ALL of them typ 0
+			//   ((v >> 2) & 7) == 3   fires    9/381 =  2.4%, typ 0 and 3
+			//
+			// Two separate faults in the old form. It tested bits 0..3 for zero,
+			// and bits 0..1 are typ, so an out-of-range specifier could only ever
+			// be type 0 -- types 1..3 never reached the malformed path at all.
+			// And because the values are overwhelmingly zero, testing any field
+			// for zero makes the malformed path the COMMON case: the "one in ten"
+			// was two in three, so the normal timer path this comment says it is
+			// protecting stayed rare. That is the same failure the paragraph above
+			// records being fixed once already, reintroduced by moving the test to
+			// the low bits without checking what the low bits actually contain.
+			//
+			// With a distribution this degenerate there is no ~10% predicate to be
+			// had from bit tests: a predicate either fires on zero, and so on 54%
+			// at once, or it does not, and lands at 1-3%. 2.4% is the right side of
+			// that choice -- the normal path is the valuable one and the malformed
+			// branch still gets reached often across a run.
+			//
+			// Bit 4 is shared with the flags index below. That is deliberate:
+			// flags do not select a branch, and narrowing them to their own window
+			// ((v >> 5) & 7) % 3 was measured to make their spread worse
+			// (338/20/23 becomes 325/54/2).
+			if (((v >> 2) & 7) == 3)
+				num += span;
 			be[i * 3] = gh_be32(typ);
 			be[i * 3 + 1] = gh_be32(num);
 			be[i * 3 + 2] = gh_be32(flagvals[(v >> 4) % 3]);

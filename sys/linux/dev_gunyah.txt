@@ -25,6 +25,12 @@ ioctl$GH_VM_ANDROID_LEND_USER_MEM(fd fd_gh_vm, cmd const[GH_VM_ANDROID_LEND_USER
 ioctl$GH_VM_SET_DTB_CONFIG(fd fd_gh_vm, cmd const[GH_VM_SET_DTB_CONFIG], arg ptr[in, gh_vm_dtb_config])
 # Switches RM auth to GUNYAH_RM_VM_AUTH_QCOM_ANDROID_PVM. The driver then
 # skips GH_VM_SET_BOOT_CONTEXT at start. Not used by syz_gunyah_setup_vm$arm64.
+# NOT enabled in the fuzzing config, and a glob such as ioctl$GH_* must not be
+# used to enable it: the driver sets the VM's authorization to the Android
+# value permanently (vm_mgr.c), and from then on it skips filling the boot
+# context, which is how this harness points the guest at its payload. So every
+# program that issues this once wastes the rest of that VM -- the model's own
+# note below says not to issue it, but a glob enabled it anyway for a while.
 ioctl$GH_VM_ANDROID_SET_FW_CONFIG(fd fd_gh_vm, cmd const[GH_VM_ANDROID_SET_FW_CONFIG], arg ptr[in, gh_vm_firmware_config])
 
 # Separate variants so type, arg_size, and the pointed-to arg struct stay consistent.

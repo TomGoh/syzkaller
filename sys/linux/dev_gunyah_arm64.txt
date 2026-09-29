@@ -128,7 +128,12 @@ gh_vdevice {
 # write_peer, append_interrupt, ensure_path, ...). Measured 2026-09-29: that
 # whole half of the Manager was unreachable while the executor emitted the
 # attribute unconditionally, and Manager function coverage sat at 467/985.
-gh_vm_attr = 1, 2, 4, 8, 16, 32
+# context-dump (bit 0) and guest-ram-dump (bit 2) are gone: the manager's
+# configuration-feature callback returns an error unconditionally, so a
+# document carrying either is refused outright -- measured at 47% of all
+# rejections, the single largest cause. They were listed here on the strength
+# of "they reach a callback", which is not the same as "the callback accepts".
+gh_vm_attr = 2, 8, 16, 32
 gh_cfg_present = 1, 2, 4
 
 gh_vmconfig {
