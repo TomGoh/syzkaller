@@ -610,11 +610,18 @@ static size_t gh_build_dtb(uint8* out, size_t cap, const struct gh_vdevice* vd, 
 	// writer). An empty list is still emitted as an empty property so the
 	// parser takes the same branch either way.
 	{
-		// A description-level flags set is escapable (one value in a hundred
-		// is fully random), so the two attributes that get a document refused
-		// outright are cleared here as well -- removing them from the set is
-		// necessary but not sufficient, the same reason the vdevice type fold
-		// lives in the executor.
+		// A description-level flags set is escapable, so the two attributes
+		// that get a document refused outright are cleared here as well --
+		// removing them from the set is necessary but not sufficient, the same
+		// reason the vdevice type fold lives in the executor.
+		//
+		// The escape rate was written here as "one value in a hundred", which
+		// was an estimate read off the generator's source. Measured 2026-09-29
+		// by generating 3000 programs against the campaign's enabled set and
+		// counting the values that fell outside their set: 2.4%, more than
+		// twice the estimate. Two other sets in this file quote the measured
+		// figure; this one did not, which is why it is called out rather than
+		// quietly corrected.
 		uint32 attrbits = cfg ? (cfg->attrs & ~(GH_CFG_ATTR_CONTEXT_DUMP | GH_CFG_ATTR_GUEST_RAM_DUMP)) : 0;
 		static const struct {
 			uint32 bit;
