@@ -6,11 +6,22 @@
 # syz_gunyah_setup_vm$arm64 donates one parcel at GPA 0 through
 # GH_VM_SET_USER_MEM_REGION and points GH_VM_SET_DTB_CONFIG at it.
 # GPA 0 is the unset firmware binding, so the driver sends no demand-paging
-# ranges. Further parcels at the SYZOS link addresses make VM_START fail
-# with RM error 9 (MAP_FAILED): the manager's sibling donate is DENIED.
-# The DTB describes a doorbell-source (label 7), a doorbell (label 4),
-# a message-queue sender (label 8), a message-queue receiver (label 9) and
-# a message-queue pair (label 10), so VM_INIT creates those objects.
+# ranges.
+#
+# CORRECTION 2026-09-28, measured: the earlier claim here -- that further
+# parcels at the SYZOS link addresses make VM_START fail with RM error 9
+# (MAP_FAILED) -- is FALSE for this path. A non-protected (share) VM accepts
+# all five parcels including the high IPAs (DTB 0x80000000, exec 0xeeee8000,
+# user 0xeeee0000, scratch 0xeeef0000, stack 0xffff1000) and VM_START returns
+# 0; error 9 is specific to the lend/protected path. Verified with
+# .fuzz-wip/grok-s1/probe-rig.sh, where the guest then executed from the high
+# parcel. The stale wording had already been taken at face value once, so it
+# is corrected rather than deleted.
+#
+# The DTB now describes whatever the fuzzer's vdevice list says (gh_build_dtb);
+# the fixed set it used to carry was a doorbell-source (label 7), a doorbell
+# (label 4), a message-queue sender (label 8), a receiver (label 9) and a
+# message-queue pair (label 10).
 # syz_gunyah_setup_vm_lend$arm64 is the same parcel with GH_VM_ANDROID_LEND_USER_MEM,
 # which makes the image a lend and marks the VM protected.
 # syz_gunyah_add_vcpu$arm64 sets the boot PC to the payload in the second
@@ -28,8 +39,127 @@ meta noextract
 # Opaque host pointer at the start of the donated vma, same idea as kvm_syz_vm$arm64.
 resource gh_syz_vm$arm64[int64]
 
-syz_gunyah_setup_vm$arm64(fd fd_gh_vm, usermem vma[1024]) gh_syz_vm$arm64
-syz_gunyah_setup_vm_lend$arm64(fd fd_gh_vm, usermem vma[1024]) gh_syz_vm$arm64
+# One fuzzer-controlled vdevice. The DTB is BUILT at runtime from this list
+# (executor gh_build_dtb), so the Manager realizes whatever it describes at
+# VM_INIT: object create / configure / activate / bind per vdevice. Those RM
+# paths are otherwise only reached once, while the machine boots.
+# typ indexes gh_vdevice_types in executor/common_gunyah_arm64.h, in the order
+# the Manager's decode_vdevice_type accepts (xhyper-fdt secondary.rs):
+#   0 doorbell-source   1 doorbell      2 message-queue  3 message-queue-pair
+#   4 shm               5 shm-doorbell  6 watchdog       7 vrtc-pl031
+#   8 iomem             9 virtio-mmio  10 rm-rpc        11 virtio-pci
+#  12 virtio-iommu     13 vsmmu-v2     14 pci
+# flags select the boolean properties: peer-default, source-can-clear,
+# is-sender, is-receiver, generate, dma-coherent, allocate-base.
+# arg is the type-specific cell: an MMIO base for vrtc/iomem/virtio-mmio,
+# a queue count for the virtio kinds, a shm placement base, message-size in
+# the low half and queue-depth in the high half for message-queue.
+#
+# Every one of the 15 types now has a skeleton that the Manager's
+# parse_secondary_configuration accepts, measured against the parser rather
+# than read off the source. The executor supplies each type's mandatory
+# properties itself -- the ones that live in a "memory" child node (shm,
+# shm-doorbell, iomem), the ones whose integer width is checked (iomem's
+# 32-bit label, and smmu-handle, which is 64 bits on virtio-iommu but 32 on
+# vsmmu-v2), and the ones with a value rule (pci's power-of-two npmem-size).
+# So only the VALUES here mutate: the parser's error branches live in the
+# values, not in a missing property, and a document rejected for a missing
+# property never reaches them.
+# THREE types are EXCLUDED from generation as of 2026-09-28: virtio-mmio (9),
+# virtio-pci (11) and pci (14). A VM whose config carries any of them hangs at
+# GH_VM_START, and the machine NEVER RECOVERS -- the hardware-verified baseline
+# config hangs too from then on -- so one such program poisons the whole run.
+# It produces no panic, no FATAL and no crash entry, so it is not even recorded;
+# the only symptom is that coverage stops rising. Isolated with one fresh boot
+# per type (a single boot cannot tell them apart, because after the first hang
+# everything hangs): the three issue hypercall 72 / 72 / 108 respectively, which
+# the hypervisor reports as unsupported. virtio-iommu (12), vsmmu-v2 (13),
+# iomem (8) and vrtc-pl031 (7) were tested the same way and are clean, so this
+# is NOT "all memory-mapped types". Evidence:
+# docs/artifacts/xhyper-fuzz-findings-20260928/pci-vdevice-wedges-vm-start/.
+# Keep them out until resolved, the same way the no-GIC DTB is kept as a
+# standalone reverse test rather than in the mainline.
+gh_vdevice_type = 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 13
+gh_vdevice_flag = 1, 2, 4, 8, 16, 32, 64
+
+gh_vdevice {
+	typ		flags[gh_vdevice_type, int32]
+	# The label is a REFERENCE, not just a number: a doorbell-source and a
+	# doorbell, or the two ends of a message queue, are paired by carrying the
+	# SAME label. Drawn from 0..64 across at most 8 devices, two particular
+	# types almost never collide, so the paired paths were effectively
+	# unreachable -- and, like every reference that points at nothing, the
+	# branch is skipped silently rather than failing, so no coverage number
+	# shows it. A small domain makes pairs common while still letting
+	# duplicate-label handling be exercised.
+	label		int32[0:7]
+	flags		flags[gh_vdevice_flag, int32]
+	reserved	const[0, int32]
+	arg		int64
+} [size[24]]
+
+# The config node itself carries properties no vdevice can reach, and the
+# Manager parses them before it looks at the vdevice list at all, so this is a
+# second independent mutable surface rather than more of the same one.
+# attrs bit 0 appends "crash-fatal" to vm-attrs (the list keeps no-dtb-patch,
+# without which the Manager rewrites the document). present bit 0 emits the
+# memory size-min/size-max pair, bit 1 the firmware-address/firmware-size-max
+# pair. nirq counts PAIRS of 32-bit cells in irq: gic-irq-ranges is rejected
+# unless its length is a multiple of eight bytes, which an element count could
+# not guarantee. nvmmio counts address+size ranges in vmmio.
+# present bit 2 emits a root-level pl011 console node; its base is the only one
+# the Manager recognises, so only its PRESENCE is fuzzed, not its address.
+# niomem counts iomemory-ranges RECORDS (address + guest address + size + a
+# 32-bit access code = 28 bytes here); like nirq, counting records is what makes
+# an illegal length unrepresentable. ntimer is the number of interrupt
+# specifiers on a root-level arm,armv8-timer node, and the COUNT selects the
+# branch: fewer than four is the malformed path, four or more the vcpu-timer
+# path. Each timer word is a seed the executor folds into a legal (type,
+# number, flags) triple, because an out-of-range number forces the malformed
+# path from the other side and would make the count meaningless.
+# attrs selects vm-attrs entries: bit 0 context-dump, bit 1 no-dtb-patch,
+# bit 2 guest-ram-dump, bit 3 nosve, bit 4 vpm-virq, bit 5 no-vpm-aggregation.
+# "crash-fatal" is deliberately absent: the Manager rejects it on an untrusted
+# configuration, and a fuzzed secondary VM is always untrusted, so every
+# document carrying it fails at Init and the VM never starts. Bit 1 matters most:
+# with it the Manager preserves the document, without it the Manager PROJECTS a
+# device tree for the guest, which is the only way to reach
+# rewrite_secondary_projection and the write side (write_pci_interrupts,
+# write_peer, append_interrupt, ensure_path, ...). Measured 2026-09-29: that
+# whole half of the Manager was unreachable while the executor emitted the
+# attribute unconditionally, and Manager function coverage sat at 467/985.
+gh_vm_attr = 1, 2, 4, 8, 16, 32
+gh_cfg_present = 1, 2, 4
+
+gh_vmconfig {
+	attrs		flags[gh_vm_attr, int32]
+	present		flags[gh_cfg_present, int32]
+	nirq		const[0, int32]
+	nvmmio		int32[0:2]
+	irq		array[int32, 8]
+	vmmio		array[int64, 4]
+	size_min	int64
+	size_max	int64
+	fw_addr		int64
+	fw_size_max	int64
+	# niomem and nirq are pinned to 0: measured 2026-09-29, a config node with
+	# a non-empty iomemory-ranges or gic-irq-ranges is refused for an untrusted
+	# configuration (ENODEV from GH_VM_START), and a fuzzed secondary VM is
+	# always untrusted, so the VM never starts. Drawn freely they were 0 only
+	# 1-in-5 and 1-in-3 of the time, i.e. about 93% of programs built no VM at
+	# all -- which is what the coverage concentration was really measuring
+	# (the top 8.1% of executions carried 44.7% of all new blocks).
+	# The executor still emits both properties when the counts are non-zero, so
+	# this is one edit to undo once they are reachable.
+	niomem		const[0, int32]
+	ntimer		int32[0:6]
+	timer		array[int32, 6]
+	iomem_access	array[int32, 2]
+	iomem		array[int64, 6]
+} [size[200]]
+
+syz_gunyah_setup_vm$arm64(fd fd_gh_vm, usermem vma[1024], vdevices ptr[in, array[gh_vdevice, 1:8]], nvdev len[vdevices], config ptr[in, gh_vmconfig]) gh_syz_vm$arm64
+syz_gunyah_setup_vm_lend$arm64(fd fd_gh_vm, usermem vma[1024], vdevices ptr[in, array[gh_vdevice, 1:8]], nvdev len[vdevices], config ptr[in, gh_vmconfig]) gh_syz_vm$arm64
 
 # no_squash keeps the kvm_text_arm64 pointer intact, matching syz_kvm_add_vcpu$arm64.
 # The first call starts the VM and runs vCPU 0. A second call returns EBUSY:
