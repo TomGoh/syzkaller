@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"debug/elf"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -1185,10 +1186,10 @@ func (mgr *Manager) MachineChecked(features flatrpc.Feature,
 			// pKVM serial mode: no collide programs. Collide re-runs calls concurrently, which on a
 			// SINGLE-ring EL2 coverage kernel moves the KVM_RUN off the one owner CPU. Per-CPU rings
 			// remove that constraint; leave pkvm_serial off there and collide comes back.
-			Collide:        !mgr.cfg.PkvmSerial,
-			EnabledCalls:   enabledSyscalls,
-			NoMutateCalls:  mgr.cfg.NoMutateCalls,
-			FetchRawCover:  mgr.cfg.RawCover,
+			Collide:       !mgr.cfg.PkvmSerial,
+			EnabledCalls:  enabledSyscalls,
+			NoMutateCalls: mgr.cfg.NoMutateCalls,
+			FetchRawCover: mgr.cfg.RawCover,
 			Logf: func(level int, msg string, args ...any) {
 				if level != 0 {
 					return
@@ -1488,7 +1489,41 @@ func (mgr *Manager) dashboardReproTasks() {
 	}
 }
 
+// xhyperMgrModule declares the resource manager as a module so the coverage
+// report can symbolize it. Its blocks arrive from the second plugin window and
+// lie outside the hypervisor ELF's range, so without this they are dropped as
+// unresolvable and the report shows the hypervisor alone.
+func xhyperMgrModule(cfg *mgrconfig.Config) (*vminfo.KernelModule, error) {
+	if cfg.XHyperMgrObj == "" || cfg.XHyperMgrAddr == 0 {
+		return nil, nil
+	}
+	f, err := elf.Open(cfg.XHyperMgrObj)
+	if err != nil {
+		return nil, fmt.Errorf("xhyper_mgr_obj: %w", err)
+	}
+	defer f.Close()
+	text := f.Section(".text")
+	if text == nil {
+		return nil, fmt.Errorf("xhyper_mgr_obj %v has no .text", cfg.XHyperMgrObj)
+	}
+	return &vminfo.KernelModule{
+		Name: "xhyper-mgr",
+		Addr: cfg.XHyperMgrAddr,
+		Size: text.Size,
+		Path: cfg.XHyperMgrObj,
+	}, nil
+}
+
 func (mgr *Manager) CoverageFilter(modules []*vminfo.KernelModule) ([]uint64, error) {
+	if mod, err := xhyperMgrModule(mgr.cfg); err != nil {
+		// Loud rather than silent: a mistyped path here would otherwise look
+		// exactly like the manager having no coverage at all.
+		return nil, err
+	} else if mod != nil {
+		modules = append(modules, mod)
+		log.Logf(0, "xhyper: resource manager declared as a module at %#x, .text %v bytes (%v)",
+			mod.Addr, mod.Size, mod.Path)
+	}
 	mgr.reportGenerator.Init(modules)
 	filters, err := manager.PrepareCoverageFilters(mgr.reportGenerator, mgr.cfg, true)
 	if err != nil {

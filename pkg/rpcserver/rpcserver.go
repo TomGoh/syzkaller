@@ -68,7 +68,12 @@ type Config struct {
 	// Disabled for gVisor/Starnix which are not Linux.
 	FilterSignal bool
 	// Drain EL2 translation-block PCs from the QEMU TCG plugin shm.
-	XHyperCover       bool
+	XHyperCover bool
+	// XHyperMgrObj/XHyperMgrAddr locate the resource manager's ELF and the
+	// address it is loaded at, used to recognise the one function that says a
+	// program actually powered on a VM (see xhPowerOnRange).
+	XHyperMgrObj      string
+	XHyperMgrAddr     uint64
 	PrintMachineCheck bool
 	// Abort early on syz-executor not replying to requests and print extra debugging information.
 	DebugTimeouts bool
@@ -202,6 +207,8 @@ func New(cfg *RemoteConfig) (Server, error) {
 		// gVisor/Starnix are not Linux, so filtering against Linux ranges won't work.
 		FilterSignal:      cfg.Type != targets.GVisor && cfg.Type != targets.Starnix,
 		XHyperCover:       cfg.XHyperCover,
+		XHyperMgrObj:      cfg.XHyperMgrObj,
+		XHyperMgrAddr:     cfg.XHyperMgrAddr,
 		PrintMachineCheck: true,
 		DebugTimeouts:     cfg.Debug,
 		Procs:             cfg.Procs,
@@ -594,6 +601,17 @@ func (serv *server) CreateInstance(id int, injectExec chan<- bool, updInfo Updat
 			// CreateInstance (the executor backend calls this, then inst.Run).
 			// Keep a drainer so the first exec result attaches the live rings.
 			runner.xh = &xhDrainer{id: id}
+		}
+		// The manager window is optional: present only when the plugin was
+		// given mgr_start/mgr_end. Keep a lazy drainer either way, for the
+		// same reason as above -- the files appear at QEMU's vcpu_init.
+		runner.xhMgr = openXHDrainerWindow(id, "_mgr")
+		// Resolved once per runner: the window tells how MUCH manager code a
+		// program drove, this tells WHETHER it got a VM running.
+		runner.xhPowerOnLo, runner.xhPowerOnHi =
+			xhPowerOnRange(serv.cfg.XHyperMgrObj, serv.cfg.XHyperMgrAddr)
+		if runner.xhMgr == nil {
+			runner.xhMgr = &xhDrainer{id: id, suffix: "_mgr"}
 		}
 	}
 	serv.mu.Lock()

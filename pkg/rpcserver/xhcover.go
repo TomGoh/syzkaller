@@ -16,9 +16,13 @@ import (
 // Same packing as the previous "XHCOV001" constant (0x313030564f434858):
 // the first file byte is the least-significant byte.
 const (
-	xhMagic    = uint64(0x323030564f434858)
-	xhVersion  = uint64(2)
-	xhHdrBytes = 4096
+	xhMagic = uint64(0x323030564f434858)
+	// xhVersion is the minimum supported header version (magic..nwords).
+	// xhVersionV3 adds text_end + img_hash after nwords; the drainer only
+	// needs textStart+granularity+nwords, so both versions drain identically.
+	xhVersion   = uint64(2)
+	xhVersionV3 = uint64(3)
+	xhHdrBytes  = 4096
 )
 
 // xhHeader is the defined prefix of the 4096-byte plugin header.
@@ -36,8 +40,13 @@ type xhHeader struct {
 // xhDrainer drains per-vCPU EL2 coverage bitmaps written by the QEMU
 // TCG plugin at /dev/shm/xh<instance>.<vcpu>.
 type xhDrainer struct {
-	id    int
-	vcpus []*xhVcpu
+	id int
+	// suffix selects which window's files this drainer owns: "" is the
+	// hypervisor's EL2 bitmap, "_mgr" the resource manager's EL1 one. The
+	// glob needs a literal dot after the prefix, so "<p>.*" never matches
+	// "<p>_mgr.0" and "<p>_mgr.*" never matches "<p>_mgr_cum.0".
+	suffix string
+	vcpus  []*xhVcpu
 	// live is set once a mapping taken after QEMU's vcpu_init is in place.
 	// CreateInstance runs before that open(O_TRUNC), so the first drain drops
 	// any earlier mapping and attaches the live files.
@@ -54,7 +63,13 @@ type xhVcpu struct {
 // openXHDrainer maps every valid /dev/shm/xh<id>.* bitmap.
 // It returns nil when no file has a matching magic/version and a usable size.
 func openXHDrainer(id int) *xhDrainer {
-	d := &xhDrainer{id: id}
+	return openXHDrainerWindow(id, "")
+}
+
+// openXHDrainerWindow maps one window's bitmaps. Each file carries its own
+// range in its header, so the same code drains either window.
+func openXHDrainerWindow(id int, suffix string) *xhDrainer {
+	d := &xhDrainer{id: id, suffix: suffix}
 	if !d.attach() {
 		return nil
 	}
@@ -71,7 +86,7 @@ func (d *xhDrainer) attach() bool {
 	if prefix == "" {
 		prefix = fmt.Sprintf("/dev/shm/xh%d", d.id)
 	}
-	matches, err := filepath.Glob(prefix + ".*")
+	matches, err := filepath.Glob(prefix + d.suffix + ".*")
 	if err != nil || len(matches) == 0 {
 		return false
 	}
@@ -101,7 +116,7 @@ func openXHVcpu(path string) *xhVcpu {
 		return nil
 	}
 	hdr := (*xhHeader)(unsafe.Pointer(&data[0]))
-	if hdr.magic != xhMagic || hdr.version != xhVersion {
+	if hdr.magic != xhMagic || (hdr.version != xhVersion && hdr.version != xhVersionV3) {
 		syscall.Munmap(data)
 		return nil
 	}

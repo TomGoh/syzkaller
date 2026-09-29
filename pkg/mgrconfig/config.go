@@ -180,6 +180,20 @@ type Config struct {
 	// It does not enable KCOV. Off by default; a no-op when the files are absent.
 	XHyperCover bool `json:"xhyper_cover"`
 
+	// XHyperMgrObj is the resource manager's ELF, and XHyperMgrAddr the address
+	// the hypervisor loaded it at. The manager runs at EL1 as its own binary,
+	// outside KernelObj's address range, so without these its blocks reach the
+	// coverage report as unresolvable addresses and are dropped -- the /cover
+	// page then shows the hypervisor only, although half the program-driven
+	// coverage is the manager's. Declaring it as a module makes the report
+	// symbolize it: the backend adds Addr to the ELF's symbols and subtracts it
+	// again when looking a PC up, which is exactly right for an ELF linked at 0
+	// and placed elsewhere at run time. The address is not fixed across builds,
+	// so it is derived per launch (tools/xhyper-fuzz/xh-probe-root-entry.sh)
+	// rather than written down.
+	XHyperMgrObj  string `json:"xhyper_mgr_obj"`
+	XHyperMgrAddr uint64 `json:"xhyper_mgr_addr"`
+
 	// Reproduce, localize and minimize crashers (default: true).
 	Reproduce bool `json:"reproduce"`
 

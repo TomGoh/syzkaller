@@ -382,10 +382,22 @@ func appendLineFrames(lr *dwarf.LineReader, module *vminfo.KernelModule, interne
 		if hasPrev && !prev.EndSequence && prev.File != nil && prev.Line > 0 &&
 			prev.Address != 0 && entry.Address > prev.Address {
 			name, path := CleanPath(prev.File.Name, kernelDirs, splitBuildDelimiters)
+			// Line addresses come out of DWARF in the object's own address
+			// space, which for a module is where it was LINKED, not where it
+			// runs. Covered PCs arrive at run-time addresses, so a module's
+			// frames have to be rebased or they can never match: the report
+			// then shows the module with a full denominator and zero covered,
+			// which reads exactly like "this module executed nothing". The
+			// core kernel has Addr 0 and is unaffected. The symbolize path
+			// (see the +mod.Addr there) already did this; this path did not.
+			base := uint64(0)
+			if module != nil && module.Name != "" {
+				base = module.Addr
+			}
 			*frames = append(*frames, &Frame{
 				Module:   module,
-				PC:       prev.Address,
-				PCEnd:    entry.Address,
+				PC:       prev.Address + base,
+				PCEnd:    entry.Address + base,
 				Name:     interner.Do(name),
 				Path:     interner.Do(path),
 				FuncName: "",
