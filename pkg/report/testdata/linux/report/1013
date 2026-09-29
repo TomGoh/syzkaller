@@ -1,0 +1,12 @@
+# Hypervisor boot error carrying its stage and error variant. REAL capture, lines
+# 442-444 of docs/artifacts/xhyper-mut-20260920-agent-logs/repro4.log (repro2/3/5 have
+# the same three lines). Both markers are bare, no console prefix, and the line before
+# them is the tail of a register dump -- a lone "]". Here the marker appears without a
+# preceding ROOTVM_FATAL so the boot error is the first oops; in all four real captures
+# ROOTVM_FATAL comes first and wins instead, because findFirstOops returns on the first
+# matching LINE and rule order in linuxOopses cannot override that.
+TITLE: XHYPER host boot error: runtime UnexpectedExit
+
+]
+XHYPER_HOST_BOOT_ERROR stage=runtime error=UnexpectedExit { pc: 1204155592, reason: WaitForInterrupt }
+qemu-system-aarch64: terminating on signal 15 from pid 213515 (timeout)

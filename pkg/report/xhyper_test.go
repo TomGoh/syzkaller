@@ -119,19 +119,48 @@ func TestXHyperCrashTitles(t *testing.T) {
 		t.Fatalf("panic marked corrupted: %s", rep.CorruptedReason)
 	}
 
-	bootLog := []byte("XHYPER_HOST_BOOT_ERROR stage=dt error=denied\n")
-	if !reporter.ContainsCrash(bootLog) {
-		t.Fatal("XHYPER_HOST_BOOT_ERROR was not recognized")
-	}
-	rep = reporter.Parse(bootLog)
-	if rep == nil {
-		t.Fatal("Parse returned nil for host boot error")
-	}
-	if rep.Title != "XHYPER host boot error" {
-		t.Fatalf("boot title: %q", rep.Title)
-	}
-	if rep.Corrupted {
-		t.Fatalf("boot error marked corrupted: %s", rep.CorruptedReason)
+	// The shapes below are the ones entry/src/host.rs can actually print:
+	// report_failure() formats "stage={stage} error={error:?}", the stages are the
+	// string literals "start", "primary-affinity" and "runtime", and the error is a
+	// Rust Debug. The fixture this test used to carry, "stage=dt error=denied", is
+	// not producible by that code -- no such stage exists and a Debug of an enum
+	// variant is capitalised -- so it asserted the title of an input that cannot
+	// occur. The stage and the variant name are stable identities of the failure and
+	// now appear in the title; anything inside the braces (a pc, a cpu index) is
+	// runtime state and stays out of it.
+	for _, tc := range []struct{ line, title string }{
+		{
+			// Real capture: docs/artifacts/xhyper-mut-20260920-agent-logs/repro4.log.
+			"XHYPER_HOST_BOOT_ERROR stage=runtime error=UnexpectedExit " +
+				"{ pc: 1204155592, reason: WaitForInterrupt }",
+			"XHYPER host boot error: runtime UnexpectedExit",
+		},
+		{
+			"XHYPER_HOST_BOOT_ERROR stage=start error=Spawn { cpu: 3 }",
+			"XHYPER host boot error: start Spawn",
+		},
+		{
+			// The one site that passes a &str rather than an error type: its Debug
+			// is quoted, so it does not look like a variant and falls back to the
+			// generic title. That is deliberate -- free text is not an identity.
+			`XHYPER_HOST_BOOT_ERROR stage=primary-affinity error="empty CPU0 affinity"`,
+			"XHYPER host boot error",
+		},
+	} {
+		bootLog := []byte(tc.line + "\n")
+		if !reporter.ContainsCrash(bootLog) {
+			t.Fatalf("XHYPER_HOST_BOOT_ERROR was not recognized: %v", tc.line)
+		}
+		rep = reporter.Parse(bootLog)
+		if rep == nil {
+			t.Fatalf("Parse returned nil for host boot error: %v", tc.line)
+		}
+		if rep.Title != tc.title {
+			t.Fatalf("boot title: %q, want %q", rep.Title, tc.title)
+		}
+		if rep.Corrupted {
+			t.Fatalf("boot error marked corrupted: %s", rep.CorruptedReason)
+		}
 	}
 
 	// A normal boot line shares the prefix up to BOOT_ but is not a crash.

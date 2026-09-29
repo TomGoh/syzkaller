@@ -498,8 +498,13 @@ func (ctx *linux) findReport(output []byte, oops *oops, startPos int, context st
 				}
 			}
 		}
+		// An empty context means the oops line carried no console prefix, so we don't
+		// know which CPU/task it belongs to and can't filter continuation lines by it.
+		// Dropping them would truncate the report to its first line. extractFaultInjectionReport
+		// already guards the comparison this way.
 		if !isOopsLine && (questionable ||
-			context1 != context && (!cpuTraceback || !ctx.cpuContext.MatchString(context1))) {
+			context != "" && context1 != context &&
+				(!cpuTraceback || !ctx.cpuContext.MatchString(context1))) {
 			continue
 		}
 		textLines++
@@ -2832,7 +2837,13 @@ var linuxOopses = append([]*oops{
 		[]byte("XHYPER PANIC:"),
 		[]oopsFormat{
 			{
-				// XHyper's panic handler prints bootln!("XHYPER PANIC: {}", info).
+				// XHyper's panic handler (core/kruntime/src/lang_items.rs) prints
+				// kprintln!("XHYPER PANIC: {}", info). It has a second bootln!
+				// call with the same marker, but that one is behind
+				// #[cfg(MACHINE_AARCH64_T11206)] and the fuzzing image is
+				// MACHINE=qemu, so on this target only the kprintln! path exists
+				// -- which is a no-op until the runtime stdout port is up, so a
+				// panic before that point prints nothing at all.
 				// Rust 1.95 PanicInfo Display spans two lines: "panicked at
 				// <file>:<line>:<col>:" then the real message on the next line.
 				// The single-line rule below only saw the location, so every
@@ -2853,8 +2864,26 @@ var linuxOopses = append([]*oops{
 		[]*regexp.Regexp{},
 	},
 	{
+		// XHyper prints "XHYPER_HOST_BOOT_ERROR stage=<s> error=<Variant> { ... }".
+		// The stage and the error variant are stable identities of the failure, so
+		// they belong in the title; the pc inside the braces is runtime state and
+		// must stay out of it or every occurrence becomes its own bug.
+		//
+		// In all four real captures we hold (docs/artifacts/
+		// xhyper-mut-20260920-agent-logs/repro[2-5].log) this line is preceded by
+		// "ROOTVM_FATAL reason=HlosStart", and findFirstOops scans LINE by line and
+		// returns on the first line matching any rule -- so the Manager-layer title
+		// wins and rule order in this table cannot change that. Making this title
+		// specific therefore does not affect those captures; it matters for a boot
+		// error that appears on its own, which no capture shows yet.
 		[]byte("XHYPER_HOST_BOOT_ERROR"),
 		[]oopsFormat{
+			{
+				title: compile(`XHYPER_HOST_BOOT_ERROR stage=([A-Za-z0-9_-]+) ` +
+					`error=([A-Za-z][A-Za-z0-9_]*)`),
+				fmt:          "XHYPER host boot error: %[1]v %[2]v",
+				noStackTrace: true,
+			},
 			{
 				title:        compile("XHYPER_HOST_BOOT_ERROR"),
 				fmt:          "XHYPER host boot error",
@@ -2872,6 +2901,45 @@ var linuxOopses = append([]*oops{
 			{
 				title:        compile("XHYPER_EL2_PAGE_FAULT"),
 				fmt:          "XHYPER EL2 page fault",
+				noStackTrace: true,
+			},
+		},
+		[]*regexp.Regexp{},
+	},
+	{
+		// A host vCPU was lost. XHyper prints this from the runtime dispatch path
+		// when a pass over a host vCPU fails; the vCPU is then left
+		// disposition=Blocked(Internal) and never runs again. The rest of the
+		// machine stays alive -- sshd keeps answering on the other CPUs -- so
+		// without this rule the instance does not crash, it silently stops making
+		// progress and burns the remaining run time.
+		//
+		// Evidence that this is unrecoverable rather than a transient complaint:
+		// in every serial capture we hold the line occurs exactly once and nothing
+		// meaningful follows it (docs/artifacts/xhyper-fuzz-findings-20260928/
+		// pci-vdevice-wedges-vm-start/fresh-serial-*.log, cause
+		// UnsupportedHypercall), and it also appears in an unrelated context, the
+		// N80 lid-suspend record of 2026-09-15, with cause SecondaryContext
+		// (Duplicate) and the note that the machine died and needed a hard reboot.
+		// Two contexts, two causes, no observed recovery.
+		//
+		// The hypercall number is kept in the title on purpose: distinct
+		// unimplemented calls are distinct missing features and each deserves its
+		// own reproducer. It is spelled "hypercall_72" rather than "hypercall 72"
+		// because sanitizeTitle rewrites a digit run to NUM only when a non-word
+		// character precedes it; the underscore is what preserves the number.
+		[]byte("pass on pCPU"),
+		[]oopsFormat{
+			{
+				title: compile(`Host vCPU[0-9]+ pass on pCPU[0-9]+ failed \([^)]*\): ` +
+					`UnsupportedHypercall \{ number: ([0-9]+)`),
+				fmt:          "XHYPER host vCPU lost: unsupported hypercall_%[1]v",
+				noStackTrace: true,
+			},
+			{
+				title: compile(`Host vCPU[0-9]+ pass on pCPU[0-9]+ failed \([^)]*\): ` +
+					`([A-Za-z][A-Za-z0-9_]*)`),
+				fmt:          "XHYPER host vCPU lost: %[1]v",
 				noStackTrace: true,
 			},
 		},

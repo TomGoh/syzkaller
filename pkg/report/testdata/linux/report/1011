@@ -1,0 +1,18 @@
+# Host vCPU lost to an unimplemented hypercall. REAL capture, spliced verbatim from
+# docs/artifacts/xhyper-fuzz-findings-20260928/pci-vdevice-wedges-vm-start/
+# fresh-serial-09-virtio-mmio.log lines 680-691 (a virtio-mmio vdevice reaching
+# hypercall 72, partition_create_virtio_backend). Note the shape: four unprefixed
+# lowercase diagnostic lines, no crash marker, no shutdown, and the host kernel keeps
+# answering ssh afterwards -- which is why this used to read as "no progress" rather
+# than as a crash. The hypercall number must survive into the title.
+TITLE: XHYPER host vCPU lost: unsupported hypercall_72
+
+[78] Sep 28 15:27:36 Exit (root) from <10.0.2.2:57528>: Disconnect received
+[80] Sep 28 15:27:36 Child connection from 10.0.2.2:57532
+[80] Sep 28 15:27:37 Pubkey auth succeeded for 'root' with ssh-rsa key SHA256:SZOYT5pcwp8vmBm1d4a1jGNYC3ddLdNgLi3RqFVZEpE from 10.0.2.2:57532
+runtime dispatch: stage=timer-state failed thread=ObjectHandle { id: 2, generation: 0 } pcpu=0 generation=117 cause=UnsupportedHypercall { number: 72, arguments: [2, 1, 0, 0, 0, 0, 0, 0], pc: 1203821424 }
+runtime dispatch: stopped unsettled run thread=ObjectHandle { id: 2, generation: 0 } pcpu=0 disposition=Blocked(Internal)
+Host vCPU0 exit completion failed: UnsupportedHypercall { number: 72, arguments: [2, 1, 0, 0, 0, 0, 0, 0], pc: 1203821424 }
+Host vCPU0 pass on pCPU0 failed (1 failed passes): UnsupportedHypercall { number: 72, arguments: [2, 1, 0, 0, 0, 0, 0, 0], pc: 1203821424 }
+[   19.694802][ 1]  sched: DL replenish lagged too much
+[80] Sep 28 15:28:06 Exit (root) from <10.0.2.2:57532>: Disconnect received

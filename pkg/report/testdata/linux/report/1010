@@ -1,0 +1,9 @@
+# Both panic lines fully prefixed. This shape already worked; it is here so a future
+# change to the findReport context guard cannot fix the mixed case by breaking the
+# homogeneous one. CONSTRUCTED, not observed.
+TITLE: XHYPER PANIC: index out of bounds: the len is NUM but the index is NUM
+
+[    0.593806][ 1]  gunyah: Running under Gunyah hypervisor 51/v1
+[   16.100000][ 0] XHYPER PANIC: panicked at hypervisor/runtime/src/lib.rs:23570:9:
+[   16.100001][ 0] index out of bounds: the len is 4 but the index is 91
+[   16.649659][ 0]  sched: DL replenish lagged too much

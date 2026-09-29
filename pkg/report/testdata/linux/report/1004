@@ -3,7 +3,19 @@
 # tripping the host WARN_ON in kvm_call_hyp_nvhe at arch/arm64/kvm/vmid.c. It is a
 # KNOWN, non-fatal, cumulative-state finding handed to the kernel owner; a long fuzzing
 # run would otherwise re-flag it as a crash every few minutes and churn the target.
-# Ignored in ctorLinux: no TITLE => ContainsCrash must be false.
+#
+# SUPERSEDED 2026-09-29. The line above used to read "Ignored in ctorLinux: no TITLE
+# => ContainsCrash must be false", and that is no longer the policy. 01836edf1 removed
+# all three pKVM/arm64 KVM WARN ignores on purpose (see the NOTE in ctorLinux): the
+# campaign re-baselines with nothing hidden, so a WARN that still fires is either a
+# regression of a fix we rely on or a finding the old filter was masking, and the
+# throughput cost of tearing the instance down is accepted. This case therefore now
+# asserts the WARN IS reported. Restore the no-TITLE form only together with a scoped
+# ignore in ctorLinux, never on its own.
+TITLE: WARNING in kvm_arm_vmid_update
+TYPE: WARNING
+FRAME: kvm_arm_vmid_update
+EXECUTOR: proc=2, id=13004
 
 [ 1026.120461] ------------[ cut here ]------------
 [ 1026.125777] WARNING: CPU: 0 PID: 30899 at arch/arm64/kvm/vmid.c:69 kvm_arm_vmid_update+0x724/0x778

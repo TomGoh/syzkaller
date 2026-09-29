@@ -1,0 +1,7 @@
+TITLE: XHYPER PANIC: index out of bounds: the len is NUM but the index is NUM
+
+[    0.593806][ 1]  gunyah: Running under Gunyah hypervisor 51/v1
+XHYPER_ROOT_ENTRY ipa=0x47c0003c pa=0x47c00000 env=0x47ce3000
+XHYPER PANIC: panicked at hypervisor/runtime/src/lib.rs:23570:9:
+index out of bounds: the len is 4 but the index is 91
+[   16.649659][ 0]  sched: DL replenish lagged too much

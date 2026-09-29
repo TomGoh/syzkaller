@@ -1,0 +1,15 @@
+# Mixed console prefixes: the XHyper panic's FIRST line is unprefixed and its
+# CONTINUATION line carries a full [timestamp][cpu] prefix. CONSTRUCTED, not observed:
+# XHyper's kprintln! writes the shared UART directly with no prefix, so both lines are
+# normally bare (see 1007, which is a real capture), but a host printk from another CPU
+# can interleave between them. Before the context!="" guard in findReport the
+# continuation was dropped as belonging to a different context, the two-line rule at
+# linuxOopses could not match, and the fallback produced a location-only title that
+# merges unrelated panics. Assert the specific message survives.
+TITLE: XHYPER PANIC: index out of bounds: the len is NUM but the index is NUM
+
+[    0.593806][ 1]  gunyah: Running under Gunyah hypervisor 51/v1
+XHYPER_ROOT_ENTRY ipa=0x47c0003c pa=0x47c00000 env=0x47ce3000
+XHYPER PANIC: panicked at hypervisor/runtime/src/lib.rs:23570:9:
+[   16.100001][ 0] index out of bounds: the len is 4 but the index is 91
+[   16.649659][ 0]  sched: DL replenish lagged too much

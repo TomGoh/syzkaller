@@ -1,0 +1,11 @@
+# Same host-vCPU loss, different cause, so it must get a DIFFERENT title rather than
+# deduplicating with 1011. REAL capture, quoted in
+# docs/artifacts/n80-20260916-lidfix-verified/README.md: the N80 lid-suspend context
+# checkout defect, where the record notes the serial turned to garbage and the machine
+# needed a hard reboot. That independent case is the evidence that this line means an
+# unrecoverable loss and not a transient complaint.
+TITLE: XHYPER host vCPU lost: SecondaryContext
+
+XHYPER_VITS_DISABLED vits=29
+Host vCPU0 exit completion failed: SecondaryContext(Duplicate)
+Host vCPU0 pass on pCPU0 failed (1 failed passes): SecondaryContext(Duplicate)
