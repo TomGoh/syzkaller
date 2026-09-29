@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -67,9 +68,25 @@ type Runner struct {
 	xhProgsNoMgr int
 	xhMgrHist    [len(xhMgrBuckets) + 1]int
 	xhStarted    int
-	// Resolved once per runner from the manager ELF; zero when not configured.
-	xhPowerOnLo uint64
-	xhPowerOnHi uint64
+	// Resolved once per runner from the manager ELF; empty when not configured.
+	xhWayRanges []xhRange
+	xhWayHits   [len(xhWaypoints)]int
+	// Counted per distinct combination of waypoints, not per waypoint: a
+	// stage can be skipped legitimately (a document asking for its device
+	// tree to be preserved never installs a projection), so independent
+	// per-stage totals cannot tell a skipped stage from a failed one. The
+	// path a program took can.
+	xhWayPaths map[uint32]int
+	// Outcomes taken from the program's own return values, not from coverage.
+	xhSetupOK, xhSetupFail int
+	xhStartOK, xhStartFail int
+	// Why a start failed, keyed by the errno the program itself received. The
+	// waypoints can only say which function was entered; the errno is the only
+	// signal that says what it returned, and the failures split into causes
+	// that live at different places in the Manager (a projection slice out of
+	// range, an image that would not sync, a missing boot vCPU, an entry
+	// address the vCPU refused). Without this the 290 failures are one lump.
+	xhStartErrno map[int32]int
 
 	// The mutex protects all the fields below.
 	mu          sync.Mutex
@@ -165,25 +182,27 @@ func (runner *Runner) Handshake(conn *flatrpc.Conn, cfg *handshakeConfig) (hands
 // results concatenate into one set without aliasing. The second return value is
 // how many of them came from the Manager window, which is what tells a program
 // that actually built a VM from one that was rejected before the Manager did
-// any work, and the third whether it got as far as powering a VM on.
-func (runner *Runner) xhDrainAll() ([]uint64, int, bool) {
+// any work, and the third which start stages it reached.
+func (runner *Runner) xhDrainAll() ([]uint64, int, [len(xhWaypoints)]bool) {
 	var pcs []uint64
 	if runner.xh != nil {
 		pcs = runner.xh.drain()
 	}
-	mgr, poweredOn := 0, false
+	mgr := 0
+	var reached [len(xhWaypoints)]bool
 	if runner.xhMgr != nil {
 		m := runner.xhMgr.drain()
 		mgr = len(m)
 		for _, pc := range m {
-			if runner.xhPowerOnLo != 0 && pc >= runner.xhPowerOnLo && pc < runner.xhPowerOnHi {
-				poweredOn = true
-				break
+			for i, r := range runner.xhWayRanges {
+				if r.lo != 0 && pc >= r.lo && pc < r.hi {
+					reached[i] = true
+				}
 			}
 		}
 		pcs = append(pcs, m...)
 	}
-	return pcs, mgr, poweredOn
+	return pcs, mgr, reached
 }
 
 // xhNoteProgram records whether a program drove the Manager at all, and logs
@@ -198,40 +217,141 @@ func (runner *Runner) xhDrainAll() ([]uint64, int, bool) {
 // this side noticing. Counting the programs that reached the Manager at all
 // makes that waste visible directly instead of inferring it from how bursty the
 // coverage curve is.
-// xhPowerOnRange finds ConfigurationDomain::power_on_vm in the manager's ELF,
-// rebased to where the hypervisor loads it.
+// xhWaypoints are ordered stages of secondary-VM start, each named by one
+// function in the manager's ELF. A program's drained manager window is matched
+// against them to record HOW FAR it got.
 //
-// Why that function: it is the last thing start_vm does, after projection,
-// memory policy and the virtual-RTC rollback have all succeeded, and its body
-// writes the boot vCPU's registers. So a program whose drained manager window
-// touches it demonstrably STARTED a VM, while one that was refused earlier did
-// not -- and the two are otherwise hard to tell apart, because a refused
-// configuration still parses the whole document and so still covers thousands
-// of manager blocks. Counting blocks alone cannot separate them; this can.
-func xhPowerOnRange(objPath string, loadAddr uint64) (lo, hi uint64) {
+// Why ordered waypoints rather than a single "did it start" flag: most programs
+// reach the manager and then fail somewhere before power-on, and a block count
+// cannot say where -- a configuration refused at the very first stage still
+// parses the whole document and covers thousands of blocks, so the failures all
+// look alike. Knowing which stage they stop at is what turns "most programs
+// waste themselves" into something that can be acted on.
+var xhWaypoints = [...]struct {
+	name string
+	sym  string
+}{
+	// "reached the manager" is too weak on its own: any /dev/gunyah operation
+	// makes the manager do RPC work, with no configuration document involved.
+	// This one runs only when a guest configuration is actually submitted, so
+	// it separates "never tried to build a VM" from "tried and was refused".
+	{"submitted", "read_secondary_configuration"},
+	{"configured", "realize_configuration"},
+	{"objects", "realize_vm_objects_with_watchdog"},
+	{"projected", "install_secondary_projection_transaction"},
+	{"started", "power_on_vm"},
+}
+
+type xhRange struct{ lo, hi uint64 }
+
+// xhResolveWaypoints locates each waypoint in the manager's ELF, rebased to
+// where the hypervisor loads it. A waypoint that cannot be found is left zero
+// and never matches, so a renamed function degrades to "not reached" rather
+// than to a wrong answer.
+func xhResolveWaypoints(objPath string, loadAddr uint64) []xhRange {
+	out := make([]xhRange, len(xhWaypoints))
 	if objPath == "" || loadAddr == 0 {
-		return 0, 0
+		return out
 	}
 	f, err := elf.Open(objPath)
 	if err != nil {
-		return 0, 0
+		return out
 	}
 	defer f.Close()
 	syms, err := f.Symbols()
 	if err != nil {
-		return 0, 0
+		return out
 	}
-	for _, s := range syms {
-		if elf.ST_TYPE(s.Info) != elf.STT_FUNC || s.Size == 0 {
-			continue
+	for i, wp := range xhWaypoints {
+		// Symbols are mangled monomorphisations, so the match is on a
+		// substring -- but taking the first hit and stopping would silently
+		// pick whichever symbol the table happens to list first, and that
+		// order is not stable across links. One of these substrings does
+		// appear in two symbols (a monomorphisation carrying the other's
+		// closure in its name), so a reordering would move the waypoint onto
+		// an unrelated function and report a confident WRONG answer, which is
+		// worse than reporting nothing. Require exactly one match.
+		var hits []elf.Symbol
+		for _, sym := range syms {
+			if elf.ST_TYPE(sym.Info) != elf.STT_FUNC || sym.Size == 0 {
+				continue
+			}
+			if strings.Contains(sym.Name, wp.sym) {
+				hits = append(hits, sym)
+			}
 		}
-		// The symbol is a mangled monomorphisation, so match on the substring
-		// rather than on an exact name.
-		if strings.Contains(s.Name, "power_on_vm") {
-			return loadAddr + s.Value, loadAddr + s.Value + s.Size
+		switch len(hits) {
+		case 1:
+			out[i] = xhRange{loadAddr + hits[0].Value, loadAddr + hits[0].Value + hits[0].Size}
+		case 0:
+			log.Logf(0, "xhyper: waypoint %v (%v) not found; it will read as never reached",
+				wp.name, wp.sym)
+		default:
+			log.Logf(0, "xhyper: waypoint %v (%v) matches %v symbols, so it is disabled "+
+				"rather than guessed; narrow the substring", wp.name, wp.sym, len(hits))
 		}
 	}
-	return 0, 0
+	return out
+}
+
+// xhNoteOutcomes records whether the calls that build and start a VM actually
+// succeeded, taken from the program's own errno.
+//
+// Why this is needed on top of the waypoints: every waypoint fires on ENTERING
+// a function, so "reached power-on" is not "powered on" -- that function can
+// still fail on a missing boot vCPU or on the entry address the document gave.
+// The start call's errno covers the whole operation including its last step, so
+// it is the one signal that says succeeded, while the waypoints only say where
+// a failure happened. The two answer different questions and neither replaces
+// the other. This information was available from the first day; it took looking
+// outside the coverage data to notice.
+func (runner *Runner) xhNoteOutcomes(prog *prog.Prog, calls []*flatrpc.CallInfo) {
+	// Per PROGRAM, not per call. Most corpus programs configure the same VM
+	// twice, and the second attempt necessarily fails because the VM is
+	// already configured -- the descriptions let the pseudo-call take a VM fd
+	// without consuming it, and coverage guidance likes the shape because the
+	// failure path is new coverage. Counting calls therefore produced exactly
+	// as many failures as successes, a number too tidy to be a property of the
+	// target. What matters is whether a program managed it at all.
+	var setupTried, setupOK, startTried, startOK bool
+	var startErrno int32
+	for i, call := range prog.Calls {
+		if i >= len(calls) || calls[i] == nil {
+			break
+		}
+		ok := calls[i].Error == 0
+		switch call.Meta.CallName {
+		case "syz_gunyah_setup_vm", "syz_gunyah_setup_vm_lend":
+			setupTried = true
+			setupOK = setupOK || ok
+		case "syz_gunyah_add_vcpu":
+			// This helper issues the start itself, so its result is the
+			// start's result.
+			startTried = true
+			startOK = startOK || ok
+			if !ok && startErrno == 0 {
+				startErrno = calls[i].Error
+			}
+		}
+	}
+	if setupTried {
+		if setupOK {
+			runner.xhSetupOK++
+		} else {
+			runner.xhSetupFail++
+		}
+	}
+	if startTried {
+		if startOK {
+			runner.xhStartOK++
+		} else {
+			runner.xhStartFail++
+			if runner.xhStartErrno == nil {
+				runner.xhStartErrno = make(map[int32]int)
+			}
+			runner.xhStartErrno[startErrno]++
+		}
+	}
 }
 
 // xhMgrBuckets splits programs by how much Manager code they drove. The
@@ -242,12 +362,23 @@ func xhPowerOnRange(objPath string, loadAddr uint64) (lo, hi uint64) {
 // it is the SHAPE that says whether there is a third population.
 var xhMgrBuckets = [...]int{1, 100, 1000, 3000, 6000}
 
-func (runner *Runner) xhNoteProgram(mgrBlocks int, poweredOn bool) {
+func (runner *Runner) xhNoteProgram(mgrBlocks int, reached [len(xhWaypoints)]bool) {
 	runner.xhProgs++
 	if mgrBlocks == 0 {
 		runner.xhProgsNoMgr++
 	}
-	if poweredOn {
+	var path uint32
+	for i, hit := range reached {
+		if hit {
+			runner.xhWayHits[i]++
+			path |= 1 << uint(i)
+		}
+	}
+	if runner.xhWayPaths == nil {
+		runner.xhWayPaths = make(map[uint32]int)
+	}
+	runner.xhWayPaths[path]++
+	if reached[len(reached)-1] {
 		runner.xhStarted++
 	}
 	b := 0
@@ -266,6 +397,57 @@ func (runner *Runner) xhNoteProgram(mgrBlocks int, poweredOn bool) {
 		runner.xhStarted, 100*float64(runner.xhStarted)/float64(runner.xhProgs),
 		runner.xhMgrHist[0], runner.xhMgrHist[1], runner.xhMgrHist[2],
 		runner.xhMgrHist[3], runner.xhMgrHist[4], runner.xhMgrHist[5])
+	var stages string
+	for i, wp := range xhWaypoints {
+		stages += fmt.Sprintf(" %v:%v", wp.name, runner.xhWayHits[i])
+	}
+	log.Logf(0, "xhyper: start stages reached out of %v programs:%v", runner.xhProgs, stages)
+	paths := make([]uint32, 0, len(runner.xhWayPaths))
+	for k := range runner.xhWayPaths {
+		paths = append(paths, k)
+	}
+	sort.Slice(paths, func(a, b int) bool {
+		return runner.xhWayPaths[paths[a]] > runner.xhWayPaths[paths[b]]
+	})
+	var out string
+	for n, k := range paths {
+		if n == 6 {
+			break
+		}
+		label := "none"
+		if k != 0 {
+			label = ""
+			for i, wp := range xhWaypoints {
+				if k&(1<<uint(i)) != 0 {
+					if label != "" {
+						label += "+"
+					}
+					label += wp.name
+				}
+			}
+		}
+		out += fmt.Sprintf(" [%v]=%v", label, runner.xhWayPaths[k])
+	}
+	log.Logf(0, "xhyper: stage paths taken:%v", out)
+	log.Logf(0, "xhyper: per-program outcomes: configured ok=%v fail=%v, started ok=%v fail=%v",
+		runner.xhSetupOK, runner.xhSetupFail, runner.xhStartOK, runner.xhStartFail)
+	if len(runner.xhStartErrno) != 0 {
+		errnos := make([]int32, 0, len(runner.xhStartErrno))
+		for k := range runner.xhStartErrno {
+			errnos = append(errnos, k)
+		}
+		sort.Slice(errnos, func(a, b int) bool {
+			return runner.xhStartErrno[errnos[a]] > runner.xhStartErrno[errnos[b]]
+		})
+		var errOut string
+		for n, k := range errnos {
+			if n == 6 {
+				break
+			}
+			errOut += fmt.Sprintf(" errno%v=%v", k, runner.xhStartErrno[k])
+		}
+		log.Logf(0, "xhyper: start failures by errno:%v", errOut)
+	}
 }
 
 func (runner *Runner) ConnectionLoop() error {
@@ -614,7 +796,10 @@ func (runner *Runner) handleExecResult(msg *flatrpc.ExecResult) error {
 		// EL2 PCs are not guest-kernel text. Append them after convertCallInfo,
 		// which drops addresses outside the kernel module map.
 		if runner.xh != nil || runner.xhMgr != nil {
-			pcs, mgrBlocks, poweredOn := runner.xhDrainAll()
+			pcs, mgrBlocks, reached := runner.xhDrainAll()
+			if msg.Info.Freshness != 0 {
+				runner.xhNoteOutcomes(req.Prog, msg.Info.Calls)
+			}
 			// Freshness 0 means the executor (re)started just before this
 			// program, so the drained window also holds the VM's boot and
 			// background hypervisor coverage.
@@ -639,7 +824,7 @@ func (runner *Runner) handleExecResult(msg *flatrpc.ExecResult) error {
 				// Executor restart: this window is background activity, not
 				// this program's. Drop it, as before. The boot mask is built
 				// in ConnectionLoop and is not touched here.
-			} else if runner.xhNoteProgram(mgrBlocks, poweredOn); len(pcs) != 0 {
+			} else if runner.xhNoteProgram(mgrBlocks, reached); len(pcs) != 0 {
 				if msg.Info.Extra == nil {
 					msg.Info.Extra = &flatrpc.CallInfo{}
 				}

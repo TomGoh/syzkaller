@@ -606,10 +606,9 @@ func (serv *server) CreateInstance(id int, injectExec chan<- bool, updInfo Updat
 		// given mgr_start/mgr_end. Keep a lazy drainer either way, for the
 		// same reason as above -- the files appear at QEMU's vcpu_init.
 		runner.xhMgr = openXHDrainerWindow(id, "_mgr")
-		// Resolved once per runner: the window tells how MUCH manager code a
-		// program drove, this tells WHETHER it got a VM running.
-		runner.xhPowerOnLo, runner.xhPowerOnHi =
-			xhPowerOnRange(serv.cfg.XHyperMgrObj, serv.cfg.XHyperMgrAddr)
+		// Resolved once per runner: the window says how MUCH manager code a
+		// program drove, these say HOW FAR along VM start it got.
+		runner.xhWayRanges = xhResolveWaypoints(serv.cfg.XHyperMgrObj, serv.cfg.XHyperMgrAddr)
 		if runner.xhMgr == nil {
 			runner.xhMgr = &xhDrainer{id: id, suffix: "_mgr"}
 		}
