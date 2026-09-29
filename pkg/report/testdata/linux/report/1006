@@ -1,0 +1,557 @@
+TITLE: Internal error in gunyah_vm_ioctl
+ALT: bad-access in gunyah_vm_ioctl
+TYPE: DoS
+FRAME: gunyah_vm_ioctl
+EXECUTOR: proc=0, id=222
+
+last executing test programs:
+
+20.255990379s ago: executing program 0 (id=217):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r0, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r1, 0x4703)
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+openat$gunyah(0xffffffffffffff9c, &(0x7f0000000300), 0x82000, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r3, 0x40104702, &(0x7f0000000080)={0x0, 0x1000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+r4 = eventfd2(0x3, 0x800)
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(r3, 0x40104707, &(0x7f0000000280)={0x3, 0x20, &(0x7f0000000240)={0x5, 0x1, 0x4, r4, 0x1}})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+ioctl$GH_VM_START(r3, 0x4703)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+eventfd2(0x4, 0x1)
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(r3, 0x40104707, &(0x7f0000000380)={0x3, 0x20, &(0x7f0000000340)={0x2, 0xeeee8000, 0x0, r4}})
+r5 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000002c0), 0x2, 0x0)
+ioctl$GH_CREATE_VM(r5, 0x4700)
+
+15.600182322s ago: executing program 0 (id=218):
+mmap$GH_VCPU(&(0x7f0000ffe000/0x2000)=nil, 0x0, 0x200000d, 0x10, 0xffffffffffffffff, 0x0)
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+close(0xffffffffffffffff)
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r3, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x2, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r2, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r3, 0x4703)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r0, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r1, 0x4703)
+
+11.800739921s ago: executing program 0 (id=219):
+mmap$GH_VCPU(&(0x7f0000ffe000/0x2000)=nil, 0x0, 0x200000d, 0x10, 0xffffffffffffffff, 0x0)
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(0xffffffffffffffff, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0xeeef0000, 0x1, &(0x7f0000003000/0x1000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000380)={0x1, 0x4, &(0x7f00000003c0)={0x7}})
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(0xffffffffffffffff, 0x40104702, &(0x7f0000000400)={0x1, 0x1001})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000005000/0x1000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(0xffffffffffffffff, 0x40104707, &(0x7f0000000340)={0x1, 0x4, &(0x7f0000000440)={0x3}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0xfffff000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r2, 0x35ffb000)
+close(r2)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r3, 0x4703)
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+openat$gunyah(0xffffffffffffff9c, &(0x7f0000000300), 0x82000, 0x0)
+r5 = ioctl$GH_CREATE_VM(r4, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r5, 0x40104702, &(0x7f0000000080)={0xeeee0000, 0x1000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x4, 0x1, 0x1, 0x4000, &(0x7f0000ffd000/0x3000)=nil})
+r6 = eventfd2(0x3, 0x800)
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(r5, 0x40104707, &(0x7f0000000280)={0x3, 0x20, &(0x7f0000000240)={0x5, 0x1, 0x4, r6, 0x1}})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000002c0)={0xffffffff}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r5, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r5, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+
+9.345616683s ago: executing program 0 (id=220):
+mmap$GH_VCPU(&(0x7f0000ffe000/0x2000)=nil, 0x0, 0x200000d, 0x10, 0xffffffffffffffff, 0x0)
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000240)={0xa, 0x1, 0x0, 0xffffffff, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+close(0xffffffffffffffff)
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r3, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r2, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r3, 0x4703)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r0, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r1, 0x4703)
+
+6.103048972s ago: executing program 0 (id=221):
+mmap$GH_VCPU(&(0x7f0000001000/0x2000)=nil, 0x0, 0x3000005, 0x8010, 0xffffffffffffffff, 0x0)
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0xffff1000, 0x1ffd})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000100)={0x3, 0x6, 0x0, 0x4000, &(0x7f0000005000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}}) (async)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}}) (async)
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0) (async)
+close(0xffffffffffffffff)
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(0xffffffffffffffff, 0x40104702, &(0x7f0000000240)={0x1000, 0xffffffff}) (async)
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil}) (async, rerun: 64)
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}}) (async, rerun: 64)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff) (async, rerun: 64)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0) (rerun: 64)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000280)={0x7, 0x1, 0x1}}) (async, rerun: 64)
+close(0xffffffffffffffff) (async, rerun: 64)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r2, 0x35ffb000) (async)
+close(0xffffffffffffffff) (async)
+close(0xffffffffffffffff) (async)
+ioctl$GH_VM_START(r1, 0x4703)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff) (async)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r0, 0x35ffb000) (async, rerun: 64)
+close(0xffffffffffffffff) (rerun: 64)
+close(0xffffffffffffffff) (async)
+ioctl$GH_VM_START(r1, 0x4703)
+
+0s ago: executing program 0 (id=222):
+mmap$GH_VCPU(&(0x7f0000ffe000/0x2000)=nil, 0x0, 0x200000d, 0x10, 0xffffffffffffffff, 0x0)
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(0xffffffffffffffff, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0xeeee0000, 0x4000, &(0x7f0000009000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r3, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000005000/0x1000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000340)={0x1, 0x4, &(0x7f00000002c0)={0x2}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0xfffff000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x4012, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r2, 0x35ffb000)
+close(r2)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r3, 0x4703)
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+openat$gunyah(0xffffffffffffff9c, &(0x7f0000000300), 0x82000, 0x0)
+r5 = ioctl$GH_CREATE_VM(r4, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r5, 0x40104702, &(0x7f0000000080)={0x0, 0x1000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+r6 = eventfd2(0x3, 0x800)
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(r5, 0x40104707, &(0x7f0000000280)={0x3, 0x20, &(0x7f0000000240)={0x5, 0x1, 0x4, r6, 0x1}})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r5, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r5, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r5, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+
+kernel console output (not intermixed with test programs):
+
+[75] Sep 27 17:41:19 Exit (root) from <10.0.2.2:41304>: Disconnect received
+[77] Sep 27 17:41:20 Child connection from 10.0.2.2:41316
+[77] Sep 27 17:41:22 Pubkey auth succeeded for 'root' with ssh-rsa key SHA256:SZOYT5pcwp8vmBm1d4a1jGNYC3ddLdNgLi3RqFVZEpE from 10.0.2.2:41316
+[77] Sep 27 17:41:54 Exit (root) from <10.0.2.2:41316>: Disconnect received
+[79] Sep 27 17:41:55 Child connection from 10.0.2.2:56224
+[79] Sep 27 17:41:58 Pubkey auth succeeded for 'root' with ssh-rsa key SHA256:SZOYT5pcwp8vmBm1d4a1jGNYC3ddLdNgLi3RqFVZEpE from 10.0.2.2:56224
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a8b000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a88000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a130000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42c80000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a535000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a481000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a135000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a80000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a48b000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a56000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a45000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a476000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42ae7000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42ace000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a67000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x40bb6000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x40bb7000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42c0a000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42c08000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42af7000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a492000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a41000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x433e8000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42c19000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x4a500000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a3f000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42a81000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418e44 esr=0x93810046 far=0x20000280 hpfar=0x49e000 ipa=0x49e00280
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x418e44 esr=0x93810046 far=0x20000284 hpfar=0x49e000 ipa=0x49e00284
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x41ca6c esr=0x93c28046 far=0x20000288 hpfar=0x49e000 ipa=0x49e00288
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x418e0c esr=0x93c18046 far=0x20000240 hpfar=0x49e000 ipa=0x49e00240
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x418e0c esr=0x93c18046 far=0x20000248 hpfar=0x49e000 ipa=0x49e00248
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418e44 esr=0x93810046 far=0x20000250 hpfar=0x49e000 ipa=0x49e00250
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418e44 esr=0x93810046 far=0x20000254 hpfar=0x49e000 ipa=0x49e00254
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418e44 esr=0x93810046 far=0x20000258 hpfar=0x49e000 ipa=0x49e00258
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x418e44 esr=0x93810046 far=0x2000025c hpfar=0x49e000 ipa=0x49e0025c
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418e44 esr=0x93810046 far=0x20000200 hpfar=0x49e000 ipa=0x49e00200
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0xffffbb338653cea4 esr=0x93c78006 far=0x20000280 hpfar=0x49e000 ipa=0x49e00280
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x418e44 esr=0x93810046 far=0x20000204 hpfar=0x49e000 ipa=0x49e00204
+[  810.510136][ 0]  Internal error: synchronous external abort: 0000000096000010 [#1] PREEMPT SMP
+[  810.513183][ 0]  Modules linked in:
+[  810.514429][ 0]  CPU: 0 PID: 1139 Comm: syz.0.222 Tainted: G   M              ------- ----  6.6.103-xhfuzz #3
+[  810.515020][ 0]  Source Version: Unknown
+[  810.515295][ 0]  Hardware name: XHyper Host VM (DT)
+[  810.515836][ 0]  pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[  810.516250][ 0]  pc : __arch_copy_from_user+0x218/0x230
+[  810.516692][ 0]  lr : gunyah_vm_ioctl+0x49c/0xea8
+[  810.518313][ 0]  sp X: ffff800HYPE08R_H107bd30
+OST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0x41ca[  816c0.5 esr18=70x0932]c2[ 8040]  6x29 far=: 0xffff80008107bd200080 x280208: ff hpfaff3cr=0f40x4a0092809e000 x2 ip7:a= 000000000000x0000049e0
+0208
+[  810.519967][ 0]  x26: 0000000000000000 x25: 0000000000000000 x24: 0000000000000000
+[  810.520419][ 0]  x23: 0000000000000008 x22: 0000000020000280 x21: 0000000040104707
+[  810.520825][ 0]  x20: ffff3c0f42a7ecc0 x19: ffff3c0f4a17cc00 x18: 0000000000000000
+[  810.521364][ 0]  x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000280
+[  810.521811][ 0]  x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[  810.522253][ 0]  x11: 0000000000000000 x10: 0000000000000000 x9 : 0000000000000008
+[  810.522802][ 0]  x8 : ffff3c0f42a7ecc0 x7 : 0000000020000280 x6 : ffff80008107bd58
+[  810.523374][ 0]  x5 : ffff80008107bd68 x4 : 0000000000000000 x3 : 0000000000000010
+[  810.523821][ 0]  x2 : 0000000000000010 x1 : 0000000020000280 x0 : ffff80008107bd58
+[  810.524425][ 0]  Call trace:
+[  810.524663][ 0]   __arch_copy_from_user+0x218/0x230
+[  810.525039][ 0]   __arm64_sys_ioctl+0xa8/0xe4
+[  810.525330][ 0]   invoke_syscall.constprop.0+0Xx6HYPER_HO0/ST0x130
+_EXIT_UNRESOLVED detail=host-exit-unhandled[ vc  pu=810.521 p25853][c= 0]   0x41el8e440_ esr=svc_c0x93810o046mm far=on.0xconstprop.0200001c0+0x38 hpf/0axd8r=
+0x49e000 ipa=0x49e001c0[ 
+ 810.526975][ 0]   do_el0_svc+0x1c/0x28
+[  810.527522][ 0]   el0_svc+0x30/0xd4
+[  810.527710][ 0]   el0t_64_sync_handler+0x120/0x12c
+[  810.527944][ 0]   el0t_64_sync+0x190/0x194
+[  810.528411][ 0]  Code: f240145f 54fff321 d2800000 d65f03c0 (eb0000df) 
+[  810.529119][ 0]  ---[ end trace 0000000000000000 ]---
+SYZFAIL: rpc peer closed connection (EOF)
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0xffffbb338653cea4 esr=0x93c78006 far=0x20000200 hpfar=0x49e000 ipa=0x49e00200
+[  810.632557][ 1]  Internal error: synchronous external abort: 0000000096000010 [#2] PREEMPT SMP
+[  810.633087][ 1]  Modules linked in:
+[  810.633372][ 1]  CPU: 1 PID: 1140 Comm: syz.0.222 Tainted: G   M  D           ------- ----  6.6.103-xhfuzz #3
+[  810.636152][ 1]  Source Version: Unknown
+[  810.636403][ 1]  Hardware name: XHyper Host VM (DT)
+[  810.636647][ 1]  pstate: 80401005 (Nzcv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[  810.637057][ 1]  pc : __arch_copy_from_user+0x218/0x230
+[  810.637468][ 1]  lr : gunyah_vm_ioctl+0x49c/0xea8
+[  810.637841][ 1]  sp : ffff800081073d30
+[  810.638083][ 1]  x29: ffff800081073d80 x28: ffff3c0f4a4d8000 x27: 0000000000000000
+[  810.638528][ 1]  x26: 0000000000000000 x25: 0000000000000000 x24: 0000000000000000
+[  810.638931][ 1]  x23: 0000000000000008 x22: 0000000020000200 x21: 0000000040104707
+[  810.639561][ 1]  x20: ffff3c0f42a7ecc0 x19: ffff3c0f4a17cc00 x18: 0000000000000000
+[  810.639912][ 1]  x17: 0000000000000000 x16: 0000000000000000 x15: 0000000020000200
+[  810.640292][ 1]  x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[  810.640652][ 1]  x11: 0000000000000000 x10: 0000000000000000 x9 : 0000000000000008
+[  810.641286][ 1]  x8 : ffff3c0f42a7ecc0 x7 : 0000000020000200 x6 : ffff800081073d58
+[  810.641925][ 1]  x5 : ffff800081073d68 x4 : 0000000000000000 x3 : 0000000000000010
+[  810.642334][ 1]  x2 : 0000000000000010 x1 : 0000000020000200 x0 : ffff800081073d58
+[  810.642758][ 1]  Call trace:
+[  810.642923][ 1]   __arch_copy_from_user+0x218/0x230
+[  810.643241][ 1]   __arm64_sys_ioctl+0xa8/0xe4
+[  810.643558][ 1]   invoke_syscall.constprop.0+0x60/0x130
+[  810.643811][ 1]   el0_svc_common.constprop.0+0x38/0xd8
+[  810.644063][ 1]   do_el0_svc+0x1c/0x28
+[  810.644254][ 1]   el0_svc+0x30/0xd4
+[  810.644453][ 1]   el0t_64_sync_handler+0x120/0x12c
+[  810.644769][ 1]   el0t_64_sync+0x190/0x194
+[  810.645056][ 1]  Code: f240145f 54fff321 d2800000 d65f03c0 (eb0000df) 
+[  810.645535][ 1]  ---[ end trace 0000000000000000 ]---
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418e44 esr=0x93810046 far=0x20000040 hpfar=0x49e000 ipa=0x49e00040
+fd=3 want=4 recv=0 (errno 9: Bad file descriptor)
+[79] Sep 27 17:54:04 Exit (root) from <10.0.2.2:56224>: Disconnect received

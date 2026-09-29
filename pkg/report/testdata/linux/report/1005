@@ -1,0 +1,321 @@
+TITLE: Internal error in getname_flags
+ALT: bad-access in getname_flags
+TYPE: DoS
+FRAME: getname_flags
+EXECUTOR: proc=2, id=330
+
+last executing test programs:
+
+13m35.120769201s ago: executing program 0 (id=5):
+mmap(0x0, 0x0, 0x0, 0x0, 0xffffffffffffffff, 0x0)
+
+13m28.631980903s ago: executing program 0 (id=8):
+mmap(&(0x7efffffff000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0000000000/0x1000000)=nil, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0001000000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+
+13m23.328042398s ago: executing program 0 (id=9):
+mmap(&(0x7efffffff000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0000000000/0x1000000)=nil, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0001000000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+
+13m16.655863332s ago: executing program 0 (id=11):
+mmap(&(0x7efffffff000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0000000000/0x1000000)=nil, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0001000000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+
+13m11.476295941s ago: executing program 0 (id=12):
+mmap(&(0x7efffffff000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0000000000/0x1000000)=nil, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0001000000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+
+13m8.691860432s ago: executing program 0 (id=13):
+mmap(&(0x7efffffff000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0000000000/0x1000000)=nil, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0001000000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+
+13m6.692084665s ago: executing program 1 (id=14):
+mmap(&(0x7efffffff000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0000000000/0x1000000)=nil, 0x1000000, 0x7, 0x32, 0xffffffffffffffff, 0x0)
+mmap(&(0x7f0001000000/0x1000)=nil, 0x1000, 0x0, 0x32, 0xffffffffffffffff, 0x0)
+
+13.447432155s ago: executing program 2 (id=325):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1000, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000340)={0x3, 0x3, 0x10000, 0x4000, &(0x7f0000007000/0x3000)=nil})
+close(0xffffffffffffffff)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000240)={0x1000, 0x3000})
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x7000})
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r5 = ioctl$GH_CREATE_VM(r4, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r5, 0x40104702, &(0x7f0000000180)={0x1000, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r5, 0x40204701, &(0x7f0000000100)={0x2, 0x3, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r5, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(0xffffffffffffffff, 0x40104704, &(0x7f00000002c0)={0x3, 0x20, &(0x7f0000000000)={0xffffffeffffffffe, 0xffffffff}})
+close(r0)
+mmap(&(0x7f0000ffe000/0x1000)=nil, 0x1000, 0x2000002, 0x8010, 0xffffffffffffffff, 0x3000)
+close(0xffffffffffffffff)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r0, 0x40104704, &(0x7f0000000240)={0x3, 0x20, &(0x7f0000000140)={0x3, 0x800117ff, 0x2}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0xa, 0x40010, 0xffffffffffffffff, 0x35ffa000)
+close(r3)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r5, 0x4703)
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000380)={0x7fffffff, 0x5, 0xfffff000, 0x1, &(0x7f0000ffa000/0x3000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+r6 = openat$gunyah(0xffffffffffffff9c, &(0x7f0000000280), 0x40203, 0x0)
+ioctl$GH_CREATE_VM(r6, 0x4700)
+
+10.669313397s ago: executing program 2 (id=326):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f0000000240), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000}) (async)
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000007000/0x3000)=nil}) (async)
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}}) (async)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}}) (async)
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0) (async)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}}) (async)
+close(0xffffffffffffffff) (async)
+mmap(&(0x7f0000ffe000/0x1000)=nil, 0x1000, 0x2000001, 0x110, 0xffffffffffffffff, 0x5b540000) (async)
+close(r0)
+close(0xffffffffffffffff) (async)
+ioctl$GH_VM_START(r1, 0x4703) (async)
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f0000000280), 0x40800, 0x0)
+ioctl$GH_CREATE_VM(r2, 0x4700) (async)
+ioctl$GH_VM_SET_DTB_CONFIG(0xffffffffffffffff, 0x40104702, &(0x7f0000000080)={0x1001}) (async)
+r3 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r4 = ioctl$GH_CREATE_VM(r3, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r4, 0x40104702, &(0x7f0000000180)={0x1000, 0x2000}) (async)
+ioctl$GH_VM_SET_USER_MEM_REGION(r4, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil}) (async)
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r4, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(0xffffffffffffffff, 0x40104704, &(0x7f00000002c0)={0x3, 0x20, &(0x7f0000000000)={0xffffffeffffffffe, 0xffffffff}}) (async)
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+close(0xffffffffffffffff) (async)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r4, 0x40104704, &(0x7f0000000240)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2}})
+close(0xffffffffffffffff) (async)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0xa, 0x40010, 0xffffffffffffffff, 0x35ffa000)
+close(0xffffffffffffffff)
+
+7.975587518s ago: executing program 2 (id=327):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1000, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000300)={0x3, 0x3, 0x10000, 0x4000, &(0x7f0000007000/0x3000)=nil})
+close(0xffffffffffffffff)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000240)={0x1000, 0x3000})
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x7000})
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r5 = ioctl$GH_CREATE_VM(r4, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r5, 0x40104702, &(0x7f0000000180)={0x1000, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r5, 0x40204701, &(0x7f0000000100)={0x2, 0x3, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r5, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(0xffffffffffffffff, 0x40104704, &(0x7f00000002c0)={0x3, 0x20, &(0x7f0000000000)={0xffffffeffffffffe, 0xffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000ffe000/0x1000)=nil, 0x1000, 0x2000002, 0x8010, 0xffffffffffffffff, 0x3000)
+close(0xffffffffffffffff)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r0, 0x40104704, &(0x7f0000000240)={0x3, 0x20, &(0x7f0000000140)={0x3, 0x800117ff, 0x2}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0xa, 0x40010, 0xffffffffffffffff, 0x35ffa000)
+close(r3)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r5, 0x4703)
+ioctl$GH_VM_SET_USER_MEM_REGION(r5, 0x40204701, &(0x7f0000000100)={0x2, 0x1, 0x1001, 0x2000, &(0x7f0000003000/0x1000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000340)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+r6 = openat$gunyah(0xffffffffffffff9c, &(0x7f0000000280), 0x40203, 0x0)
+ioctl$GH_CREATE_VM(r6, 0x4700)
+
+5.197083057s ago: executing program 2 (id=328):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1000, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000300)={0x3, 0x3, 0x10000, 0x4000, &(0x7f0000007000/0x3000)=nil})
+close(0xffffffffffffffff)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000240)={0x1000, 0x3000})
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x7000})
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r5 = ioctl$GH_CREATE_VM(r4, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r5, 0x40104702, &(0x7f0000000180)={0x1000, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r5, 0x40204701, &(0x7f0000000100)={0x2, 0x3, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r5, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(0xffffffffffffffff, 0x40104704, &(0x7f00000002c0)={0x3, 0x20, &(0x7f0000000000)={0xffffffeffffffffe, 0xffffffff}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000ffe000/0x1000)=nil, 0x1000, 0x2000002, 0x8010, 0xffffffffffffffff, 0x3000)
+close(0xffffffffffffffff)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r0, 0x40104704, &(0x7f0000000240)={0x3, 0x20, &(0x7f0000000140)={0x3, 0x800117ff, 0x2}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0xa, 0x40010, 0xffffffffffffffff, 0x35ffa000)
+close(r3)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r5, 0x4703)
+ioctl$GH_VM_SET_USER_MEM_REGION(r5, 0x40204701, &(0x7f0000000100)={0x2, 0x1, 0x1001, 0x2000, &(0x7f0000007000/0x3000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+r6 = openat$gunyah(0xffffffffffffff9c, &(0x7f0000000280), 0x40203, 0x0)
+ioctl$GH_CREATE_VM(r6, 0x4700)
+
+2.217918616s ago: executing program 2 (id=329):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000100)={0x7fffffff, 0x6, 0x2000, 0x4000, &(0x7f0000004000/0x1000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r0, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r1, 0x4703)
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+openat$gunyah(0xffffffffffffff9c, &(0x7f0000000300), 0x82000, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r3, 0x40104702, &(0x7f0000000080)={0x10000, 0x10000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(r3, 0x40104707, &(0x7f0000000280)={0x3, 0x20, &(0x7f0000000240)={0x5, 0x1, 0x4, 0xffffffffffffffff, 0x1}})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+ioctl$GH_VM_START(r3, 0x4703)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x3, 0x32, 0xffffffffffffffff, 0x0)
+eventfd2(0x4, 0x1)
+openat$gunyah(0xffffffffffffff9c, &(0x7f00000002c0), 0x109903, 0x0)
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+ioctl$GH_CREATE_VM(r4, 0x4700)
+
+0s ago: executing program 2 (id=330):
+r0 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r1 = ioctl$GH_CREATE_VM(r0, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r1, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r1, 0x40204701, &(0x7f0000000100)={0x3, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r1, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+r2 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+r3 = ioctl$GH_CREATE_VM(r2, 0x4700)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r1, 0x40104704, &(0x7f0000000340)={0x3, 0x20, &(0x7f00000002c0)={0x2, 0x100000000, 0x4, r2}})
+ioctl$GH_VM_SET_DTB_CONFIG(r3, 0x40104702, &(0x7f0000000080)={0x1001, 0x2000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r3, 0x40204701, &(0x7f0000000100)={0x3, 0x7, 0x0, 0x4000, &(0x7f0000001000/0x4000)=nil})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r3, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f00000001c0)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000040)={0x3, 0x20, &(0x7f0000000000)={0x5, 0x100000000, 0x4}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0x11000)=nil, 0x11000, 0x2000003, 0x2010, 0xffffffffffffffff, 0x0)
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r3, 0x40104704, &(0x7f0000000180)={0x3, 0x20, &(0x7f0000000140)={0x6, 0x1, 0x2, 0xffffffffffffffff, 0x1}})
+close(0xffffffffffffffff)
+mmap(&(0x7f0000000000/0xa000)=nil, 0xa000, 0x8, 0x40010, r2, 0x35ffb000)
+close(0xffffffffffffffff)
+close(0xffffffffffffffff)
+ioctl$GH_VM_START(r3, 0x4703)
+r4 = openat$gunyah(0xffffffffffffff9c, &(0x7f00000000c0), 0x40480, 0x0)
+openat$gunyah(0xffffffffffffff9c, &(0x7f00000003c0), 0xa2440, 0x0)
+r5 = ioctl$GH_CREATE_VM(r4, 0x4700)
+ioctl$GH_VM_SET_DTB_CONFIG(r5, 0x40104702, &(0x7f0000000080)={0x0, 0x1000})
+ioctl$GH_VM_SET_USER_MEM_REGION(r5, 0x40204701, &(0x7f0000000100)={0xffffffff, 0x1, 0x0, 0x4000, &(0x7f0000ffd000/0x2000)=nil})
+r6 = eventfd2(0x0, 0x800)
+ioctl$GH_VM_REMOVE_FUNCTION_IOEVENTFD(r5, 0x40104707, &(0x7f0000000280)={0x3, 0x20, &(0x7f0000000240)={0x5, 0x1, 0x4, r6, 0x1}})
+ioctl$GH_VM_REMOVE_FUNCTION_VCPU(r5, 0x40104707, &(0x7f0000000200)={0x1, 0x4, &(0x7f0000000380)={0x7}})
+ioctl$GH_VM_ADD_FUNCTION_IOEVENTFD(r5, 0x40104704, &(0x7f0000000400)={0x3, 0x20, &(0x7f0000000000)={0x2, 0x100000000, 0x1}})
+ioctl$GH_VM_START(r5, 0x4703)
+
+kernel console output (not intermixed with test programs):
+
+[76] Sep 26 23:50:05 Exit (root) from <10.0.2.2:37590>: Disconnect received
+[79] Sep 26 23:50:05 Child connection from 10.0.2.2:40512
+[79] Sep 26 23:50:08 Pubkey auth succeeded for 'root' with ssh-rsa key SHA256:SZOYT5pcwp8vmBm1d4a1jGNYC3ddLdNgLi3RqFVZEpE from 10.0.2.2:40512
+[79] Sep 26 23:50:26 Exit (root) from <10.0.2.2:40512>: Disconnect received
+[81] Sep 26 23:50:27 Child connection from 10.0.2.2:42028
+[81] Sep 26 23:50:28 Pubkey auth succeeded for 'root' with ssh-rsa key SHA256:SZOYT5pcwp8vmBm1d4a1jGNYC3ddLdNgLi3RqFVZEpE from 10.0.2.2:42028
+mkswap: image is too small
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42e97000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x40bd4000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x40bd3000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_RESOURCE_REJECT hypercall=0x61 error=111 args=[
+    0x80000002,
+    0x10,
+    0x1e,
+    0x42e5f000,
+    0x1000,
+    0x0,
+    0x0,
+    0x0,
+]
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=21 pc=0xffffa63f267b95a8 esr=0x93c38006 far=0x200003c0 hpfar=0x420000 ipa=0x420003c0
+[  931.544507][ 1]  Internal error: synchronous external abort: 0000000096000010 [#1] PREEMPT SMP
+[  931.545233][ 1]  Modules linked in:
+[  931.546445][ 1]  CPU: 1 PID: 1628 Comm: syz.2.330 Tainted: G   M              ------- ----  6.6.103-xhfuzz #3
+[  931.547057][ 1]  Source Version: Unknown
+[  931.547373][ 1]  Hardware name: XHyper Host VM (DT)
+[  931.547875][ 1]  pstate: 20401005 (nzCv daif +PAN -UAO -TCO -DIT +SSBS BTYPE=--)
+[  931.548226][ 1]  pc : strncpy_from_user+0x90/0x140
+[  931.548609][ 1]  lr : getname_flags.part.0+0x48/0x1a8
+[  931.548966][ 1]  sp : ffff80008119bd10
+[  931.549254][ 1]  x29: ffff80008119bd10 x28: ffff761b4a3aa500 x27: 0000000000000000
+[  931.549813][ 1]  x26: 0000000000000000 x25: 0000000000000000 x24: 0000000000000000
+[  931.550202][ 1]  x23: 0000000060001000 x22: ffffa63f27636000 x21: 00000000200003c0
+[  931.550555][ 1]  x20: 0000000000000000 x19: ffff761b43096000 x18: 0000000000000000
+[  931.550920][ 1]  x17: 0000000000000000 x16: 0000000000000000 x15: 0000000000000000
+[  931.551310][ 1]  x14: 0000000000000000 x13: 0000000000000000 x12: 0000000000000000
+[  931.551683][ 1]  x11: 0000000000000000 x10: 0000000000000000 x9 : 0000000000000000
+[  931.552075][ 1]  x8 : 00000000200003c0 x7 : fefefefefefefeff x6 : 0000000000000fe0
+[  931.552533][ 1]  x5 : 0000000000000040 x4 : 0000000000000000 x3 : 00000000200003c0
+[  931.552909][ 1]  x2 : 0000000000000fe0 x1 : 00000000200003c0 x0 : ffff761b43096020
+[  931.553400][ 1]  Call trace:
+[  931.553575][ 1]   strncpy_from_user+0x90/0x140
+[  931.553848][ 1]   getname+0x30/0x58
+[  931.554025][ 1]   do_sys_openat2+0x90/0x134
+[  931.554221][ 1]   __arm64_sys_openat+0x68/0xb0
+[  931.554425][ 1]   invoke_syscall.constprop.0+0x60/0x130
+[  931.554680][ 1]   el0_svc_common.constprop.0+0x38/0xd8
+[  931.554947][ 1]   do_el0_svc+0x1c/0x28
+[  931.555218][ 1]   el0_svc+0x30/0xd4
+[  931.555437][ 1]   el0t_64_sync_handler+0x120/0x12c
+[  931.555742][ 1]   el0t_64_sync+0x190/0x194
+[  931.556183][ 1]  Code: f8246803 91002084 f1001cdf 54fffea8 (b40004a6) 
+[  931.556748][ 1]  ---[ end trace 0000000000000000 ]---
+[  931.730995][ 0]  gunyah: RM rejected message 56000034. Error: 6
+[  931.782620][ 1]  misc gunyah: Failed to set location of DTB mem parcel: -22
+SYZFAIL: rpc peer closed connection (EOF)
+fd=3 want=4 recv=0 (errno 11: Resource temporarily unavailable)
+XHYPER_HOST_EXIT_UNRESOLVED detail=host-exit-unhandled vcpu=15 pc=0x418eec esr=0x93c18046 far=0x20000080 hpfar=0x420000 ipa=0x42000080
+[81] Sep 27 00:04:54 Exit (root) from <10.0.2.2:42028>: Disconnect received

@@ -66,7 +66,10 @@ func ctorLinux(cfg *config) (reporterImpl, []string, error) {
 	}
 	ctx.consoleOutputRe = regexp.MustCompile(
 		`^(?:\*\* [0-9]+ printk messages dropped \*\* )?` +
-			`(?:.* login: )?(?:\<[0-9]+\>)?\[ *[0-9]+\.[0-9]+\](\[ *(?:C|T)[0-9]+\])? `)
+			// The bracketed field after the timestamp is the CPU/task context.
+			// Mainline prints [C<n>]/[T<n>]; the XHyper host kernel prints a
+			// bare [ <n>] (CPU number, no C/T letter), so the letter is optional.
+			`(?:.* login: )?(?:\<[0-9]+\>)?\[ *[0-9]+\.[0-9]+\](\[ *(?:C|T)?[0-9]+\])? `)
 	ctx.taskContext = regexp.MustCompile(`\[ *T[0-9]+\]`)
 	ctx.cpuContext = regexp.MustCompile(`\[ *C[0-9]+\]`)
 	ctx.questionableFrame = regexp.MustCompile(`(\[\<[0-9a-f]+\>\])? \? `)
@@ -1315,6 +1318,10 @@ var linuxStallAnchorFrames = []*regexp.Regexp{
 var (
 	linuxSymbolizeRe     = regexp.MustCompile(`(?:\[\<(?:(?:0x)?[0-9a-f]+)\>\])?[ \t]+\(?(?:[0-9]+:)?([a-zA-Z0-9_.]+)\+0x([0-9a-f]+)/0x([0-9a-f]+)( ?\[([a-zA-Z0-9_.]+)( .*)?\])?\)?`)
 	linuxRipFrame        = compile(`(?:IP|NIP|pc |PC is at):? (?:(?:[0-9]+:)?(?:{{PC}} +){0,2}{{FUNC}}|(?:[0-9]+:)?0x[0-9a-f]+|(?:[0-9]+:)?{{PC}} +\[< *\(null\)>\] +\(null\)|[0-9]+: +\(null\))`)
+	// arm64 link register from the exception dump; the caller of the faulting
+	// leaf. Used to attribute synchronous external aborts whose pc frame is a
+	// generic user-copy helper and whose call trace may be corrupted.
+	linuxLrFrame         = compile(`lr : (?:{{PC}} +)?{{FUNC}}`)
 	linuxCallTrace       = compile(`(?:Call (?:T|t)race:)|(?:Backtrace:)`)
 	linuxCodeRe          = regexp.MustCompile(`(?m)^\s*Code\:\s+((?:[A-Fa-f0-9\(\)\<\>]{2,8}\s*)*)\s*$`)
 	linuxSkipTrapInstrRe = regexp.MustCompile(`^ud2|brk\s+#0x800$`)
@@ -2720,6 +2727,30 @@ var linuxOopses = append([]*oops{
 		[]byte("Internal error:"),
 		[]oopsFormat{
 			{
+				// XHyper host: "Internal error: synchronous external abort"
+				// from a stage-2 fault while the host kernel touched
+				// donated/shared memory through a user-access fixup. When the
+				// pc frame is one of those user-copy helpers the leaf is
+				// uninformative and the call trace is often corrupted by
+				// interleaved XHYPER_HOST_* diagnostics, so attribute to the lr
+				// frame -- the real caller (getname_flags, gunyah_vm_ioctl).
+				// The report guard restricts this to the user-copy-helper case;
+				// aborts whose pc is a real function (e.g. clear_page) or an
+				// MMIO accessor (__raw_readb) fall through to the generic
+				// call-trace format below, which resolves them correctly. Both
+				// titles share the same start position; extractDescription keeps
+				// this first format at the tie when its guard matches.
+				title:  compile("Internal error: synchronous external abort"),
+				report: compile(`pc : (?:__arch_copy_from_user|__arch_copy_to_user|__arch_clear_user|strncpy_from_user|strnlen_user)`),
+				fmt:    "Internal error in %[1]v",
+				alt:    []string{"bad-access in %[1]v"},
+				stack: &stackFmt{
+					parts: []*regexp.Regexp{
+						linuxLrFrame,
+					},
+				},
+			},
+			{
 				title: compile("Internal error:"),
 				fmt:   "Internal error in %[1]v",
 				// arm64 shows some crashes as "Internal error: synchronous external abort",
@@ -2801,6 +2832,19 @@ var linuxOopses = append([]*oops{
 		[]byte("XHYPER PANIC:"),
 		[]oopsFormat{
 			{
+				// XHyper's panic handler prints bootln!("XHYPER PANIC: {}", info).
+				// Rust 1.95 PanicInfo Display spans two lines: "panicked at
+				// <file>:<line>:<col>:" then the real message on the next line.
+				// The single-line rule below only saw the location, so every
+				// panic at one source site (e.g. all EL1 page faults at
+				// excp.rs) deduplicated into one message-less title. Capture the
+				// second line so the title carries the actual message.
+				title:        compile(`XHYPER PANIC: panicked at [^\r\n]+\r?\n[ \t]*(?:\[[^\]]*\][ \t]*)?([^\r\n]+)`),
+				fmt:          "XHYPER PANIC: %[1]v",
+				noStackTrace: true,
+			},
+			{
+				// Fallback: a same-line panic message (assert!/panic!("...")).
 				title:        compile("XHYPER PANIC:[ \t]*([^\r\n]*)"),
 				fmt:          "XHYPER PANIC: %[1]v",
 				noStackTrace: true,
@@ -2818,6 +2862,62 @@ var linuxOopses = append([]*oops{
 			},
 		},
 		[]*regexp.Regexp{},
+	},
+	{
+		// EL2 stage-1 fault inside XHyper itself (arch/kcpu excp.rs). A serious
+		// hypervisor bug; the far/elr/esr values are runtime state, so the
+		// title stays generic and every occurrence deduplicates to one crash.
+		[]byte("XHYPER_EL2_PAGE_FAULT"),
+		[]oopsFormat{
+			{
+				title:        compile("XHYPER_EL2_PAGE_FAULT"),
+				fmt:          "XHYPER EL2 page fault",
+				noStackTrace: true,
+			},
+		},
+		[]*regexp.Regexp{},
+	},
+	{
+		// Manager (root VM) and HLOS fatal conditions. The Manager prints
+		// "MANAGER_FATAL reason=<r>", "ROOTVM_FATAL reason=<r>" and a family of
+		// "HLOS_<component>_FATAL" lines when it tears a domain down. These are
+		// no-stack markers on their own line. Header "_FATAL" gathers them all;
+		// the FATAL_PROBE suppression drops the Manager's "ROOTVM_FATAL_PROBE"
+		// self-test lines (relro-write, data-abort, ...), which are routine and
+		// not crashes. The final catch-all titles any other *_FATAL marker so a
+		// new one is recognised (never dropped) instead of panicking the parser.
+		// Do NOT add XHYPER_RESOURCE_REJECT or XHYPER_HOST_EXIT_UNRESOLVED here:
+		// those are routine per-abort diagnostics, not crashes.
+		[]byte("_FATAL"),
+		[]oopsFormat{
+			{
+				title:        compile("(HLOS_[A-Z0-9_]+_FATAL)"),
+				fmt:          "%[1]v",
+				noStackTrace: true,
+			},
+			{
+				// Capture the whole reason/kind/owner tail, not just reason:
+				// distinct Manager fatals (e.g. kind=ResetCleanup owner=
+				// Configuration vs owner=Memparcel) must not dedup into one
+				// crash. The fields are enum-like, so the title stays stable.
+				title:        compile("MANAGER_FATAL (reason=[^\r\n]+)"),
+				fmt:          "MANAGER_FATAL %[1]v",
+				noStackTrace: true,
+			},
+			{
+				title:        compile("ROOTVM_FATAL (reason=[^\r\n]+)"),
+				fmt:          "ROOTVM_FATAL %[1]v",
+				noStackTrace: true,
+			},
+			{
+				title:        compile("([A-Za-z0-9_]+_FATAL)"),
+				fmt:          "%[1]v",
+				noStackTrace: true,
+			},
+		},
+		[]*regexp.Regexp{
+			compile("FATAL_PROBE"),
+		},
 	},
 	&groupGoRuntimeErrors,
 }, commonOopses...)
